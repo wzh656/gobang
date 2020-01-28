@@ -34,7 +34,14 @@ console.log('控制台打印信息');
 </head>
 <body>
 
-<img src="background.jpg" id="img" style="margin:auto;width:100%;height:100%;" />
+<img src="background1.jpg" id="img" style="margin:auto;width:100%;height:100%;" />
+<script>
+if (screen.availHeight < screen.availWidth){
+	document.getElementById("img").src="background2.jpg";
+}else{
+	document.getElementById("img").src="background1.jpg";
+}
+</script>
 <h1 id="h1" style="font-size:100px;">五子棋</h1>
 <div style="margin:auto;width:25%;">
 	<button onclick="location.href='two.html';" title="点击进入双人对战">双人对战</button><br>
