@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>五子棋-双人对战</title>
+<link href="h.css" rel="stylesheet" type="text/css" />
+<link href="button.css" rel="stylesheet" type="text/css" />
+<script src="//cdn.jsdelivr.net/npm/eruda"></script>
+<script>
+eruda.init();
+console.log('控制台打印信息');
+</script>
+<style>
+button{
+	color:white;
+	background-color:#6a8;
+	border-radius:40px;
+	width:50px;
+	height:33px;
+	text-align:center;
+	line-height:20px;
+}
+</style>
+</head>
+<body>
+
+<button onclick="location.href='index.html';" id="back">返回</button>
+<button onclick="location.href='two.html';" id="again_two">重来</button>
+
+<h1 id="h1" style="text-align:center;font-size:50px;">五子棋-双人对战</h1>
+<br/><b id="message">下棋方：黑棋</b>
+<br>
+<canvas id="qp" width="500" height="500" style="border:1px solid black;">你的浏览器不支持“五子棋”，请切换浏览器。</canvas>
+<p>步数：<span id="length">0</span></p>
+
+<script>
+{
+	let message="五子棋双人对战模式";
+	let i=0;
+	let j=1;
+	let fx="1"; //方向
+	setInterval(function(){
+		document.title=String(message).substring(0,i)+"_";
+		if (i < 0){
+			if (j == 1){
+				message="welcome to 五子棋";
+				j++;
+			}else if (j == 2){
+				j=1;
+				message="五子棋-双人对战";
+			}else if (j == 3){
+				j=1;
+				message="MADE BY WZH";
+			}
+			fx*=(-1);
+			i=Number(i)+Number(fx);
+		}else if (i < message.length){
+			i=Number(i)+Number(fx);
+		}else{
+			fx*=(-1);
+			i=Number(i)+Number(fx);
+		}
+	},300); 
+}
+
+var message=document.getElementById("message");
+var length=document.getElementById("length");
+var xqf="黑棋"; //下棋方
+message.innerHTML="下棋方："+xqf;
+
+over=false; //结束
+length.innerHTML=0; //步数
+qz=new Array;
+for (var i=-5;i<19+5;i++){
+	qz[i]=new Array;
+	for (var j=-5;j<19+5;j++){
+		if (i < 0 | i >= 19 | j < 0 | j >= 19){
+			qz[i][j]=undefined;
+		}else{
+			qz[i][j]="";
+		}
+	}
+}
+var ctx=document.getElementById("qp").getContext("2d");
+ctx.font="30px Arial";
+ctx.fillText("找不到“棋盘.jpg”！",100,200);
+
+var img=new Image;
+img.src="qp.jpg";
+img.onload = function() {
+	ctx.drawImage(img,0,0);
+} //加载棋盘图片
+
+document.onmousedown = function(e){
+	var y=Math.round((e.pageX-37.7)/24.5);
+	var x=Math.round((e.pageY-247.8)/24.5);
+	console.log(e.pageX+","+e.pageY+"（"+x+","+y+"）");
+	if (qz[x][y] != undefined & qz[x][y] == "" & over == false){
+		length.innerHTML=Number(length.innerHTML)+1;
+		qz[x][y]=xqf;
+		if (xqf == "黑棋"){
+			xqf="白棋";
+			ctx.beginPath();
+			ctx.arc(y*24.5+29,x*24.5+178-150,24.5/2,0,2*Math.PI);
+			ctx.stroke();
+			ctx.fillStyle="black";
+			ctx.fill();
+			document.getElementById("message").style="color:white;background-color:black";			
+		}else if (xqf == "白棋"){
+			xqf="黑棋";
+			ctx.beginPath();
+			ctx.arc(y*24.5+29,x*24.5+178-150,24.5/2,0,2*Math.PI);
+			ctx.stroke();
+			ctx.fillStyle="white";
+			ctx.fill();
+			document.getElementById("message").style="color:black;background-color:white";
+		}
+		message.innerHTML="下棋方："+xqf;
+		
+		if (over == false){
+			for (var i in qz){
+				for (var j in qz[i]){
+					if (qz[i][j] != "" & qz[i][j] != undefined){
+						if (
+							(qz[i][j] == qz[i][Number(j)+1] & qz[i][j] == qz[i][Number(j)+2] & qz[i][j] == qz[i][Number(j)+3] & qz[i][j] == qz[i][Number(j)+4]) |
+							(qz[i][j] == qz[i][Number(j)-1] & qz[i][j] == qz[i][Number(j)-2] & qz[i][j] == qz[i][Number(j)-3] & qz[i][j] == qz[i][Number(j)-4]) |
+							(qz[i][j] == qz[Number(i)+1][j] & qz[i][j] == qz[Number(i)+2][j] & qz[i][j] == qz[Number(i)+3][j] & qz[i][j] == qz[Number(i)+4][j]) |
+							(qz[i][j] == qz[Number(i)-1][j] & qz[i][j] == qz[Number(i)-2][j] & qz[i][j] == qz[Number(i)-3][j] & qz[i][j] == qz[Number(i)-4][j]) |
+							(qz[i][j] == qz[Number(i)+1][Number(j)+1] & qz[i][j] == qz[Number(i)+2][Number(j)+2] & qz[i][j] == qz[Number(i)+3][Number(j)+3] & qz[i][j] == qz[Number(i)+4][Number(j)+4]) |
+							(qz[i][j] == qz[Number(i)+1][Number(j)-1] & qz[i][j] == qz[Number(i)+2][Number(j)-2] & qz[i][j] == qz[Number(i)+3][Number(j)-3] & qz[i][j] == qz[Number(i)+4][Number(j)-4]) |
+							(qz[i][j] == qz[Number(i)-1][Number(j)-1] & qz[i][j] == qz[Number(i)-2][Number(j)-2] & qz[i][j] == qz[Number(i)-3][Number(j)-3] & qz[i][j] == qz[Number(i)-4][Number(j)-4]) |
+							(qz[i][j] == qz[Number(i)-1][Number(j)+1] & qz[i][j] == qz[Number(i)-2][Number(j)+2] & qz[i][j] == qz[Number(i)-3][Number(j)+3] & qz[i][j] == qz[Number(i)-4][Number(j)+4])	
+						){
+							message.innerHTML="Game over\n"+qz[i][j]+"胜！！！";
+							setTimeout(function (){
+								alert("历经"+length.innerHTML+"步\n"+qz[i][j]+"胜！！！");
+							},1);
+							return ;
+						}
+					}
+				}
+			}
+		}		
+	}
+}
+
+/*
+　┐ ├┬─┐ ┌──┼┼┐
+　│ ││　 ┌──┼┼┐
+  │╯├─┐ ╭──┴╯   W
+  └╯│   ┌────┐    Z
+　│　├─┐ ├────┤    H
+　╰┘└　 └────╯
+© by WZH
+此文件为WZH所有
+禁止任何修改，抄袭！
+*/
+
+</script>
+
+</body>
+</html>
