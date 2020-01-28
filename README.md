@@ -1,4 +1,3 @@
-## HELLO
-welcome to WZH's website.
+# 五子棋
 
-_(this is a test)_
+[点击进入](index.html)
