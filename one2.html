@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>五子棋-人机对战</title>
+<link href="h.css" rel="stylesheet" type="text/css" />
+<link href="button.css" rel="stylesheet" type="text/css" />
+<script src="//cdn.jsdelivr.net/npm/eruda"></script>
+<script>
+eruda.init();
+console.log('控制台打印信息');
+</script>
+<style>
+button{
+	color:white;
+	background-color:#6a8;
+	border-radius:40px;
+	width:50px;
+	height:33px;
+	text-align:center;
+	line-height:20px;
+}
+</style>
+</head>
+<body>
+
+<button onclick="location.href='index.html';" id="back">返回</button>
+<button onclick="location.href='one2.html';" id="again_two">重来</button>
+
+<h1 id="h1" style="text-align:center;font-size:50px;">五子棋-人机对战</h1>
+<br/><b id="message">下棋方：黑棋</b>
+<br/><b id="message2"></b>
+<br>
+<canvas id="qp" width="500" height="500" style="border:1px solid black;">你的浏览器不支持“五子棋”，请切换浏览器。</canvas>
+<p>步数：<span id="length">0</span></p>
+
+<script>
+{
+	let message="五子棋人机对战模式";
+	let i=0;
+	let j=1;
+	let fx="1"; //方向
+	setInterval(function(){
+		document.title=String(message).substring(0,i)+"_";
+		if (i < 0){
+			if (j == 1){
+				message="welcome to 五子棋";
+				j++;
+			}else if (j == 2){
+				j=1;
+				message="五子棋-人机对战";
+			}else if (j == 3){
+				j=1;
+				message="MADE BY WZH";
+			}
+			fx*=(-1);
+			i=Number(i)+Number(fx);
+		}else if (i < message.length){
+			i=Number(i)+Number(fx);
+		}else{
+			fx*=(-1);
+			i=Number(i)+Number(fx);
+		}
+	},300); 
+}
+
+if (Math.round(Math.random()) == 0){
+	computer="黑棋";
+	document.getElementById("message2").innerHTML="电脑执黑棋";
+	document.getElementById("message2").style="color:black;background-color:white";
+}else{
+	computer="白棋";
+	document.getElementById("message2").innerHTML="电脑执白棋";
+	document.getElementById("message2").style="color:white;background-color:black";
+}
+
+xqf="黑棋"; //下棋方
+var message=document.getElementById("message");
+var length=document.getElementById("length");
+message.innerHTML="下棋方："+xqf;
+
+over=false; //结束
+length.innerHTML=0; //步数
+qz=new Array;
+for (var i=-5;i<19+5;i++){
+	qz[i]=new Array;
+	for (var j=-5;j<19+5;j++){
+		if (i < 0 | i >= 19 | j < 0 | j >= 19){
+			qz[i][j]=undefined;
+		}else{
+			qz[i][j]="";
+		}
+	}
+}
+var ctx=document.getElementById("qp").getContext("2d");
+ctx.font="30px Arial";
+ctx.fillText("棋盘加载中……",100,200);
+
+var img=new Image;
+img.src="qp.jpg";
+img.onload = function() {
+	ctx.drawImage(img,0,0);
+	if (computer == xqf){
+		computer_play();
+	}
+} //加载棋盘图片
+
+document.onmousedown = function(e){
+	var y=Math.round((e.pageX-37.7)/24.5);
+	var x=Math.round((e.pageY-270)/24.5);
+	
+	console.log(e.pageX+","+e.pageY+"（"+x+","+y+"）");
+	if (qz[x][y] != undefined & qz[x][y] == "" & over == false){
+		length.innerHTML=Number(length.innerHTML)+1;
+		qz[x][y]=xqf;
+		if (xqf == "黑棋"  & computer != "黑棋"){
+			xqf="白棋";
+			ctx.beginPath();
+			ctx.arc(y*24.5+29,x*24.5+178-150,24.5/2,0,2*Math.PI);
+			ctx.stroke();
+			ctx.fillStyle="black";
+			ctx.fill();
+			document.getElementById("message").style="color:white;background-color:black";
+		}else if (xqf == "白棋"  & computer != "白棋"){
+			xqf="黑棋";
+			ctx.beginPath();
+			ctx.arc(y*24.5+29,x*24.5+178-150,24.5/2,0,2*Math.PI);
+			ctx.stroke();
+			ctx.fillStyle="white";
+			ctx.fill();
+			document.getElementById("message").style="color:black;background-color:white";
+		}
+		
+		message.innerHTML="下棋方："+xqf;
+		
+		if (xqf == computer){
+			computer_play();
+		}
+		
+		if (over == false){
+			for (var i in qz){
+				for (var j in qz[i]){
+					if (qz[i][j] != "" & qz[i][j] != undefined){
+						if (
+							(qz[i][j] == qz[i][Number(j)+1] & qz[i][j] == qz[i][Number(j)+2] & qz[i][j] == qz[i][Number(j)+3] & qz[i][j] == qz[i][Number(j)+4]) |
+							(qz[i][j] == qz[i][Number(j)-1] & qz[i][j] == qz[i][Number(j)-2] & qz[i][j] == qz[i][Number(j)-3] & qz[i][j] == qz[i][Number(j)-4]) |
+							(qz[i][j] == qz[Number(i)+1][j] & qz[i][j] == qz[Number(i)+2][j] & qz[i][j] == qz[Number(i)+3][j] & qz[i][j] == qz[Number(i)+4][j]) |
+							(qz[i][j] == qz[Number(i)-1][j] & qz[i][j] == qz[Number(i)-2][j] & qz[i][j] == qz[Number(i)-3][j] & qz[i][j] == qz[Number(i)-4][j]) |
+							(qz[i][j] == qz[Number(i)+1][Number(j)+1] & qz[i][j] == qz[Number(i)+2][Number(j)+2] & qz[i][j] == qz[Number(i)+3][Number(j)+3] & qz[i][j] == qz[Number(i)+4][Number(j)+4]) |
+							(qz[i][j] == qz[Number(i)+1][Number(j)-1] & qz[i][j] == qz[Number(i)+2][Number(j)-2] & qz[i][j] == qz[Number(i)+3][Number(j)-3] & qz[i][j] == qz[Number(i)+4][Number(j)-4]) |
+							(qz[i][j] == qz[Number(i)-1][Number(j)-1] & qz[i][j] == qz[Number(i)-2][Number(j)-2] & qz[i][j] == qz[Number(i)-3][Number(j)-3] & qz[i][j] == qz[Number(i)-4][Number(j)-4]) |
+							(qz[i][j] == qz[Number(i)-1][Number(j)+1] & qz[i][j] == qz[Number(i)-2][Number(j)+2] & qz[i][j] == qz[Number(i)-3][Number(j)+3] & qz[i][j] == qz[Number(i)-4][Number(j)+4])	
+						){
+							message.innerHTML="Game over\n"+qz[i][j]+"胜！！！";
+							setTimeout(function (){
+								alert("历经"+length.innerHTML+"步\n"+qz[i][j]+"胜！！！");
+							},1);
+							return ;
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+function computer_play(){
+	var max=-1;
+	var max_p={"x":9,"y":9};
+	for (var i in qz){
+		for (var j in qz[i]){
+			if (qz[i][j] === ""){
+				var w=6/Math.sqrt(Math.pow(Number(i)-9,2)+Math.pow(Number(j)-9,2))+Math.random()/2;
+				if (computer == "黑棋"){
+					qz[i][j]="黑棋";
+				}else{
+					qz[i][j]="白棋";
+				}
+				for (var k in qz){
+					for (var l in qz[k]){
+						if (qz[k][l] == computer){
+							//攻5
+							if (qz[k][l] == qz[k][Number(l)+1] & qz[k][l] == qz[k][Number(l)+2] & qz[k][l] == qz[k][Number(l)+3] & qz[k][l] == qz[k][Number(l)+4]
+							& (qz[k][Number(l)-1] == computer | qz[k][Number(l)-1] == "")
+							& (qz[k][Number(l)+5] == computer | qz[k][Number(l)+5] == "")){
+								w+=10000;
+							}
+							if (qz[k][l] == qz[Number(k)+1][l] & qz[k][l] == qz[Number(k)+2][l] & qz[k][l] == qz[Number(k)+3][l] & qz[k][l] == qz[Number(k)+4][l]
+							& (qz[Number(k)-1][l] == computer | qz[Number(k)-1][l] == "")
+							& (qz[Number(k)+5][l] == computer | qz[Number(k)+5][l] == "")){
+								w+=10000;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)+1] & qz[k][l] == qz[Number(k)+2][Number(l)+2] & qz[k][l] == qz[Number(k)+3][Number(l)+3] & qz[k][l] == qz[Number(k)+4][Number(l)+4]
+							& (qz[Number(k)-1][Number(l)-1] == computer | qz[Number(k)-1][Number(l)-1] == "")
+							& (qz[Number(k)+5][Number(l)+5] == computer | qz[Number(k)+5][Number(l)+5] == "")){
+								w+=10000;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)-1] & qz[k][l] == qz[Number(k)+2][Number(l)-2] & qz[k][l] == qz[Number(k)+3][Number(l)-3] & qz[k][l] == qz[Number(k)+4][Number(l)-4]
+							& (qz[Number(k)-1][Number(l)+1] == computer | qz[Number(k)-1][Number(l)+1] == "")
+							& (qz[Number(k)+5][Number(l)-5] == computer | qz[Number(k)+5][Number(l)-5] == "")){
+								w+=10000;						
+							}
+							//4
+							if (qz[k][l] == qz[k][Number(l)+1] & qz[k][l] == qz[k][Number(l)+2] & qz[k][l] == qz[k][Number(l)+3]
+							& (qz[k][Number(l)-1] == computer | qz[k][Number(l)-1] == "")
+							& (qz[k][Number(l)+4] == computer | qz[k][Number(l)+4] == "")){
+								w+=1000;						
+							}
+							if (qz[k][l] == qz[Number(k)+1][l] & qz[k][l] == qz[Number(k)+2][l] & qz[k][l] == qz[Number(k)+3][l]
+							& (qz[Number(k)-1][l] == computer | qz[Number(k)-1][l] == "")
+							& (qz[Number(k)+4][l] == computer | qz[Number(k)+4][l] == "")){
+								w+=1000;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)+1] & qz[k][l] == qz[Number(k)+2][Number(l)+2] & qz[k][l] == qz[Number(k)+3][Number(l)+3]
+							& (qz[Number(k)-1][Number(l)-1] == computer | qz[Number(k)-1][Number(l)-1] == "")
+							& (qz[Number(k)+4][Number(l)+4] == computer | qz[Number(k)+4][Number(l)+4] == "")){
+								w+=1000;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)-1] & qz[k][l] == qz[Number(k)+2][Number(l)-2] & qz[k][l] == qz[Number(k)+3][Number(l)-3]
+							& (qz[Number(k)-1][Number(l)+1] == computer | qz[Number(k)-1][Number(l)+1] == "")
+							& (qz[Number(k)+4][Number(l)-4] == computer | qz[Number(k)+4][Number(l)-4] == "")){
+								w+=1000;
+							}
+							//3
+							if (qz[k][l] == qz[k][Number(l)+1] & qz[k][l] == qz[k][Number(l)+2]
+							& (qz[k][Number(l)-1] == computer | qz[k][Number(l)-1] == "")
+							& (qz[k][Number(l)+3] == computer | qz[k][Number(l)+3] == "")){
+								w+=100;
+							}
+							if (qz[k][l] == qz[Number(k)+1][l] & qz[k][l] == qz[Number(k)+2][l]
+							& (qz[Number(k)-1][l] == computer | qz[Number(k)-1][l] == "")
+							& (qz[Number(k)+3][l] == computer | qz[Number(k)+3][l] == "")){
+								w+=100;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)+1] & qz[k][l] == qz[Number(k)+2][Number(l)+2]
+							& (qz[Number(k)-1][Number(l)-1] == computer | qz[Number(k)-1][Number(l)-1] == "")
+							& (qz[Number(k)+3][Number(l)+3] == computer | qz[Number(k)+3][Number(l)+3] == "")){
+								w+=100;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)-1] & qz[k][l] == qz[Number(k)+2][Number(l)-2]
+							& (qz[Number(k)-1][Number(l)+1] == computer | qz[Number(k)-1][Number(l)+1] == "")
+							& (qz[Number(k)+3][Number(l)-3] == computer | qz[Number(k)+3][Number(l)-3] == "")){
+								w+=100;
+							}
+							//2
+							if (qz[k][l] == qz[k][Number(l)+1]
+							& (qz[k][Number(l)-1] == computer | qz[k][Number(l)-1] == "")
+							& (qz[k][Number(l)+2] == computer | qz[k][Number(l)+2] == "")){
+								w+=10;
+							}
+							if (qz[k][l] == qz[Number(k)+1][l]
+							& (qz[Number(k)-1][l] == computer | qz[Number(k)-1][l] == "")
+							& (qz[Number(k)+2][l] == computer | qz[Number(k)+2][l] == "")){
+								w+=10;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)+1]
+							& (qz[Number(k)-1][Number(l)-1] == computer | qz[Number(k)-1][Number(l)-1] == "")
+							& (qz[Number(k)+2][Number(l)+2] == computer | qz[Number(k)+2][Number(l)+2] == "")){
+								w+=10;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)-1]
+							& (qz[Number(k)-1][Number(l)+1] == computer | qz[Number(k)-1][Number(l)+1] == "")
+							& (qz[Number(k)+2][Number(l)-2] == computer | qz[Number(k)+2][Number(l)-2] == "")){
+								w+=10;
+							}
+							//1
+							if (
+							(qz[k][Number(l)-1] == computer | qz[k][Number(l)-1] == "")
+							& (qz[k][Number(l)+1] == computer | qz[k][Number(l)+1] == "")){
+								w+=1;
+							}
+							if (
+							(qz[Number(k)-1][l] == computer | qz[Number(k)-1][l] == "")
+							& (qz[Number(k)+1][l] == computer | qz[Number(k)+1][l] == "")){
+								w+=1;
+							}
+							if (
+							(qz[Number(k)-1][Number(l)-1] == computer | qz[Number(k)-1][Number(l)-1] == "")
+							& (qz[Number(k)+1][Number(l)+1] == computer | qz[Number(k)+1][Number(l)+1] == "")){
+								w+=1;
+							}
+							if (
+							(qz[Number(k)-1][Number(l)+1] == computer | qz[Number(k)-1][Number(l)+1] == "")
+							& (qz[Number(k)+1][Number(l)-1] == computer | qz[Number(k)+1][Number(l)-1] == "")){
+								w+=1;
+							}
+						}
+					}
+				}
+				
+				if (computer == "黑棋"){
+					qz[i][j]="白棋";
+				}else{
+					qz[i][j]="黑棋";
+				}
+				for (var k in qz){
+					for (var l in qz[k]){
+						if (qz[k][l] != computer & qz[k][l] != undefined & qz[k][l] !== ""){
+							//防5
+							if (qz[k][l] == qz[k][Number(l)+1] & qz[k][l] == qz[k][Number(l)+2] & qz[k][l] == qz[k][Number(l)+3] & qz[k][l] == qz[k][Number(l)+4]
+							& qz[k][Number(l)-1] != computer & qz[k][Number(l)-1] != undefined
+							& qz[k][Number(l)+5] != computer & qz[k][Number(l)+5] != undefined){
+								w+=30000;
+							}
+							if (qz[k][l] == qz[Number(k)+1][l] & qz[k][l] == qz[Number(k)+2][l] & qz[k][l] == qz[Number(k)+3][l] & qz[k][l] == qz[Number(k)+4][l]
+							& qz[Number(k)-1][l] != computer & qz[Number(k)-1][l] != undefined
+							& qz[Number(k)+5][l] != computer & qz[Number(k)+5][l] != undefined){
+								w+=30000;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)+1] & qz[k][l] == qz[Number(k)+2][Number(l)+2] & qz[k][l] == qz[Number(k)+3][Number(l)+3] & qz[k][l] == qz[Number(k)+4][Number(l)+4]
+							& qz[Number(k)-1][Number(l)-1] != computer & qz[Number(k)-1][Number(l)-1] != undefined
+							& qz[Number(k)+5][Number(l)+5] != computer & qz[Number(k)+5][Number(l)+5] != undefined){
+								w+=30000;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)-1] & qz[k][l] == qz[Number(k)+2][Number(l)-2] & qz[k][l] == qz[Number(k)+3][Number(l)-3] & qz[k][l] == qz[Number(k)+4][Number(l)-4]
+							& qz[Number(k)-1][Number(l)+1] != computer & qz[Number(k)-1][Number(l)+1] != undefined
+							& qz[Number(k)+5][Number(l)-5] != computer & qz[Number(k)+5][Number(l)-5] != undefined){
+								w+=30000;						
+							}						
+							//4
+							if (qz[k][l] == qz[k][Number(l)+1] & qz[k][l] == qz[k][Number(l)+2] & qz[k][l] == qz[k][Number(l)+3]
+							& qz[k][Number(l)-1] != computer & qz[k][Number(l)-1] != undefined
+							& qz[k][Number(l)+4] != computer & qz[k][Number(l)+4] != undefined){
+								w+=3000;						
+							}
+							if (qz[k][l] == qz[Number(k)+1][l] & qz[k][l] == qz[Number(k)+2][l] & qz[k][l] == qz[Number(k)+3][l]
+							& qz[Number(k)-1][l] != computer & qz[Number(k)-1][l] != undefined
+							& qz[Number(k)+4][l] != computer & qz[Number(k)+4][l] != undefined){
+								w+=3000;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)+1] & qz[k][l] == qz[Number(k)+2][Number(l)+2] & qz[k][l] == qz[Number(k)+3][Number(l)+3]
+							& qz[Number(k)-1][Number(l)-1] != computer & qz[Number(k)-1][Number(l)-1] != undefined
+							& qz[Number(k)+4][Number(l)+4] != computer & qz[Number(k)+4][Number(l)+4] != undefined){
+								w+=3000;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)-1] & qz[k][l] == qz[Number(k)+2][Number(l)-2] & qz[k][l] == qz[Number(k)+3][Number(l)-3]
+							& qz[Number(k)-1][Number(l)+1] != computer & qz[Number(k)-1][Number(l)+1] != undefined
+							& qz[Number(k)+4][Number(l)-4] != computer & qz[Number(k)+4][Number(l)-4] != undefined){
+								w+=3000;
+							}
+							//3
+							if (qz[k][l] == qz[k][Number(l)+1] & qz[k][l] == qz[k][Number(l)+2]
+							& qz[k][Number(l)-1] != computer & qz[k][Number(l)-1] != undefined
+							& qz[k][Number(l)+3] != computer & qz[k][Number(l)+3] != undefined){
+								w+=300;
+							}
+							if (qz[k][l] == qz[Number(k)+1][l] & qz[k][l] == qz[Number(k)+2][l]
+							& qz[Number(k)-1][l] != computer & qz[Number(k)-1][l] != undefined
+							& qz[Number(k)+3][l] != computer & qz[Number(k)+3][l] != undefined){
+								w+=300;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)+1] & qz[k][l] == qz[Number(k)+2][Number(l)+2]
+							& qz[Number(k)-1][Number(l)-1] != computer & qz[Number(k)-1][Number(l)-1] != undefined
+							& qz[Number(k)+3][Number(l)+3] != computer & qz[Number(k)+3][Number(l)+3] != undefined){
+								w+=300;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)-1] & qz[k][l] == qz[Number(k)+2][Number(l)-2]
+							& qz[Number(k)-1][Number(l)+1] != computer & qz[Number(k)-1][Number(l)+1] != undefined
+							& qz[Number(k)+3][Number(l)-3] != computer & qz[Number(k)+3][Number(l)-3] != undefined){
+								w+=300;
+							}
+							//2
+							if (qz[k][l] == qz[k][Number(l)+1]
+							& qz[k][Number(l)-1] != computer & qz[k][Number(l)-1] != undefined
+							& qz[k][Number(l)+2] != computer & qz[k][Number(l)+2] != undefined){
+								w+=30;
+							}
+							if (qz[k][l] == qz[Number(k)+1][l]
+							& qz[Number(k)-1][l] != computer & qz[Number(k)-1][l] != undefined
+							& qz[Number(k)+2][l] != computer & qz[Number(k)+2][l] != undefined){
+								w+=30;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)+1]
+							& qz[Number(k)-1][Number(l)-1] != computer & qz[Number(k)-1][Number(l)-1] != undefined
+							& qz[Number(k)+2][Number(l)+2] != computer & qz[Number(k)+2][Number(l)+2] != undefined){
+								w+=30;
+							}
+							if (qz[k][l] == qz[Number(k)+1][Number(l)-1]
+							& qz[Number(k)-1][Number(l)+1] != computer & qz[Number(k)-1][Number(l)+1] != undefined
+							& qz[Number(k)+2][Number(l)-2] != computer & qz[Number(k)+2][Number(l)-2] != undefined){
+								w+=30;
+							}
+							
+							//1
+							if (
+							qz[k][Number(l)-1] != computer & qz[k][Number(l)-1] != undefined
+							& qz[k][Number(l)+1] != computer & qz[k][Number(l)+1] != undefined){
+								w+=3;
+							}
+							if (
+							qz[Number(k)-1][l] != computer & qz[Number(k)-1][l] != undefined
+							& qz[Number(k)+1][l] != computer & qz[Number(k)+1][l] != undefined){
+								w+=3;
+							}
+							if (
+							qz[Number(k)-1][Number(l)-1] != computer & qz[Number(k)-1][Number(l)-1] != undefined
+							& qz[Number(k)+1][Number(l)+1] != computer & qz[Number(k)+1][Number(l)+1] != undefined){
+								w+=3;
+							}
+							if (
+							qz[Number(k)-1][Number(l)+1] != computer & qz[Number(k)-1][Number(l)+1] != undefined
+							& qz[Number(k)+1][Number(l)-1] != computer & qz[Number(k)+1][Number(l)-1] != undefined){
+								w+=3;
+							}
+						}
+					}
+				}
+				qz[i][j]="";
+				if (w > max){
+					max_p["x"]=i;
+					max_p["y"]=j;
+					max=w;
+				}
+			}
+		}
+	}
+	
+	length.innerHTML=Number(length.innerHTML)+1;
+	if (xqf == "黑棋"){
+		xqf="白棋";
+		var c=document.getElementById("qp");
+		var ctx=c.getContext("2d");
+		ctx.beginPath();
+		ctx.arc(max_p["y"]*24.5+29,max_p["x"]*24.5+178-150,24.5/2,0,2*Math.PI);
+		ctx.stroke();
+		ctx.fillStyle="black";
+		ctx.fill();
+		document.getElementById("message").style="color:white;background-color:black";
+	}else if (xqf == "白棋"){
+		xqf="黑棋";
+		var c=document.getElementById("qp");
+		var ctx=c.getContext("2d");
+		ctx.beginPath();
+		ctx.arc(max_p["y"]*24.5+29,max_p["x"]*24.5+178-150,24.5/2,0,2*Math.PI);
+		ctx.stroke();
+		ctx.fillStyle="white";
+		ctx.fill();
+		document.getElementById("message").style="color:black;background-color:white";
+	}
+	qz[max_p["x"]][max_p["y"]]=computer;
+	message.innerHTML="下棋方："+xqf;
+}
+
+/*
+　┐ ├┬─┐ ┌──┼┼┐
+　│ ││　 ┌──┼┼┐
+  │╯├─┐ ╭──┴╯   W
+  └╯│   ┌────┐    Z
+　│　├─┐ ├────┤    H
+　╰┘└　 └────╯
+© by WZH
+此文件为WZH所有
+禁止任何修改，抄袭！
+*/
+
+</script>
+
+</body>
+</html>
