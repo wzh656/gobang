@@ -153,6 +153,7 @@ document.onmousedown = function(e){
 						){
 							message.innerHTML="Game over\n"+qz[i][j]+"胜！！！";
 							setTimeout(function (){
+								over=true;
 								alert("历经"+length.innerHTML+"步\n"+qz[i][j]+"胜！！！");
 							},1);
 							return ;
