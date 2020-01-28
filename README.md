@@ -1,3 +1,3 @@
 # 五子棋
 
-[点击进入](index.html)
+[点击进入](https://wzh656.github.io/gobang/index.html)
