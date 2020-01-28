@@ -100,10 +100,10 @@ var img=new Image;
 img.src="qp.jpg";
 img.onload = function() {
 	ctx.drawImage(img,0,0);
+	if (computer == xqf){
+		computer_play();
+	}
 } //加载棋盘图片
-if (computer == xqf){
-	computer_play();
-}
 
 document.onmousedown = function(e){
 	var y=Math.round((e.pageX-37.7)/24.5);
