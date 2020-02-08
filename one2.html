@@ -25,14 +25,14 @@ button{
 <body>
 
 <button onclick="location.href='index.html';" id="back">返回</button>
-<button onclick="location.href='one2.html';" id="again_two">重来</button>
+<button onclick="location.reload(false);" id="again_two">重来</button>
 
 <h1 id="h1" style="text-align:center;font-size:50px;">五子棋-人机对战</h1>
 <br/><b id="message">下棋方：黑棋</b>
 <br/><b id="message2"></b>
 <br>
-<canvas id="qp" width="500" height="500" style="border:1px solid black;">你的浏览器不支持“五子棋”，请切换浏览器。</canvas>
-<p>步数：<span id="length">0</span></p>
+<canvas id="qp" width="500" height="500" style="border:1px solid black;position:absolute;left:8px;top:239px;">你的浏览器不支持“五子棋”，请切换浏览器。</canvas>
+<p style="position:absolute;top:739px;">步数：<span id="length">0</span></p>
 
 <script>
 {
