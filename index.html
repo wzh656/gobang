@@ -57,7 +57,7 @@ button{
 </head>
 <body>
 
-<img id="img" />
+<img id="img" src="./drawable/background2.jpg"/>
 <div class="box">
 	<h1 id="h1">五子棋</h1>
 	<button
@@ -85,18 +85,18 @@ button{
 <noscript><h1>错误！你的浏览器不支持JavaScript，无法使用《五子棋》！</h1></noscript>
 <script>
 if (screen.availHeight < screen.availWidth){
-	$("#img")[0].src="drawable/background2.jpg";
+	$("#img")[0].src="./drawable/background2.jpg";
 	console.log("横屏（电脑）");
 }else{
-	$("#img")[0].src="drawable/background1.jpg";
+	$("#img")[0].src="./drawable/background1.jpg";
 	console.log("竖屏（手机）");
 }
 
 setInterval(function(){
 	if (screen.availHeight < screen.availWidth){
-		$("#img")[0].src="drawable/background2.jpg";
+		$("#img")[0].src="./drawable/background2.jpg";
 	}else{
-		$("#img")[0].src="drawable/background1.jpg";
+		$("#img")[0].src="./drawable/background1.jpg";
 	}
 },2000);
 </script>
