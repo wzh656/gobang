@@ -1,88 +1,102 @@
 <!DOCTYPE html>
 <html>
 <head>
-<meta charset="UTF-8">
-<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />
+<meta charset="UTF-8" />
+<meta content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />
 <title>五子棋</title>
-<link href="h.css" rel="stylesheet" type="text/css" />
-<link href="button.css" rel="stylesheet" type="text/css" />
-<style>
-h1{
-	margin:auto;
-	margin-bottom:0px;
-}
-button{
-	width:266px;
-	height:136px;
-	
-	font-size:50px;
-	
-	color:white;
-	background-color:#6a8;
-	
-	font-size:50px;
-	
-	border-radius:40px;
-	
-	text-align:center;
-	line-height:60px;
-	
-	margin-top:15%;
-}
-img{
-	height:600px;
-	width:400px;
-	
-	position:absolute;
-	left:0px;
-	top:0px;
-	
-	z-index:-1;
-}
-</style>
+<link href="./css/title.css" rel="stylesheet" type="text/css" />
+<link href="./css/button.css" rel="stylesheet" type="text/css" />
+<link href="./css/clear.css" rel="stylesheet" type="text/css" />
 
-<script src="jq.js"></script>
+<script src="./js/jq.js"></script>
 <script src="//cdn.jsdelivr.net/npm/eruda"></script>
 <script>
 eruda.init();
 console.log('控制台打印信息');
 </script>
 
+<style>
+img{
+	position:absolute;
+	left:0px;
+	top:0px;
+	width:100%;
+	height:100%;
+	z-index:-1;
+	margin:auto;
+}
+h1{
+	margin:0px;
+	font-size:400%;
+}
+button{
+	width:50%;
+	height:12%;
+	color:white;
+	background-color:#6a8;
+	font-size:126%;
+	border:2px solid #8a8;
+	border-radius:40px;
+	
+	text-align:center;
+	line-height:60px;
+}
+.box{
+	position:absolute; /*脱离文档流以实现height:100%*/
+	width:100%;
+	height:100%;
+	
+	display:flex; /*flex布局*/
+	flex-direction:column; /*↓*/
+	/*flex-wrap:nowrap; /*不换行（默认）*/
+	justify-content:space-around;
+	align-items:center;
+}
+</style>
+
 </head>
 <body>
 
-<img id="img" style="margin:auto;width:100%;height:100%;" />
-<h1 id="h1" style="font-size:100px;">五子棋</h1>
-<div style="margin:auto;width:266px;">
-	<button onclick="location.href='two.html';" title="点击进入双人对战" style="position:relative;">双人对战</button><br>
-	<button onclick="location.href='one1.html';" title="点击进入人机对战（算法1）" style="position:relative;">人机对战1</button><br>
-	<button onclick="location.href='one2.html';" title="点击进入人机对战（算法2）" style="position:relative;">人机对战2</button><br>
+<img id="img" />
+<div class="box">
+	<h1 id="h1">五子棋</h1>
+	<button
+		onclick="location.href='./two.html';"
+		title="点击进入双人对战">
+		双人对战
+	</button>
+	<button
+		onclick="location.href='./one1.html';"
+		title="点击进入人机对战（算法1）">
+		人机对战（简单）
+	</button>
+	<button
+		onclick="location.href='./one2.html';"
+		title="点击进入人机对战（算法2）">
+		人机对战（中级）
+	</button>
+	<button
+		onclick="location.href='./sign.html';"
+		title="登录账号以联机对战">
+		登录/联机
+	</button>
 </div>
 
+<noscript><h1>错误！你的浏览器不支持JavaScript，无法使用《五子棋》！</h1></noscript>
 <script>
 if (screen.availHeight < screen.availWidth){
-	$("#img")[0].src="background2.jpg";
-	$("button").css("margin-top","15%");
-	$("h1").css("margin-bottom","0px");
+	$("#img")[0].src="drawable/background2.jpg";
 	console.log("横屏（电脑）");
 }else{
-	$("#img")[0].src="background1.jpg";
-	$("button").css("margin-top","30%");
-	$("h1").css("margin-bottom","");
+	$("#img")[0].src="drawable/background1.jpg";
 	console.log("竖屏（手机）");
 }
 
 setInterval(function(){
 	if (screen.availHeight < screen.availWidth){
-		$("#img")[0].src="background2.jpg";
-		$("button").css("margin-top","15%");
-		$("h1").css("margin-bottom","0px");
-		console.log("横屏（电脑）");
+		$("#img")[0].src="drawable/background2.jpg";
 	}else{
-		$("#img")[0].src="background1.jpg";
-		$("button").css("margin-top","30%");
-		$("h1").css("margin-bottom","");
-		console.log("竖屏（手机）");
+		$("#img")[0].src="drawable/background1.jpg";
 	}
 },2000);
 </script>
@@ -117,12 +131,12 @@ setInterval(function(){
 }
 
 /*
-　┐ ├┬─┐ ┌──┼┼┐
-　│ ││　 ┌──┼┼┐
-  │╯├─┐ ╭──┴╯   W
-  └╯│   ┌────┐    Z
-　│　├─┐ ├────┤    H
-　╰┘└　 └────╯      656
+　┐ ├┬─┐ ┌──┼┼┐	w
+　│ ││　 ┌──┼┼┐		z
+  │╯├─┐ ╭──┴╯		h
+  └╯│   ┌────┐		6
+　│　├─┐ ├────┤	5
+　╰┘└　 └────╯		6
 © by WZH656
 此文件为WZH656所有
 禁止任何修改，抄袭！
