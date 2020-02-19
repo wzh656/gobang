@@ -1,0 +1,34 @@
+@font-face{
+	font-family:kt; /*楷体*/
+	src:url("../fonts/kt.ttf");
+}
+
+h1,h2,h3,h4,h5,h6,title{
+	font-family: kt;
+	text-align: center;
+	/* 设置背景透明色 */
+	background-image: -webkit-linear-gradient(left, blue,
+		#66ffff 10%, #cc00ff 20%,
+		#CC00CC 30%, #CCCCFF 40%,
+		#00FFFF 50%, #CCCCFF 60%,
+		#CC00CC 70%, #CC00FF 80%,
+		#66FFFF 90%, blue 100%
+	);
+	/* 改变background-size是为了让动画动起来 */
+	background-size: 200% 100%;
+	/* 按照文字拆分背景 */
+	-webkit-background-clip: text;
+	/* 将字体设置成透明色 */
+	-webkit-text-fill-color: transparent;
+	/* 启用动画 */
+	animation: masked-animation 4s linear infinite;
+}
+
+@keyframes masked-animation {
+    0% {
+        background-position: 0 0;
+    }
+    100% {
+        background-position: -100% 0;
+    }
+}

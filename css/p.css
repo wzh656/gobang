@@ -1,0 +1,8 @@
+@font-face{
+	font-family:fzybxskt; /*方正硬笔行书楷体*/
+	src:url("../fonts/fzybxskt.ttf");
+}
+
+p,b,input{
+	font-family:fzybxskt;
+}
