@@ -3,8 +3,10 @@
 <head>
 <meta charset="UTF-8">
 <title>五子棋-双人对战</title>
-<link href="h.css" rel="stylesheet" type="text/css" />
-<link href="button.css" rel="stylesheet" type="text/css" />
+<link href="./css/title.css" rel="stylesheet" type="text/css" />
+<link href="./css/button.css" rel="stylesheet" type="text/css" />
+<link href="./css/p.css" rel="stylesheet" type="text/css" />
+<link href="./css/clear.css" rel="stylesheet" type="text/css" />
 
 <script src="//cdn.jsdelivr.net/npm/eruda"></script>
 <script>
@@ -13,6 +15,11 @@ console.log('控制台打印信息');
 </script>
 
 <style>
+@font-face{
+	font-family:fzybxskt; /*方正硬笔行书楷体*/
+	src:url("../fonts/fzybxskt.ttf");
+}
+
 button{
 	color:white;
 	background-color:#6a8;
@@ -27,7 +34,7 @@ button{
 <body>
 
 <button onclick="location.href='index.html';" id="back">返回</button>
-<button onclick="location.reload(false);" id="again_two">重来</button>
+<button onclick="init();" id="again_two">重来</button>
 
 <h1 id="h1" style="text-align:center;font-size:50px;">五子棋-双人对战</h1>
 <br/><b id="message">下棋方：黑棋</b>
@@ -65,34 +72,41 @@ button{
 	},300); 
 }
 
-var message=document.getElementById("message");
-var length=document.getElementById("length");
-var xqf="黑棋"; //下棋方
-message.innerHTML="下棋方："+xqf;
+var over=true; //状态
+var xqf; //下棋方
+var qz; //棋子
 
-over=false; //结束
-length.innerHTML=0; //步数
-qz=new Array;
-for (var i=-5;i<19+5;i++){
-	qz[i]=new Array;
-	for (var j=-5;j<19+5;j++){
-		if (i < 0 | i >= 19 | j < 0 | j >= 19){
-			qz[i][j]=undefined;
-		}else{
-			qz[i][j]="";
+var message=document.getElementById("message");
+var length=document.getElementById("length"); //下棋数
+
+var ctx=document.getElementById("qp").getContext("2d");
+ctx.font="66px fzybxskt";
+ctx.fillText("棋盘加载中……",0,200);
+
+var img=new Image();
+img.src="./image/qp.jpg";
+img.onload=init;
+function init(){
+	xqf="黑棋";
+	message.innerHTML="下棋方："+xqf;
+	
+	length.innerHTML=0; //步数
+	qz=new Array;
+	for (var i=-5;i<19+5;i++){
+		qz[i]=new Array;
+		for (var j=-5;j<19+5;j++){
+			if (i < 0 | i >= 19 | j < 0 | j >= 19){
+				qz[i][j]=undefined;
+			}else{
+				qz[i][j]="";
+			}
 		}
 	}
-}
-var ctx=document.getElementById("qp").getContext("2d");
-ctx.font="30px Arial";
-ctx.fillText("棋盘加载中……",100,200);
-
-var img=new Image;
-img.src="./image/qp.jpg";
-img.onload = function() {
+	
 	ctx.drawImage(img,0,0);
-} //加载棋盘图片
-
+	over=true;
+}
+	
 document.onmousedown = function(e){
 	var y=Math.round((e.pageX-37.7)/24.5);
 	var x=Math.round((e.pageY-247.8)/24.5);
