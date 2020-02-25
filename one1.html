@@ -23,8 +23,7 @@ console.log('控制台打印信息');
 button{
 	color:white;
 	background-color:#6a8;
-	border-radius:40px;
-	width:50px;
+	/*border-radius:40px;*/
 	height:33px;
 	text-align:center;
 	line-height:20px;
@@ -35,11 +34,18 @@ button{
 
 <button onclick="location.href='./index.html';" id="back">返回</button>
 <button onclick="init();" id="again_two">重来</button>
+<button onclick="clear_data();">清除胜率数据</button>
 
 <h1 id="h1" style="text-align:center;font-size:50px;">五子棋-人机对战</h1>
-<br/><b id="message">下棋方：黑棋</b>
-<br/><b id="message2"></b>
-<br>
+<b id="message" style="position:absolute;top:200px;">下棋方：黑棋</b>
+<b id="message2" style="position:absolute;top:220px;"></b>
+<b id="win" style="border:1px solid black;position:absolute;top:150px;left:384px;height:89px;width:124px;display:flex;/*flex布局*/flex-direction:column;/*↓*/justify-content:space-around;align-items:center;">
+	<span style="color:#f00;">胜：0盘</span>
+	<span style="color:#000;">负：0盘</span>
+	<span style="color:#aaa;">共：0盘</span>
+	<span style="color:#aaa;">胜率：无法计算</span>
+</b>
+
 <canvas id="qp" width="500" height="500" style="border:1px solid black;position:absolute;left:8px;top:239px;">你的浏览器不支持“五子棋”，请切换浏览器。</canvas>
 <b style="position:absolute;top:739px;">步数：<span id="length">0</span></b>
 
@@ -93,11 +99,13 @@ function init(){
 	if (Math.round(Math.random()) == 0){
 		computer="黑棋";
 		document.getElementById("message2").innerHTML="电脑执黑棋";
-		document.getElementById("message2").style="color:black;background-color:white";
+		document.getElementById("message2").style.color="black";
+		document.getElementById("message2").style.backgroundColor="white";
 	}else{
 		computer="白棋";
 		document.getElementById("message2").innerHTML="电脑执白棋";
-		document.getElementById("message2").style="color:white;background-color:black";
+		document.getElementById("message2").style.color="white";
+		document.getElementById("message2").style.backgroundColor="black";
 	}
 	
 	xqf="黑棋";
@@ -121,7 +129,59 @@ function init(){
 	if (computer == xqf){
 		computer_play();
 	}
+	
+	if (localStorage == null | localStorage == undefined){
+		document.getElementById("win").innerHTML=
+			"<span>错误警告：</span>"+
+			"<span>你的浏览器不支持web存储</span>"+
+			"<span>将无法保存胜率数据</span>"+
+			"<span>若要保存胜率数据，请切换浏览器</span>"
+		;
+		document.getElementById("win").style.left="320px";
+		document.getElementById("win").style.width="188px";
+		document.getElementById("win").style.color="red";
+	}else{
+		var data=String(localStorage.getItem("五子棋_人机对战1"));
+		var win=0,all=0;
+		if (data.split(";").length == 2){ //已初始化
+			win=Number(data.split(";")[0]);
+			all=Number(data.split(";")[1]);
+		}
+		document.getElementById("win").innerHTML=
+			'<span style="color:#f00;">胜：'+win+'盘</span>'+
+			'<span style="color:#000;">负：'+(all-win)+'盘</span>'+
+			'<span style="color:#aaa;">共：'+all+'盘</span>'+
+			'<span style="color:#aaa;">胜率：'+((all==0)?"无法计算":(win/all*100+"％"))+'</span>'
+		;
+		document.getElementById("win").style.top="150px";
+		document.getElementById("win").style.left="384px";
+		document.getElementById("win").style.height="89px";
+		document.getElementById("win").style.width="124px";
+	}
 }
+
+function clear_data(){
+	if (localStorage == null | localStorage == undefined){
+		alert(
+			"错误警告：\n"+
+			"你的浏览器不支持web存储\n"+
+			"将无法保存或删除胜率数据\n"+
+			"若要保存胜率数据，请切换浏览器"
+		);
+	}else{
+		if (confirm("真的要删除胜率数据吗？（这将无法恢复）")){
+			localStorage.removeItem("五子棋_人机对战1");
+			document.getElementById("win").innerHTML=
+				'<span style="color:#f00;">胜：0盘</span>'+
+				'<span style="color:#000;">负：0盘</span>'+
+				'<span style="color:#aaa;">共：0盘</span>'+
+				'<span style="color:#aaa;">胜率：无法计算</span>'
+			;
+			alert("删除成功");
+		}
+	}
+}
+
 document.onmousedown = function(e){
 	var y=Math.round((e.pageX-37.7)/24.5);
 	var x=Math.round((e.pageY-270)/24.5);
@@ -137,7 +197,8 @@ document.onmousedown = function(e){
 			ctx.stroke();
 			ctx.fillStyle="black";
 			ctx.fill();
-			document.getElementById("message").style="color:white;background-color:black";
+			document.getElementById("message").style.color="white";
+			document.getElementById("message").style.backgroundColor="black";
 		}else if (xqf == "白棋"  & computer != "白棋"){
 			xqf="黑棋";
 			ctx.beginPath();
@@ -145,7 +206,8 @@ document.onmousedown = function(e){
 			ctx.stroke();
 			ctx.fillStyle="white";
 			ctx.fill();
-			document.getElementById("message").style="color:black;background-color:white";
+			document.getElementById("message").style.color="black";
+			document.getElementById("message").style.backgroundColor="white";
 		}
 		
 		message.innerHTML="下棋方："+xqf;
@@ -170,7 +232,28 @@ document.onmousedown = function(e){
 						message.innerHTML="Game over\n"+qz[i][j]+"胜！！！";
 						setTimeout(function (){
 							type="over";
-							alert("历经"+length.innerHTML+"步\n"+qz[i][j]+"胜！！！");
+							if (localStorage == null | localStorage == undefined){
+								alert("历经"+length.innerHTML+"步\n"+qz[i][j]+"胜！！！");
+							}else{
+								var data=String(localStorage.getItem("五子棋_人机对战1"));
+								var win=0,all=0;
+								if (data.split(";").length == 2){ //已初始化
+									win=Number(data.split(";")[0]);
+									all=Number(data.split(";")[1]);
+								}
+								if (qz[i][j] != computer){
+									win++;
+								}
+								all++;
+								localStorage.setItem("五子棋_人机对战1",win+";"+all);
+								document.getElementById("win").innerHTML=
+									'<span style="color:#f00;">胜：'+win+'盘</span>'+
+									'<span style="color:#000;">负：'+(all-win)+'盘</span>'+
+									'<span style="color:#aaa;">共：'+all+'盘</span>'+
+									'<span style="color:#aaa;">胜率：'+(win/all*100+"％")+'</span>'
+								;
+								alert("历经"+length.innerHTML+"步\n"+qz[i][j]+"胜！！！\n============\n胜："+win+"盘\n负："+(all-win)+"盘\n共："+all+"盘\n胜率："+(win/all*100)+"％");
+							}
 						},1);
 						return ;
 					}
@@ -334,7 +417,8 @@ function computer_play(){
 		ctx.stroke();
 		ctx.fillStyle="black";
 		ctx.fill();
-		document.getElementById("message").style="color:white;background-color:black";
+		document.getElementById("message").style.color="white";
+		document.getElementById("message").style.backgroundColor="black";
 	}else if (xqf == "白棋"){
 		xqf="黑棋";
 		var c=document.getElementById("qp");
@@ -344,7 +428,8 @@ function computer_play(){
 		ctx.stroke();
 		ctx.fillStyle="white";
 		ctx.fill();
-		document.getElementById("message").style="color:black;background-color:white";
+		document.getElementById("message").style.color="black";
+		document.getElementById("message").style.backgroundColor="white";
 	}
 	qz[max_p["x"]][max_p["y"]]=computer;
 	message.innerHTML="下棋方："+xqf;

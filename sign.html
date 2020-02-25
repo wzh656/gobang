@@ -11,7 +11,7 @@
 
 <style>
 h1{
-	font-size:66px;
+	font-size:50px;
 }
 b{
 	font-size:200%;
@@ -25,39 +25,82 @@ input{
 	font-size:200%;
 }
 button{
+	color:white;
+	background-color:#6a8;
+}
+div button{
 	width:48%;
 	height:66px;
+	background:#70c3ff;
 	font-size:200%;
 	border-radius:40px;
 }
 </style>
 
+<script src="./js/msgbox.js"></script>
 <script src="./js/jq.js"></script>
 <script src="//cdn.jsdelivr.net/npm/eruda"></script>
 <script>
 eruda.init();
 console.log('控制台打印信息');
 </script>
+<script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
 
 </head>
 <body>
+
+<button onclick="location.href='./index.html';" id="back">返回</button>
 
 <h1>登录</h1>
 <b>账号：</b><input name="name" /><br>
 <b>密码：</b><input name="password" type="password" /><br>
 <div>
-	<button onclick="sign_in();">登录</button>
-	<button onclick="sign_up();">注册</button>
+	<button onclick="sign_in($('.name').val(),$('.password').val());">登录</button>
+	<button onclick="sign_up($('.name').val(),$('.password').val());">注册</button>
 </div>
 <noscript><h1>错误！你的浏览器不支持JavaScript，无法使用《五子棋》！</h1></noscript>
 
 <script>
-function sign_in(){
-	
+var id=new Date()*100+Math.random()*100;
+var socket = io();
+function sign_in(name,password){ //登录
+	if (name.split(' ').length > 1){
+		alert('名称中不能含有空格');
+		return;
+	}
+	socket.emit("sign_in",name,password);
+}
+function sign_up(name,password){ //注册
+	if (name.split(' ').length > 1){
+		alert('名称中不能含有空格');
+		return;
+	}
+	socket.emit("sign_up",name,password);
 }
 
-function sign_up(){
-	
+if (!socket.connected){
+	new Msgbox(
+		{
+			name:"连接失败",
+			color:"#a88"
+		},{
+			name:"未连接服务器，请检查是否开启或连接到了服务器。"
+		},[
+			{
+				name:"返回",
+				width:"150px",
+				onclick:function(){
+					location.href="index.html";
+				}
+			},{
+				name:"重试",
+				width:"150px",
+				onclick:function(){
+					location.reload(true);
+				}
+			}
+		],"error"
+	).show();
 }
 </script>
 </body>
