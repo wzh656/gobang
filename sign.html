@@ -16,7 +16,7 @@ h1{
 b{
 	font-size:200%;
 }
-input{
+p{
 	width:100%;
 	height:66px;
 	background-color:#6a6;
@@ -27,8 +27,6 @@ input{
 button{
 	color:white;
 	background-color:#6a8;
-}
-div button{
 	width:48%;
 	height:66px;
 	background:#70c3ff;
@@ -39,69 +37,71 @@ div button{
 
 <script src="./js/msgbox.js"></script>
 <script src="./js/jq.js"></script>
+<script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
+
+<!--
 <script src="//cdn.jsdelivr.net/npm/eruda"></script>
 <script>
 eruda.init();
 console.log('控制台打印信息');
 </script>
-<script src="https://cdn.socket.io/socket.io-1.3.5.js"></script>
+-->
 
 </head>
 <body>
 
+<h1>联机对战</h1>
+<b>黑方：</b><p></p>
+<b>白方：</b><p></p>
 <button onclick="location.href='./index.html';" id="back">返回</button>
-
-<h1>登录</h1>
-<b>账号：</b><input name="name" /><br>
-<b>密码：</b><input name="password" type="password" /><br>
-<div>
-	<button onclick="sign_in($('.name').val(),$('.password').val());">登录</button>
-	<button onclick="sign_up($('.name').val(),$('.password').val());">注册</button>
-</div>
+<button >开始游戏</button>
 <noscript><h1>错误！你的浏览器不支持JavaScript，无法使用《五子棋》！</h1></noscript>
 
 <script>
-var id=new Date()*100+Math.random()*100;
+var id=new Date()*100+Math.floor(Math.random()*100);
 var socket = io();
 function sign_in(name,password){ //登录
-	if (name.split(' ').length > 1){
-		alert('名称中不能含有空格');
-		return;
-	}
 	socket.emit("sign_in",name,password);
 }
 function sign_up(name,password){ //注册
-	if (name.split(' ').length > 1){
-		alert('名称中不能含有空格');
-		return;
-	}
 	socket.emit("sign_up",name,password);
 }
 
-if (!socket.connected){
-	new Msgbox(
+connect=new Msgbox(
+	{
+		name:"连接服务器中……",
+		color:"#a88",
+		font_size:"36px"
+	},{
+		name:"若一直无法连接服务器，请检查是否开启或连接到了服务器。"
+	},[
 		{
-			name:"连接失败",
-			color:"#a88"
-		},{
-			name:"未连接服务器，请检查是否开启或连接到了服务器。"
-		},[
-			{
-				name:"返回",
-				width:"150px",
-				onclick:function(){
-					location.href="index.html";
-				}
-			},{
-				name:"重试",
-				width:"150px",
-				onclick:function(){
-					location.reload(true);
-				}
+			name:"返回",
+			width:"50%",
+			onclick:function(){
+				location.href="index.html";
 			}
-		],"error"
-	).show();
-}
+		},
+		{
+			name:"刷新",
+			width:"50%",
+			onclick:function(){
+				location.reload(true);
+			}
+		}
+	],
+	"loading"
+).show();
+
+setInterval(function(){
+	socket.emit("test",id);
+},1000);
+socket.on("test",function(sid){
+	console.log(sid)
+	if (sid == id){
+		connect.close();
+	}
+});
 </script>
 </body>
 </html>

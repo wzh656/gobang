@@ -8,12 +8,16 @@
 <link href="./css/button.css" rel="stylesheet" type="text/css" />
 <link href="./css/clear.css" rel="stylesheet" type="text/css" />
 
+<script src="./js/choice.js"></script>
 <script src="./js/jq.js"></script>
+
+<!--
 <script src="//cdn.jsdelivr.net/npm/eruda"></script>
 <script>
 eruda.init();
 console.log('控制台打印信息');
 </script>
+-->
 
 <style>
 img{
@@ -29,7 +33,7 @@ h1{
 	margin:0px;
 	font-size:400%;
 }
-button{
+div button{
 	width:50%;
 	height:12%;
 	color:white;
@@ -58,6 +62,7 @@ button{
 <body>
 
 <img id="img" src="./image/background2.jpg"/>
+<button style="float:right;z-index:1;">SHARE</button>
 <div class="box">
 	<h1 id="h1">五子棋</h1>
 	<button
@@ -129,6 +134,32 @@ setInterval(function(){
 		}
 	},300); 
 }
+
+$("body").find("button:eq(0)").click(function(){
+	var choice=new Choice([
+		{
+			name:"分享给QQ好友",
+			onclick:function(){
+				location.href="http://connect.qq.com/widget/shareqq/index.html?url=https%3A%2F%2Fwzh656.github.io%2Fgobang&sharesource=qzone&title=%E4%BA%94%E5%AD%90%E6%A3%8B&pics=https%3A%2F%2Fwzh656.github.io%2Fgobang%2Fimage%2Ficon%2Ficon.png&summary=%E5%BF%AB%E6%9D%A5play%E4%BA%94%E5%AD%90%E6%A3%8B%E5%90%A7%EF%BC%8C%E7%9C%8B%E7%9C%8B%E4%BD%A0%E8%83%BD%E8%B6%85%E8%BF%87%E6%88%91%E5%90%97%EF%BC%9F&desc=";
+				choice.close();
+			}
+		},
+		{
+			name:"分享到QQ空间",
+			onclick:function(){
+				location.href="https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https%3A%2F%2Fwzh656.github.io%2Fgobang&sharesource=qzone&title=%E4%BA%94%E5%AD%90%E6%A3%8B&pics=https%3A%2F%2Fwzh656.github.io%2Fgobang%2Fimage%2Ficon%2Ficon.png&summary=%E5%BF%AB%E6%9D%A5play%E4%BA%94%E5%AD%90%E6%A3%8B%E5%90%A7%EF%BC%8C%E7%9C%8B%E7%9C%8B%E4%BD%A0%E8%83%BD%E8%B6%85%E8%BF%87%E6%88%91%E5%90%97%EF%BC%9F";
+				choice.close();
+			}
+		},
+		{
+			name:"取消",
+			color:"red",
+			onclick:function(){
+				choice.close();
+			}
+		}
+	]).show();
+});
 
 /*
 　┐ ├┬─┐ ┌──┼┼┐	w
