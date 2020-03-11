@@ -1,70 +1,72 @@
-function Choice(items){
+function Choice(items, background_onclick){
 	this.items=items;
+	this.background_onclick=background_onclick;
+	this.state=false;
 	this.init=function(){
 		this.box=
 			$("<div></div>")
 				.append(
 					$("<div></div>")
-						.css("position","absolute")
-						.css("left","0px")
-						.css("top","0px")
-						.css("height","100%")
-						.css("width","100%")
-						.css("background-color","#000")
-						.css("opacity","0.36")
-						.css("z-index","1")
+						.css("position", "absolute")
+						.css("left", "0px")
+						.css("top", "0px")
+						.css("height", "100%")
+						.css("width", "100%")
+						.css("background-color", "#000")
+						.css("opacity", "0.5")
+						.css("z-index", "1")
 				)
 				.append(
 					$("<div></div>")
-						.css("position","absolute")
-						.css("left","0px")
-						.css("width","100%")
-						.css("bottom","0px")
-						.css("z-index","2")
+						.css("position", "absolute")
+						.css("left", "0px")
+						.css("width", "100%")
+						.css("bottom", "0px")
+						.css("z-index", "2")
 				)
 		;
 		for (var i in this.items){
 			this.box.find("div:eq(1)").append(
 				$("<div>"+this.items[i].name+"</div>")
-					.css("width","100%")
-					.css("text-align","center")
-					.css("font-family","hwxk")
-					.css("color",
+					.css("width", "100%")
+					.css("text-align", "center")
+					.css("font-family", "hwxk")
+					.css("color", 
 						((this.items[i].color == undefined)?
 							"#000"
 						:
 							this.items[i].color
 						)
 					)
-					.css("background-color",
+					.css("background-color", 
 						((this.items[i].background_color == undefined)?
 							"#FFF"
 						:
 							this.items[i].background_color
 						)
 					)
-					.css("font-size",
+					.css("font-size", 
 						((this.items[i].font_size == undefined)?
 							"30px"
 						:
 							this.items[i].font_size
 						)
 					)
-					.css("height",
+					.css("height", 
 						((this.items[i].height == undefined)?
 							"50px"
 						:
 							this.items[i].height
 						)
 					)
-					.css("line-height",
+					.css("line-height", 
 						((this.items[i].height == undefined)?
 							"50px"
 						:
 							this.items[i].height
 						)
 					)
-					.css("border",
+					.css("border", 
 						((this.items[i].b_size == undefined)?
 							"1px"
 						:
@@ -112,13 +114,16 @@ function Choice(items){
 		this.box.hide();
 		$("body").append(this.box);
 		this.box.show("fast");
+		this.box.find("div:eq(0)").click(background_onclick);
+		state=true;
 		return this;
 	};
 	this.close=function(){
 		var box=this.box; //防止无法在函数内使用this
-		this.box.hide("fast",function(){
+		this.box.hide("fast", function(){
 			box.remove();
 		});
+		state=false;
 		return this;
 	};
 }

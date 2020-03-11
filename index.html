@@ -136,38 +136,57 @@ setInterval(function(){
 }
 
 $("body").find("button:eq(0)").click(function(){
-	var choice=new Choice([
-		{
-			name:"分享给QQ好友",
-			onclick:function(){
-				location.href="http://connect.qq.com/widget/shareqq/index.html?url=https%3A%2F%2Fwzh656.github.io%2Fgobang&sharesource=qzone&title=%E4%BA%94%E5%AD%90%E6%A3%8B&pics=https%3A%2F%2Fwzh656.github.io%2Fgobang%2Fimage%2Ficon%2Ficon.png&summary=%E5%BF%AB%E6%9D%A5play%E4%BA%94%E5%AD%90%E6%A3%8B%E5%90%A7%EF%BC%8C%E7%9C%8B%E7%9C%8B%E4%BD%A0%E8%83%BD%E8%B6%85%E8%BF%87%E6%88%91%E5%90%97%EF%BC%9F&desc=";
-				choice.close();
-			}
-		},
-		{
-			name:"分享到QQ空间",
-			onclick:function(){
-				location.href="https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https%3A%2F%2Fwzh656.github.io%2Fgobang&sharesource=qzone&title=%E4%BA%94%E5%AD%90%E6%A3%8B&pics=https%3A%2F%2Fwzh656.github.io%2Fgobang%2Fimage%2Ficon%2Ficon.png&summary=%E5%BF%AB%E6%9D%A5play%E4%BA%94%E5%AD%90%E6%A3%8B%E5%90%A7%EF%BC%8C%E7%9C%8B%E7%9C%8B%E4%BD%A0%E8%83%BD%E8%B6%85%E8%BF%87%E6%88%91%E5%90%97%EF%BC%9F";
-				choice.close();
-			}
-		},
-		{
-			name:"取消",
-			color:"red",
-			onclick:function(){
-				choice.close();
-			}
+	var choice=new Choice(
+		[
+			{
+				name:"分享给QQ好友",
+				onclick:function(){
+					window.open("http://connect.qq.com/widget/shareqq/index.html?url=https%3A%2F%2Fwzh656.github.io%2Fgobang&sharesource=qzone&title=%E4%BA%94%E5%AD%90%E6%A3%8B&pics=https%3A%2F%2Fwzh656.github.io%2Fgobang%2Fimage%2Ficon%2Ficon.png&summary=%E5%BF%AB%E6%9D%A5play%E4%BA%94%E5%AD%90%E6%A3%8B%E5%90%A7%EF%BC%8C%E7%9C%8B%E7%9C%8B%E4%BD%A0%E8%83%BD%E8%B6%85%E8%BF%87%E6%88%91%E5%90%97%EF%BC%9F&desc=");
+					choice.close();
+					}
+			},
+			{
+				name:"分享到QQ空间",
+				onclick:function(){
+					window.open("https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https%3A%2F%2Fwzh656.github.io%2Fgobang&sharesource=qzone&title=%E4%BA%94%E5%AD%90%E6%A3%8B&pics=https%3A%2F%2Fwzh656.github.io%2Fgobang%2Fimage%2Ficon%2Ficon.png&summary=%E5%BF%AB%E6%9D%A5play%E4%BA%94%E5%AD%90%E6%A3%8B%E5%90%A7%EF%BC%8C%E7%9C%8B%E7%9C%8B%E4%BD%A0%E8%83%BD%E8%B6%85%E8%BF%87%E6%88%91%E5%90%97%EF%BC%9F");
+					choice.close();
+				}
+			},
+			{
+				name:"二维码1",
+				onclick:function(){
+					window.open("./image/QR_code1.png");
+					choice.close();
+				}
+			},
+			{
+				name:"二维码2",
+				onclick:function(){
+					window.open("./image/QR_code2.png");
+					choice.close();
+				}
+			},
+			{
+				name:"取消",
+				color:"red",
+				onclick:function(){
+					choice.close();
+				}	
+			}	
+		],
+		function(){
+			choice.close();
 		}
-	]).show();
+	).show();
 });
 
 /*
-　┐ ├┬─┐ ┌──┼┼┐	w
+　┐ ├┬─┐ ┌──┼┼┐		w
 　│ ││　 ┌──┼┼┐		z
-  │╯├─┐ ╭──┴╯		h
+  │╯├─┐ ╭──┴╯	h
   └╯│   ┌────┐		6
-　│　├─┐ ├────┤	5
-　╰┘└　 └────╯		6
+　│　├─┐ ├────┤		5
+　╰┘└　 └────╯	6
 © by WZH656
 此文件为WZH656所有
 禁止任何修改，抄袭！

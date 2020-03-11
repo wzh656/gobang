@@ -7,7 +7,7 @@
 <link href="./css/button.css" rel="stylesheet" type="text/css" />
 <link href="./css/p.css" rel="stylesheet" type="text/css" />
 <link href="./css/clear.css" rel="stylesheet" type="text/css" />
-<meta content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=0;" name="viewport" />
+<meta content="width=device-width, height=device-height, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport" />
 
 <style>
 h1{
@@ -90,18 +90,21 @@ connect=new Msgbox(
 			}
 		}
 	],
-	"loading"
+	"loading",
+	function(){}
 ).show();
 
 setInterval(function(){
-	socket.emit("test",id);
-},1000);
-socket.on("test",function(sid){
-	console.log(sid)
-	if (sid == id){
-		connect.close();
+	if (socket.connected){
+		if (connect.state){ //未关闭
+			connect.close();
+		}
+	}else{
+		if (!connect.state){ //未开启
+			connect.show();
+		}
 	}
-});
+},1000);
 </script>
 </body>
 </html>
