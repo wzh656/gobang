@@ -26,8 +26,8 @@ p{
 }
 button{
 	color:white;
-	background-color:#6a8;
-	width:48%;
+	/*background-color:#6a8;*/
+	width:32%;
 	height:66px;
 	background:#70c3ff;
 	font-size:200%;
@@ -51,23 +51,18 @@ console.log('控制台打印信息');
 <body>
 
 <h1>联机对战</h1>
-<b>黑方：</b><p></p>
-<b>白方：</b><p></p>
-<button onclick="location.href='./index.html';" id="back">返回</button>
-<button >开始游戏</button>
+<b>黑方：</b><p id='black'></p>
+<b>白方：</b><p id='white'></p>
+<b id='state'></b><br/>
+<button onclick='location.href="./index.html";'>返回</button>
+<button onclick='location.reload(true);'>刷新</button>
+<button ocnlick='rename();'>重命名</button>
 <noscript><h1>错误！你的浏览器不支持JavaScript，无法使用《五子棋》！</h1></noscript>
 
 <script>
-var id=new Date()*100+Math.floor(Math.random()*100);
-var socket = io();
-function sign_in(name,password){ //登录
-	socket.emit("sign_in",name,password);
-}
-function sign_up(name,password){ //注册
-	socket.emit("sign_up",name,password);
-}
+var socket=io();
 
-connect=new Msgbox(
+var connect=new Msgbox(
 	{
 		name:"连接服务器中……",
 		color:"#a88",
@@ -76,9 +71,10 @@ connect=new Msgbox(
 		name:"若一直无法连接服务器，请检查是否开启或连接到了服务器。"
 	},[
 		{
-			name:"返回",
+			name:"退出",
 			width:"50%",
 			onclick:function(){
+				socket.emit('exit', id);
 				location.href="index.html";
 			}
 		},
@@ -87,6 +83,7 @@ connect=new Msgbox(
 			width:"50%",
 			onclick:function(){
 				location.reload(true);
+				socket.emit('exit', id);
 			}
 		}
 	],
@@ -104,7 +101,95 @@ setInterval(function(){
 			connect.show();
 		}
 	}
-},1000);
+},1000*2);
+
+var id;
+var player=[null, null];
+
+var get_id=new Msgbox(
+	{
+		name:"获取ID中……",
+		color:"#a88",
+		font_size:"36px"
+	},{
+		name:"若一直无法获取ID，请检查是否开启或连接到了服务器。"
+	},[
+		{
+			name:"退出",
+			width:"50%",
+			onclick:function(){
+				socket.emit('exit', id);
+				location.href="index.html";
+			}
+		},
+		{
+			name:"刷新",
+			width:"50%",
+			onclick:function(){
+				socket.emit('exit', id);
+				location.reload(true);
+			}
+		}
+	],
+	"loading",
+	function(){}
+).show();
+
+socket.on('id',function (data){
+	id=data;
+	get_id.close();
+});
+
+document.onkeydown=function (){ //禁用F5刷新
+	if (event.keyCode == 116){ //F5
+		alert('F5刷新已禁用');
+		event.keyCode = 0;
+		event.cancelBubble = true;
+		return false;
+	}
+}
+
+window.onbeforeunload=exit; //退出前发送退出信息
+function exit(){
+	socket.emit('exit', id);
+}
+
+socket.on('player', function(data){
+	player=data;
+	$('#black').html(player[0]);
+	$('#white').html(player[1]);
+	
+	if (player[0] == id){
+		$('#black')[0].innerHTML+='（我）';
+		$('#state').html('你被分配为黑方');
+		if (player[1] != null) { //匹配成功
+			$('#state').html('匹配成功，点击开始游戏');
+			setInterval(function (){
+				alert('匹配成功，点击开始游戏');
+			});
+			location.href='online.html?type=black&id='+id;
+		}
+	
+	}else if (player[1] == id){
+		$('#white')[0].innerHTML+='（我）';
+		$('#state').html('你被分配为白方');
+		if (player[0] != null) { //匹配成功
+			$('#state').html('匹配成功，点击开始游戏');
+			setInterval(function (){
+				alert('匹配成功，点击开始游戏');
+			});
+			location.href='online.html?type=white&id='+id;
+		}
+	
+	}else{
+		$('#state').html('已匹配结束，你被分配为观战方');
+		setInterval(function (){
+			alert('已匹配结束，你被分配为观战方');
+		});
+		location.href='online.html?type=watcher';
+	}
+});
+
 </script>
 </body>
 </html>
