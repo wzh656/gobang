@@ -72,7 +72,7 @@ button{
 		}
 	},300); 
 }
-var over; //状态
+var over=true; //状态
 var xqf; //下棋方
 var qz; //棋子
 
@@ -87,12 +87,10 @@ var img=new Image();
 img.src="./image/qp.jpg";
 img.onload=init;
 function init(){
-	over=true;
 	xqf="黑棋";
-	
 	message.innerHTML="下棋方："+xqf;
-	length.innerHTML=0; //步数
 	
+	length.innerHTML=0; //步数
 	qz=new Array;
 	for (var i=-5;i<19+5;i++){
 		qz[i]=new Array;
@@ -107,6 +105,9 @@ function init(){
 	
 	ctx.drawImage(img,0,0);
 	over=false;
+	if (computer == xqf){
+		computer_play();
+	}
 }
 
 document.onmousedown = function(e){

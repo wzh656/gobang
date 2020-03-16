@@ -23,7 +23,10 @@ io.on('connection', function (socket){
 	user_num++;
 	if (io.sockets.connected[socket.id]){
 		io.sockets.connected[socket.id].emit('id',socket.id); //发送用户ID
+		
 		add(socket.id); //添加用户
+		console.log("用户列表：", user);
+		console.log("玩家：", player);
 	}
 	
 	socket.on('disconnect', function (socket){
@@ -41,6 +44,28 @@ io.on('connection', function (socket){
 		console.log('用户退出', id);
 		
 		exit(id); //删除用户
+		console.log("用户列表：", user);
+		console.log("玩家：", player);
+	});
+
+	socket.on('rename', function (id, name){
+		console.log("重命名", id, name);
+		
+		if (user.indexOf(id) != -1){
+			user[user.indexOf(id)] = name;
+		}
+		if (player[0] == id){
+			player[0] = name;
+		}else if (player[1] == id){
+			player[1] = name;
+		}
+		
+		setTimeout(function(){
+			io.emit('player', player);
+		},200);
+		
+		console.log("用户列表：", user);
+		console.log("玩家：", player);
 	});
 	
 });

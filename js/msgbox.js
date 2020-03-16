@@ -95,8 +95,11 @@ function Msgbox(title, message, button, icon, background_onclick){
 					.append(
 						$("<p>"+this.message.name+"</p>")
 							.css("text-align", "center")
+							.css("margin","auto")
 							.css("color", this.message.color)
 							.css("font-size", this.message.font_size)
+							.css("width", this.message.width)
+							.css("height", this.message.height)
 					)
 			.append(
 				$("<div></div>")
@@ -194,5 +197,4 @@ function Msgbox(title, message, button, icon, background_onclick){
 		this.state=false;
 		return this;
 	};
-	var close=this.close();
 }

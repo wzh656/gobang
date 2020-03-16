@@ -151,28 +151,8 @@ function init(){
 			'<span style="color:#f00;">胜：'+win+'盘</span>'+
 			'<span style="color:#000;">负：'+(all-win)+'盘</span>'+
 			'<span style="color:#aaa;">共：'+all+'盘</span>'+
-			'<span style="color:#'+
-				(
-					(all==0)?"aaaaaa":
-					(
-						(
-							(Math.round(255-win/all*255)).toString(16).length==1?
-								"0"+(Math.round(255-win/all*255)).toString(16)
-							:
-								(Math.round(255-win/all*255)).toString(16)
-						)+
-						(
-							(Math.round(win/all*255)).toString(16).length==1?
-								"0"+(Math.round(win/all*255)).toString(16)
-							:
-								(Math.round(win/all*255)).toString(16)
-						)+
-						"00"
-					)
-				)+
-			';">胜率：'+((all==0)?"无法计算":(win/all*100+"％"))+'</span>'
+			'<span style="color:#aaa;">胜率：'+((all==0)?"无法计算":(win/all*100+"％"))+'</span>'
 		;
-		
 		document.getElementById("win").style.top="150px";
 		document.getElementById("win").style.left="384px";
 		document.getElementById("win").style.height="89px";
@@ -202,7 +182,7 @@ function clear_data(){
 	}
 }
 
-document.getElementById('qp').onmousedown = function(e){
+document.onmousedown = function(e){
 	var y=Math.round((e.pageX-37.7)/24.5);
 	var x=Math.round((e.pageY-270)/24.5);
 	
@@ -270,26 +250,7 @@ document.getElementById('qp').onmousedown = function(e){
 									'<span style="color:#f00;">胜：'+win+'盘</span>'+
 									'<span style="color:#000;">负：'+(all-win)+'盘</span>'+
 									'<span style="color:#aaa;">共：'+all+'盘</span>'+
-									'<span style="color:#'+
-										(
-											(all==0)?"aaaaaa":
-											(
-												(
-													(Math.round(255-win/all*255)).toString(16).length==1?
-														"0"+(Math.round(255-win/all*255)).toString(16)
-													:
-														(Math.round(255-win/all*255)).toString(16)
-												)+
-												(
-													(Math.round(win/all*255)).toString(16).length==1?
-														"0"+(Math.round(win/all*255)).toString(16)
-													:
-														(Math.round(win/all*255)).toString(16)
-												)+
-												"00"
-											)
-										)+
-									';">胜率：'+(win/all*100+"％")+'</span>'
+									'<span style="color:#aaa;">胜率：'+(win/all*100+"％")+'</span>'
 								;
 								alert("历经"+length.innerHTML+"步\n"+qz[i][j]+"胜！！！\n============\n胜："+win+"盘\n负："+(all-win)+"盘\n共："+all+"盘\n胜率："+(win/all*100)+"％");
 							}
