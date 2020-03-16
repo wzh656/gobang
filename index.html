@@ -21,80 +21,86 @@
 		
 <style>
 body{
-	background-image:url("./image/background1.jpg");
+	background-image: url("./image/background1.jpg");
 }
-@media not screen and (orientation:portrait){
+@media not screen and (orientation: portrait){
 	body{
-		background-image:url("./image/background2.jpg");
+		background-image: url("./image/background2.jpg");
 	}
 }
 body{
-	position:absolute;
-	left:0px;
-	top:0px;
-	width:100%;
-	height:100%;
-	z-index:-1;
-	margin:0 auto;
+	position: absolute;
+	left: 0px;
+	top: 0px;
+	width: 100%;
+	height: 100%;
+	z-index: -1;
+	margin: 0 auto;
 	
-	background-size:cover;
+	background-size: cover;
 }
 h1{
-	margin:0px;
-	font-size:400%;
+	margin: 0px;
+	font-size: 400%;
 }
-div button{
-	width:50%;
-	height:12%;
-	color:white;
-	background-color:#6a8;
-	font-size:126%;
-	border:2px solid #8a8;
-	border-radius:40px;
+button{
+	width: 50%;
+	height: 12%;
+	color: white;
+	background-color: #6a8;
+	font-size: 126%;
+	border: 2px solid #8a8;
+	border-radius: 40px;
 	
-	text-align:center;
-	line-height:60px;
+	text-align: center;
+	line-height: 60px;
 }
-.box{
-	position:absolute; /*脱离文档流以实现height:100%*/
-	width:100%;
-	height:100%;
+body{
+	position: absolute; /*脱离文档流以实现height: 100%*/
+	width: 100%;
+	height: 100%;
 	
-	display:flex; /*flex布局*/
-	flex-direction:column; /*↓*/
-	/*flex-wrap:nowrap; /*不换行（默认）*/
-	justify-content:space-around;
-	align-items:center;
+	display: flex; /*flex布局*/
+	flex-direction: column; /*↓*/
+	/*flex-wrap: nowrap; /*不换行（默认）*/
+	justify-content: space-around;
+	align-items: center;
+}
+img{
+	position: absolute;
+	top: 0px;
+	height: 50px;
+	width: 50px;
+	border-radius: 50%;
 }
 </style>
 		
 	</head>
 	<body>
 		
-		<button style="float:right;z-index:1;height:66px;width:66px;border-radius:50%;padding:0;">SHARE</button>
-		<div class="box">
-			<h1 id="h1">五子棋</h1>
-			<button
-				onclick="location.href='./two.html';"
-				title="点击进入双人对战">
-				双人对战
-			</button>
-			<button
-				onclick="location.href='./one1.html';"
-				title="点击进入人机对战（算法1）">
-				人机对战（简单）
-			</button>
-			<button
-				onclick="location.href='./one2.html';"
-				title="点击进入人机对战（算法2）">
-				人机对战（中级）
-			</button>
-			<button
-				onclick="location.href='./sign.html';"
-				title="登录账号以联机对战">
-				登录/联机
-			</button>
-		</div>
+		<img style="right: 0px;" src="./image/icon/share.jpg" alt="share" />
+		<img style="right: 50px;" src="./image/icon/set.png" alt="share" />
+		<h1 id="h1">五子棋</h1>
+		<button
+			onclick="location.href='./two.html';"
+			title="点击进入双人对战">
+			双人对战
+		</button>
+		<button
+			onclick="location.href='./one1.html';"
+			title="点击进入人机对战（算法1）">
+			人机对战（简单）
+		</button>
+		<button
+			onclick="location.href='./one2.html';"
+			title="点击进入人机对战（算法2）">
+			人机对战（中级）
+		</button>
+		<button
+			onclick="location.href='./sign.html';"
+			title="登录账号以联机对战">
+			登录/联机
+		</button>
 		
 		<noscript><h1>错误！你的浏览器不支持JavaScript，无法使用《五子棋》！</h1></noscript>
 
@@ -129,41 +135,41 @@ div button{
 	},300); 
 }
 
-$("body").find("button:eq(0)").click(function(){
+$("img:eq(0)").click(function(){
 	var choice=new Choice(
 		[
 			{
-				name:"分享给QQ好友",
-				onclick:function(){
+				name: "分享给QQ好友",
+				onclick: function(){
 					window.open("http://connect.qq.com/widget/shareqq/index.html?url=https%3A%2F%2Fwzh656.github.io%2Fgobang&sharesource=qzone&title=%E4%BA%94%E5%AD%90%E6%A3%8B&pics=https%3A%2F%2Fwzh656.github.io%2Fgobang%2Fimage%2Ficon%2Ficon.png&summary=%E5%BF%AB%E6%9D%A5play%E4%BA%94%E5%AD%90%E6%A3%8B%E5%90%A7%EF%BC%8C%E7%9C%8B%E7%9C%8B%E4%BD%A0%E8%83%BD%E8%B6%85%E8%BF%87%E6%88%91%E5%90%97%EF%BC%9F&desc=");
 					choice.close();
 					}
 			},
 			{
-				name:"分享到QQ空间",
-				onclick:function(){
+				name: "分享到QQ空间",
+				onclick: function(){
 					window.open("https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https%3A%2F%2Fwzh656.github.io%2Fgobang&sharesource=qzone&title=%E4%BA%94%E5%AD%90%E6%A3%8B&pics=https%3A%2F%2Fwzh656.github.io%2Fgobang%2Fimage%2Ficon%2Ficon.png&summary=%E5%BF%AB%E6%9D%A5play%E4%BA%94%E5%AD%90%E6%A3%8B%E5%90%A7%EF%BC%8C%E7%9C%8B%E7%9C%8B%E4%BD%A0%E8%83%BD%E8%B6%85%E8%BF%87%E6%88%91%E5%90%97%EF%BC%9F");
 					choice.close();
 				}
 			},
 			{
-				name:"二维码1",
-				onclick:function(){
+				name: "二维码1",
+				onclick: function(){
 					window.open("./image/QR_code1.png");
 					choice.close();
 				}
 			},
 			{
-				name:"二维码2",
-				onclick:function(){
+				name: "二维码2",
+				onclick: function(){
 					window.open("./image/QR_code2.png");
 					choice.close();
 				}
 			},
 			{
-				name:"取消",
-				color:"red",
-				onclick:function(){
+				name: "取消",
+				color: "red",
+				onclick: function(){
 					choice.close();
 				}	
 			}	
