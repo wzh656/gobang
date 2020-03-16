@@ -542,6 +542,22 @@ function computer_play(){
 	message.innerHTML="下棋方："+xqf;
 }
 
+//屏蔽鼠标右键
+document.oncontextmenu = function (e){
+	var e = e || window.event;
+	e.returnValue = false;
+	return false;
+}
+//屏蔽ctrl+s保存
+window.onkeydown = function(e) {
+	if (e.ctrlKey && e.keyCode == 83){
+		//alert('禁止使用ctrl+s');
+		e.preventDefault();
+		e.returnValue = false;
+		return false;
+	}
+}
+
 /*
 　┐ ├┬─┐ ┌──┼┼┐		w
 　│ ││　 ┌──┼┼┐		z

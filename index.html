@@ -111,7 +111,7 @@ img{
 	let i=0;
 	let j=1;
 	let fx="1"; //方向
-	setInterval(function(){
+	setInterval(function (){
 		document.title=String(message).substring(0,i)+"_";
 		if (i < 0){
 			if (j == 1){
@@ -135,33 +135,33 @@ img{
 	},300); 
 }
 
-$("img:eq(0)").click(function(){
+$("img:eq(0)").click(function (){
 	var choice=new Choice(
 		[
 			{
 				name: "分享给QQ好友",
-				onclick: function(){
+				onclick: function (){
 					window.open("http://connect.qq.com/widget/shareqq/index.html?url=https%3A%2F%2Fwzh656.github.io%2Fgobang&sharesource=qzone&title=%E4%BA%94%E5%AD%90%E6%A3%8B&pics=https%3A%2F%2Fwzh656.github.io%2Fgobang%2Fimage%2Ficon%2Ficon.png&summary=%E5%BF%AB%E6%9D%A5play%E4%BA%94%E5%AD%90%E6%A3%8B%E5%90%A7%EF%BC%8C%E7%9C%8B%E7%9C%8B%E4%BD%A0%E8%83%BD%E8%B6%85%E8%BF%87%E6%88%91%E5%90%97%EF%BC%9F&desc=");
 					choice.close();
 					}
 			},
 			{
 				name: "分享到QQ空间",
-				onclick: function(){
+				onclick: function (){
 					window.open("https://sns.qzone.qq.com/cgi-bin/qzshare/cgi_qzshare_onekey?url=https%3A%2F%2Fwzh656.github.io%2Fgobang&sharesource=qzone&title=%E4%BA%94%E5%AD%90%E6%A3%8B&pics=https%3A%2F%2Fwzh656.github.io%2Fgobang%2Fimage%2Ficon%2Ficon.png&summary=%E5%BF%AB%E6%9D%A5play%E4%BA%94%E5%AD%90%E6%A3%8B%E5%90%A7%EF%BC%8C%E7%9C%8B%E7%9C%8B%E4%BD%A0%E8%83%BD%E8%B6%85%E8%BF%87%E6%88%91%E5%90%97%EF%BC%9F");
 					choice.close();
 				}
 			},
 			{
 				name: "二维码1",
-				onclick: function(){
+				onclick: function (){
 					window.open("./image/QR_code1.png");
 					choice.close();
 				}
 			},
 			{
 				name: "二维码2",
-				onclick: function(){
+				onclick: function (){
 					window.open("./image/QR_code2.png");
 					choice.close();
 				}
@@ -169,16 +169,36 @@ $("img:eq(0)").click(function(){
 			{
 				name: "取消",
 				color: "red",
-				onclick: function(){
+				onclick: function (){
 					choice.close();
 				}	
 			}	
 		],
-		function(){
+		function (){
 			choice.close();
 		}
 	).show();
 });
+
+//屏蔽鼠标右键
+document.oncontextmenu = function (e){
+	//var e = e || window.event;
+	//e.returnValue = false;
+	return false;
+};
+//屏蔽ctrl+s保存
+window.onkeydown = function (e){
+	if (e.ctrlKey && e.keyCode == 83){
+		//alert('禁止使用ctrl+s');
+		//e.preventDefault();
+		//e.returnValue = false;
+		return false;
+	}
+};
+//屏蔽选择文字
+document.onselectstart = function (){
+	return false;
+};
 
 /*
 　┐ ├┬─┐ ┌──┼┼┐		w
