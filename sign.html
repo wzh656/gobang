@@ -11,27 +11,27 @@
 		
 <style>
 h1{
-	font-size:50px;
+	font-size: 50px;
 }
 b{
-	font-size:200%;
+	font-size: 200%;
 }
 p{
-	width:100%;
-	height:66px;
-	background-color:#6a6;
-	border-radius:20px;
-	color:white;
-	font-size:200%;
+	width: 100%;
+	height: 66px;
+	background-color: #6a6;
+	border-radius: 20px;
+	color: white;
+	font-size: 200%;
 }
 button{
-	color:white;
-	/*background-color:#6a8;*/
-	width:32%;
-	height:66px;
-	background:#70c3ff;
-	font-size:160%;
-	border-radius:40px;
+	color: white;
+	/*background-color: #6a8;*/
+	width: 32%;
+	height: 66px;
+	background: #70c3ff;
+	font-size: 160%;
+	border-radius: 20px;
 }
 </style>
 		
@@ -55,7 +55,7 @@ button{
 		<b>白方：</b><p id='white'></p>
 		<b id='state'>没有服务器信息</b><br/>
 		
-		<button onclick='location.href="./index.html";'>返回</button>
+		<button onclick='location.href = "./index.html";'>返回</button>
 		<button onclick='location.reload(true);'>刷新</button>
 		<button onclick='rename(prompt("请输入更改后的名称", id));'>重命名</button>
 		<noscript><h1>错误！你的浏览器不支持JavaScript，无法使用《五子棋》！</h1></noscript>
@@ -63,37 +63,38 @@ button{
 <script>
 try{
 	
-	var socket=io();
+	var socket = io();
 
-	var connect=new Msgbox(
+	var connect = new Msgbox(
 		{
-			name:"连接服务器中……",
-			color:"#a88",
-			font_size:"36px"
+			name: "连接服务器中……",
+			color: "#a88",
+			font_size: "36px"
 		},
 		{
-			name:"若一直无法连接服务器，请检查是否开启或连接到了服务器。"
+			name: "若一直无法连接服务器，请检查是否开启或连接到了服务器。",
+			font_size: "26px"
 		},
 		[
 			{
-				name:"退出",
-				width:"50%",
-				onclick:function(){
+				name: "退出",
+				width: "50%",
+				onclick: function (){
 					exit();
-					location.href="index.html";
+					location.href = "index.html";
 				}
 			},
 			{
-				name:"刷新",
-				width:"50%",
-				onclick:function(){
+				name: "刷新",
+				width: "50%",
+				onclick: function (){
 					location.reload(true);
 					exit();
 				}
 			}
 		],
 		"loading",
-		function(){}
+		function (){}
 	).show();
 
 	setInterval(function(){
@@ -107,52 +108,62 @@ try{
 			}
 		}
 	},1000*2);
-
+	
 	var id;
-	var player=[null, null];
+	var player = [null, null];
+	
+	if (localStorage.getItem("五子棋.登陆.名称")){
+		id = localStorage.getItem("五子棋.登陆.名称");
+	}
 
-	var get_id=new Msgbox(
+	var get_id = new Msgbox(
 		{
-			name:"获取ID中……",
-			color:"#a88",
-			font_size:"36px"
+			name: "获取ID中……",
+			color: "#a88",
+			font_size: "36px"
 		},
 		{
-			name:"若一直无法获取ID，请检查是否开启或连接到了服务器。"
+			name: "若一直无法获取ID，请检查是否开启或连接到了服务器。",
+			font_size: "26px"
 		},
 		[
 			{
-				name:"退出",
-				width:"50%",
-				onclick:function(){
+				name: "退出",
+				width: "50%",
+				onclick: function (){
 					exit();
-					location.href="index.html";
+					location.href = "index.html";
 				}
 			},
 			{
-				name:"刷新",
-				width:"50%",
-				onclick:function(){
+				name: "刷新",
+				width: "50%",
+				onclick: function (){
 					exit();
 					location.reload(true);
 				}
 			}
 		],
 		"loading",
-		function(){}
+		function (){}
 	).show();
 
-	socket.on('id',function (data){
-		id=data;
+	socket.on('id', function (data){
+		if (id){
+			socket.emit('rename', data, id);
+		}else{
+			id = data;
+		}
 		get_id.close();
 	});
 
 	function rename(name){
 		socket.emit('rename', id, name);
 		id = name;
+		localStorage.setItem("五子棋.登陆.名称", name);
 	}
 
-	document.onkeydown=function (){ //禁用F5刷新
+	document.onkeydown = function (){ //禁用F5刷新
 		if (event.keyCode == 116){ //F5
 			alert('F5刷新已禁用');
 			event.keyCode = 0;
@@ -161,36 +172,36 @@ try{
 		}
 	};
 
-	window.onbeforeunload=exit; //退出前发送退出信息
+	window.onbeforeunload = exit; //退出前发送退出信息
 	function exit(){
 		socket.emit('exit', id);
 	}
 
-	socket.on('player', function(data){
-		player=data;
+	socket.on('player', function (data){
+		player = data;
 		$('#black').html(player[0]);
 		$('#white').html(player[1]);
 		
 		if (player[0] == id){
-			$('#black')[0].innerHTML+='（我）';
+			$('#black')[0].innerHTML += '（我）';
 			$('#state').html('你被分配为黑方');
 			if (player[1] != null) { //匹配成功
 				$('#state').html('匹配成功，点击开始游戏');
 				setInterval(function (){
 					alert('匹配成功，点击开始游戏');
 				});
-				location.href='online.html?type=black&id='+id;
+				location.href = 'online.html?type=black&id='+id;
 			}
 		
 		}else if (player[1] == id){
-			$('#white')[0].innerHTML+='（我）';
+			$('#white')[0].innerHTML += '（我）';
 			$('#state').html('你被分配为白方');
 			if (player[0] != null) { //匹配成功
 				$('#state').html('匹配成功，点击开始游戏');
 				setInterval(function (){
 					alert('匹配成功，点击开始游戏');
 				});
-				location.href='online.html?type=white&id='+id;
+				location.href = 'online.html?type=white&id='+id;
 			}
 		
 		}else{
@@ -198,7 +209,7 @@ try{
 			setInterval(function (){
 				alert('已匹配结束，你被分配为观战方');
 			});
-			location.href='online.html?type=watcher';
+			location.href = 'online.html?type=watcher';
 		}
 	});
 
@@ -206,66 +217,68 @@ try{
 	if (err == "ReferenceError: io is not defined"){
 		new Msgbox(
 			{
-				name:"错误",
-				color:"#a88",
-				font_size:"36px"
+				name: "错误",
+				color: "#f00",
+				font_size: "36px"
 			},
 			{
-				name:"请使用正确的方式（ip:端口）访问此页面，或你的浏览器不支持此页面。（"+err+"）",
-				height:"auto",
-				width:"95%"
+				name: "请使用正确的方式（ip:端口）访问此页面，或你的浏览器不支持此页面。（"+err+"）",
+				height: "auto",
+				width: "95%",
+				font_size: "26px"
 			},
 			[
 				{
-					name:"退出",
-					width:"100%",
-					onclick:function(){
-						location.href="index.html";
+					name: "退出",
+					width: "100%",
+					onclick: function (){
+						location.href = "index.html";
 					}
 				}
 			],
 			"error",
-			function(){}
+			function (){}
 		).show();
 	}else{
 		new Msgbox(
 			{
-				name:"错误",
-				color:"#a88",
-				font_size:"36px"
+				name: "错误",
+				color: "#f00",
+				font_size: "36px"
 			},
 			{
-				name:"出现未知错误（"+err+"），是否发送错误报告",
-				height:"auto",
-				width:"95%"
+				name: "出现未知错误（"+err+"），是否发送错误报告",
+				height: "auto",
+				width: "95%",
+				font_size: "26px"
 			},
 			[
 				{
-					name:"退出",
-					width:"50%",
-					onclick:function(){
-						location.href="index.html";
+					name: "退出",
+					width: "50%",
+					onclick: function (){
+						location.href = "index.html";
 					}
 				},
 				{
-					name:"发送错误报告",
-					width:"50%",
-					onclick:function(){
+					name: "发送错误报告",
+					width: "50%",
+					onclick: function (){
 						$.post(
 							"https://api.s.wps.cn/api/form/163adb6f/mainPreview",
-							{url:"gobang/sign.html",type:"error_message",error_message:err},
+							{url:"gobang/sign.html", type:"error_message", error_message:err},
 							function (data, staus, xhr){
 								if (staus == "success"){
 									if (data == '{"result":"ok"}'){
 										alert("发送成功！");
-										location.href="index.html";
+										location.href = "index.html";
 									}else{
 										alert("发送服务器错误");
-										location.href="index.html";
+										location.href = "index.html";
 									}
 								}else{
 									alert("发送错误");
-									location.href="index.html";
+									location.href = "index.html";
 								}
 							}
 						)
@@ -273,23 +286,23 @@ try{
 				}
 			],
 			"error",
-			function(){}
+			function (){}
 		).show();
 	}
 }
 
 //屏蔽鼠标右键
 document.oncontextmenu = function (e){
-	var e = e || window.event;
-	e.returnValue = false;
+	//var e = e || window.event;
+	//e.returnValue = false;
 	return false;
 }
 //屏蔽ctrl+s保存
-window.onkeydown = function(e) {
+window.onkeydown = function (e){
 	if (e.ctrlKey && e.keyCode == 83){
 		//alert('禁止使用ctrl+s');
-		e.preventDefault();
-		e.returnValue = false;
+		//e.preventDefault();
+		//e.returnValue = false;
 		return false;
 	}
 }
