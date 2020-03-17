@@ -17,16 +17,35 @@ console.log('控制台打印信息');
 <style>
 @font-face{
 	font-family:fzybxskt; /*方正硬笔行书楷体*/
-	src:url("../fonts/fzybxskt.ttf");
+	src:url("./fonts/fzybxskt.ttf");
 }
 
+/*手机*/
+h1{
+	font-size: 40px;
+}
+
+/*宽>高（电脑）*/
+@media not screen and (orientation: portrait){
+	h1{
+		font-size: 60px;
+	}
+}
+
+/*0.6<宽/高<1（平板）*/
+@media screen and (max-aspect-ratio:100/100) and (min-aspect-ratio:60/100){
+	h1{
+		font-size:50px;
+	}
+}
+
+/*通用*/
 button{
+	width:66px;
+	height:36px;
 	color:white;
 	background-color:#6a8;
-	/*border-radius:40px;*/
-	width:50px;
-	height:33px;
-	text-align:center;
+	border-radius:40px;
 	line-height:20px;
 }
 </style>
@@ -36,7 +55,7 @@ button{
 <button onclick="location.href='./index.html';" id="back">返回</button>
 <button onclick="init();" id="again_two">重来</button>
 
-<h1 id="h1" style="text-align:center;font-size:50px;">五子棋-双人对战</h1>
+<h1 id="h1">五子棋-双人对战</h1>
 <br/><b id="message" style="position:absolute;top:190px;">下棋方：黑棋</b>
 <br>
 <canvas id="qp" width="500" height="500" style="border:1px solid black;position:absolute;left:10px;top:216px;">你的浏览器不支持“五子棋”，请切换浏览器。</canvas>
