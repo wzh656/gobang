@@ -1,7 +1,8 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<meta charset="UTF-8">
+		<meta charset="UTF-8"/>
+		<meta content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=yes" name="viewport" />
 		<title>五子棋-双人对战</title>
 		<link href="./css/title.css" rel="stylesheet" type="text/css" />
 		<link href="./css/button.css" rel="stylesheet" type="text/css" />
@@ -20,10 +21,27 @@ console.log('控制台打印信息');
 	src:url("./fonts/fzybxskt.ttf");
 }
 
-/*通用*/
+/*手机*/
 h1{
-	font-size: 50px;
+	font-size: 45px;
+	margin-top: 45px;
 }
+
+/*宽>高（电脑）*/
+@media not screen and (orientation: portrait){
+	h1{
+		font-size: 50px;
+	}
+}
+
+/*0.6<宽/高<1（平板）*/
+@media screen and (max-aspect-ratio:100/100) and (min-aspect-ratio:70/100){
+	h1{
+		font-size: 50px;
+	}
+}
+/*通用*/
+
 div{
 	position: absolute;
 	top: 6px;
@@ -48,14 +66,22 @@ button{
 		<h1 id="h1">五子棋-双人对战</h1>
 		<br/><b id="message" style="position:absolute;top:190px;">下棋方：黑棋</b>
 		<br>
-		<canvas id="qp" width="500" height="500" style="border:1px solid black;position:absolute;left:10px;top:216px;">你的浏览器不支持“五子棋”，请切换浏览器。</canvas>
-		<b style="position:absolute;top:716px;">步数：<span id="length">0</span></b>
+		<canvas id="qp" width="500" height="500" style="border:1px solid black;position:absolute;left:10px;top:216px;">错误！你的浏览器不支持Canvas，无法运行《五子棋》！</canvas>
+		<b style="position: absolute; top: 720px; margin-bottom: 20px;">步数：<span id="length">0</span></b>
 		
 <script>
+var scale = 1, position = {left:0,top:720};
 if (document.body.scrollWidth >= 500){
-	
+	document.getElementById("qp").width = 500;
+	document.getElementById("qp").height = 500;
+	document.getElementById("qp").style.left = (document.body.scrollWidth-500)/2+"px";
+	document.getElementById("message").style.left = (document.body.scrollWidth-500)/2+"px";
+	document.getElementById("length").parentElement.style.left = (document.body.scrollWidth-500)/2+"px";
+	position.left = (document.body.scrollWidth-500)/2;
 }else{
-	
+	document.getElementById("qp").width = document.body.scrollWidth;
+	document.getElementById("qp").height = document.body.scrollWidth;
+	scale = document.body.scrollWidth/500;
 }
 </script>
 		
@@ -75,7 +101,7 @@ if (document.body.scrollWidth >= 500){
 				j++;
 			}else if (j == 2){
 				j=1;
-				message="五子棋-双人对战";
+				message="五子棋-双人对战模式";
 			}else if (j == 3){
 				j=1;
 				message="MADE BY WZH";
@@ -100,7 +126,7 @@ var length=document.getElementById("length"); //下棋数
 
 var ctx=document.getElementById("qp").getContext("2d");
 ctx.font="66px fzybxskt";
-ctx.fillText("棋盘加载中……",0,200);
+ctx.fillText("棋盘加载中……", 0, 200);
 
 var img=new Image();
 img.src="./image/qp.jpg";
@@ -122,13 +148,13 @@ function init(){
 		}
 	}
 	
-	ctx.drawImage(img,0,0);
+	ctx.drawImage(img, 0, 0, 500*scale, 500*scale);
 	over=false;
 }
 
-document.getElementById("qp").onmousedown = function(e){
-	var y=Math.round((e.pageX-37.7)/24.5);
-	var x=Math.round((e.pageY-247.8)/24.5);
+document.getElementById("qp").onmousedown = function (e){
+	var y=Math.round((e.pageX-position.left-28.5*scale)/(24.722*scale));
+	var x=Math.round((e.pageY-position.top-28.5*scale)/(24.722*scale));
 	console.log(e.pageX+","+e.pageY+"（"+x+","+y+"）");
 	if (qz[x][y] != undefined & qz[x][y] == "" & over == false){
 		length.innerHTML=Number(length.innerHTML)+1;
@@ -136,7 +162,7 @@ document.getElementById("qp").onmousedown = function(e){
 		if (xqf == "黑棋"){
 			xqf="白棋";
 			ctx.beginPath();
-			ctx.arc(y*24.5+29,x*24.5+178-150,24.5/2,0,2*Math.PI);
+			ctx.arc(y*24.5+29, x*24.5+178-150, 24.5/2, 0, 2*Math.PI);
 			ctx.stroke();
 			ctx.fillStyle="black";
 			ctx.fill();
@@ -145,7 +171,7 @@ document.getElementById("qp").onmousedown = function(e){
 		}else if (xqf == "白棋"){
 			xqf="黑棋";
 			ctx.beginPath();
-			ctx.arc(y*24.5+29,x*24.5+178-150,24.5/2,0,2*Math.PI);
+			ctx.arc(y*24.5+29, x*24.5+178-150, 24.5/2, 0, 2*Math.PI);
 			ctx.stroke();
 			ctx.fillStyle="white";
 			ctx.fill();
