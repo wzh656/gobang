@@ -66,9 +66,9 @@ function Choice(items, background_onclick){
 							this.items[i].height
 						)
 					)
-					.css("border", 
+					.css("border-top", 
 						((this.items[i].b_size == undefined)?
-							"1px"
+							"2px"
 						:
 							this.items[i].size
 						)+

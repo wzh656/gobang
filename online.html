@@ -1,56 +1,73 @@
 <!DOCTYPE html>
 <html>
-	<head>
-		<meta charset="UTF-8">
-		<title>五子棋-双人对战</title>
-		<link href="./css/title.css" rel="stylesheet" type="text/css" />
-		<link href="./css/button.css" rel="stylesheet" type="text/css" />
-		<link href="./css/p.css" rel="stylesheet" type="text/css" />
-		<link href="./css/clear.css" rel="stylesheet" type="text/css" />
-		
-		<script src="/socket.io/socket.io.js"></script>
-		
-		
-		<script src="//cdn.jsdelivr.net/npm/eruda"></script>
-		<script>
-		eruda.init();
-		console.log('控制台打印信息');
-		</script>
-		
-		
+<head>
+<meta charset="UTF-8">
+<title>五子棋-联机对战</title>
+<link href="./css/title.css" rel="stylesheet" type="text/css" />
+<link href="./css/button.css" rel="stylesheet" type="text/css" />
+<link href="./css/p.css" rel="stylesheet" type="text/css" />
+<link href="./css/clear.css" rel="stylesheet" type="text/css" />
+
+<script src="/socket.io/socket.io.js"></script>
+
+<script src="//cdn.jsdelivr.net/npm/eruda"></script>
+<script>
+eruda.init();
+console.log('控制台打印信息');
+</script>
+
+
 <style>
 @font-face{
 	font-family:fzybxskt; /*方正硬笔行书楷体*/
-	src:url("../fonts/fzybxskt.ttf");
+	src:url("./fonts/fzybxskt.ttf");
 }
 
+/*手机*/
+h1{
+	font-size: 50px;
+}
+
+/*宽>高（电脑）*/
+@media not screen and (orientation: portrait){
+	h1{
+		font-size: 60px;
+	}
+}
+
+/*0.6<宽/高<1（平板）*/
+@media screen and (max-aspect-ratio:100/100) and (min-aspect-ratio:70/100){
+	h1{
+		font-size:50px;
+	}
+}
+
+/*通用*/
 button{
+	width:66px;
+	height:36px;
 	color:white;
 	background-color:#6a8;
-	/*border-radius:40px;*/
-	width:50px;
-	height:33px;
-	text-align:center;
+	border-radius:40px;
 	line-height:20px;
 }
 </style>
-	</head>
-	<body>
-	
-		<button onclick="location.href='./index.html';" id="back">返回</button>
-		<button onclick="init();" id="again_two">重来</button>
-		
-		<h1 id="h1" style="text-align:center;font-size:50px;">五子棋-双人对战</h1>
-		<br/><b id="message" style="position:absolute;top:190px;">下棋方：黑棋</b>
-		<br>
-		<canvas id="qp" width="500" height="500" style="border:1px solid black;position:absolute;left:10px;top:216px;">你的浏览器不支持“五子棋”，请切换浏览器。</canvas>
-		<b style="position:absolute;top:716px;">步数：<span id="length">0</span></b>
-		
-		<noscript><h1>错误！你的浏览器不支持JavaScript，无法使用《五子棋》！</h1></noscript>
+</head>
+<body>
 
+<button onclick="location.href='./index.html';" id="back">返回</button>
+<button onclick="init();" id="again_two">重来</button>
+
+<h1 id="h1">五子棋-联机联机对战</h1>
+<br/><b id="message" style="position:absolute;top:190px;">下棋方：黑棋</b>
+<br>
+<canvas id="qp" width="500" height="500" style="border:1px solid black;position:absolute;left:10px;top:216px;">你的浏览器不支持“五子棋”，请切换浏览器。</canvas>
+<b style="position:absolute;top:716px;">步数：<span id="length">0</span></b>
+
+<noscript><h1>错误！你的浏览器不支持JavaScript，无法使用《五子棋》！</h1></noscript>
 <script>
 {
-	let message="五子棋双人对战模式";
+	let message="五子棋联机对战模式";
 	let i=0;
 	let j=1;
 	let fx="1"; //方向
@@ -62,7 +79,7 @@ button{
 				j++;
 			}else if (j == 2){
 				j=1;
-				message="五子棋-双人对战";
+				message="五子棋-联机对战";
 			}else if (j == 3){
 				j=1;
 				message="MADE BY WZH";
@@ -77,18 +94,31 @@ button{
 		}
 	},300); 
 }
+
 function GetQueryString(name){
 	var reg = new RegExp("(^|&)"+ name +"=([^&]*)(&|$)");
 	var r = window.location.search.substr(1).match(reg);
 	if(r!=null)return  unescape(r[2]); return null;
 }
 
-var over=true; //状态
+var over = true; //状态
+var type;
 var xqf; //下棋方
 var qz; //棋子
 
 var message=document.getElementById("message");
 var length=document.getElementById("length"); //下棋数
+
+if (GetQueryString("type") == "black"){
+	type = "black";
+}else if (GetQueryString("type") == "white"){
+	type = "white";
+}else if (GetQueryString("type") == "watcher"){
+	type = "watcher";
+}else{
+	alert("错误的参数，请先匹配");
+	location.href = "sign.html";
+}
 
 var ctx=document.getElementById("qp").getContext("2d");
 ctx.font="66px fzybxskt";
@@ -98,7 +128,6 @@ var img=new Image();
 img.src="./image/qp.jpg";
 img.onload=init;
 function init(){
-	over=true;
 	xqf="黑棋";
 	message.innerHTML="下棋方："+xqf;
 	
@@ -119,9 +148,9 @@ function init(){
 	over=false;
 }
 
-document.onmousedown = function(e){
-	var y=Math.round((e.pageX-37.7)/24.5);
-	var x=Math.round((e.pageY-247.8)/24.5);
+document.getElementById("qp").onmousedown = function(e){
+	var y = Math.round((e.pageX-37.7)/24.5);
+	var x = Math.round((e.pageY-247.8)/24.5);
 	console.log(e.pageX+","+e.pageY+"（"+x+","+y+"）");
 	if (qz[x][y] != undefined & qz[x][y] == "" & over == false){
 		length.innerHTML=Number(length.innerHTML)+1;
@@ -175,6 +204,22 @@ document.onmousedown = function(e){
 	}
 };
 
+//屏蔽鼠标右键
+document.oncontextmenu = function (e){
+	var e = e || window.event;
+	e.returnValue = false;
+	return false;
+}
+//屏蔽ctrl+s保存
+window.onkeydown = function(e) {
+	if (e.ctrlKey && e.keyCode == 83){
+		//alert('禁止使用ctrl+s');
+		e.preventDefault();
+		e.returnValue = false;
+		return false;
+	}
+}
+
 /*
 　┐ ├┬─┐ ┌──┼┼┐		w
 　│ ││　 ┌──┼┼┐		z
@@ -186,7 +231,8 @@ document.onmousedown = function(e){
 此文件为WZH656所有
 禁止任何修改，抄袭！
 */
+
 </script>
-		
-	</body>
+
+</body>
 </html>
