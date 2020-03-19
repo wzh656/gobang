@@ -92,7 +92,6 @@ if (document.body.scrollWidth >= 500){
 	scale = document.body.scrollWidth/500;
 }
 window.onresize = function (){
-	alert("请不要玩弄你的屏幕");
 	location.reload(false);
 }
 </script>
@@ -186,8 +185,6 @@ function init(){
 			"<span>将无法保存胜率数据</span>"+
 			"<span>若要保存胜率数据，请切换浏览器</span>"
 		;
-		// document.getElementById("win").style.left="320px";
-		// document.getElementById("win").style.width="188px";
 		document.getElementById("win").style.color="red";
 	}else{
 		var data=String(localStorage.getItem("五子棋_人机对战2"));
@@ -200,12 +197,27 @@ function init(){
 			'<span style="color:#f00;">胜：'+win+'盘</span>'+
 			'<span style="color:#000;">负：'+(all-win)+'盘</span>'+
 			'<span style="color:#aaa;">共：'+all+'盘</span>'+
-			'<span style="color:#aaa;">胜率：'+((all==0)?"无法计算":(win/all*100+"％"))+'</span>'
+			'<span style="color:#'+
+			(
+				all == 0?
+					"aaa"
+				:
+					(
+						(Math.round(255-win/all*255)).toString(16).length<2?
+							"0"+(Math.round(255-win/all*255)).toString(16)
+						:
+							(Math.round(255-win/all*255)).toString(16)
+					)+
+					(
+						(Math.round(win/all*255)).toString(16).length<2?
+							"0"+(Math.round(win/all*255)).toString(16)
+						:
+							(Math.round(win/all*255)).toString(16)
+					)+
+					"00"
+			)+
+			';">胜率：'+((all==0)?"无法计算":(Math.round(win/all*10000)/100+"％"))+'</span>'
 		;
-		// document.getElementById("win").style.top="150px";
-		// document.getElementById("win").style.left="384px";
-		// document.getElementById("win").style.height="89px";
-		// document.getElementById("win").style.width="124px";
 	}
 }
 
@@ -231,7 +243,7 @@ function clear_data(){
 	}
 }
 
-document.onmousedown = function(e){
+document.getElementById("qp").onmousedown = function(e){
 	var x=Math.round((e.pageX-position.left-28.5*scale)/(24.722*scale));
 	var y=Math.round((e.pageY-position.top-28.5*scale)/(24.722*scale));
 	
@@ -311,7 +323,26 @@ document.onmousedown = function(e){
 									'<span style="color:#f00;">胜：'+win+'盘</span>'+
 									'<span style="color:#000;">负：'+(all-win)+'盘</span>'+
 									'<span style="color:#aaa;">共：'+all+'盘</span>'+
-									'<span style="color:#aaa;">胜率：'+(win/all*100+"％")+'</span>'
+									'<span style="color:#'+
+									(
+										all == 0?
+											"aaa"
+										:
+											(
+												(Math.round(255-win/all*255)).toString(16).length<2?
+													"0"+(Math.round(255-win/all*255)).toString(16)
+												:
+													(Math.round(255-win/all*255)).toString(16)
+											)+
+											(
+												(Math.round(win/all*255)).toString(16).length<2?
+													"0"+(Math.round(win/all*255)).toString(16)
+												:
+													(Math.round(win/all*255)).toString(16)
+											)+
+											"00"
+									)+
+									';">胜率：'+((all==0)?"无法计算":(Math.round(win/all*10000)/100+"％"))+'</span>'
 								;
 								alert("历经"+length.innerHTML+"步\n"+qz[i][j]+"胜！！！\n============\n胜："+win+"盘\n负："+(all-win)+"盘\n共："+all+"盘\n胜率："+(win/all*100)+"％");
 							}
@@ -578,8 +609,6 @@ function computer_play(){
 	length.innerHTML=Number(length.innerHTML)+1;
 	if (xqf == "黑棋"){
 		xqf="白棋";
-		var c=document.getElementById("qp");
-		var ctx=c.getContext("2d");
 		ctx.beginPath();
 		ctx.arc(
 			max_p["x"]*(24.5*scale)+(28.5*scale),
@@ -595,8 +624,6 @@ function computer_play(){
 		document.getElementById("message").style.backgroundColor="black";
 	}else if (xqf == "白棋"){
 		xqf="黑棋";
-		var c=document.getElementById("qp");
-		var ctx=c.getContext("2d");
 		ctx.beginPath();
 		ctx.arc(
 			max_p["x"]*(24.5*scale)+(28.5*scale),

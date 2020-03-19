@@ -8,8 +8,11 @@
 		<link href="./css/button.css" rel="stylesheet" type="text/css" />
 		<link href="./css/clear.css" rel="stylesheet" type="text/css" />
 		
-		<script src="./js/choice.js"></script>
+		<link href="./LayX/layx.min.css" rel="stylesheet" type="text/css" />
+		<script src="./LayX/layx.min.js" type="text/javascript"></script>
+		
 		<script src="./js/jq.js"></script>
+		<script src="./js/choice.js"></script>
 		
 		<!--
 		<script src="//cdn.jsdelivr.net/npm/eruda"></script>
@@ -126,13 +129,14 @@ img{
 	<body>
 		
 		<script>
+//layer.msg('hello'); 
 document.body.style.backgroundSize=`${document.body.scrollWidth}px ${document.body.scrollHeight}px`;
 window.onresize = function(){
 	document.body.style.backgroundSize=`${document.body.scrollWidth}px ${document.body.scrollHeight}px`;
 }
 		</script>
 		
-		<img src="./image/icon/share.jpg" alt="share" />
+		<img src="./image/icon/share.jpg" alt="set" />
 		<img src="./image/icon/set.png" alt="share" />
 		<h1 id="h1">五子棋</h1>
 		<button
