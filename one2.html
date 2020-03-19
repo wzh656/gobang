@@ -35,6 +35,18 @@ button{
 	/*border-radius:40px;*/
 	line-height:20px;
 }
+#win{
+	border:1px solid black;
+	position:absolute;
+	top:150px;
+	left:384px;
+	height:89px;
+	width:124px;
+	display:flex;/*flex布局*/
+	flex-direction:column;/*↓*/
+	justify-content:space-around;
+	align-items:center;
+}
 </style>
 		
 	</head>
@@ -49,7 +61,7 @@ button{
 		<h1 id="h1" style="text-align:center;font-size:50px;">五子棋-人机对战</h1>
 		<br/><b id="message" style="position:absolute;top:200px;">下棋方：黑棋</b>
 		<br/><b id="message2" style="position:absolute;top:220px;"></b>
-		<b id="win" style="border:1px solid black;position:absolute;top:150px;left:384px;height:89px;width:124px;display:flex;/*flex布局*/flex-direction:column;/*↓*/justify-content:space-around;align-items:center;">
+		<b id="win">
 			<span style="color:#f00;">胜：0盘</span>
 			<span style="color:#000;">负：0盘</span>
 			<span style="color:#aaa;">共：0盘</span>
@@ -58,6 +70,32 @@ button{
 		
 		<canvas id="qp" width="500" height="500" style="border:1px solid black;position:absolute;left:8px;top:239px;">错误！你的浏览器不支持Canvas，无法运行《五子棋》！</canvas>
 		<b style="position:absolute;top:739px;">步数：<span id="length">0</span></b>
+		
+<script>
+var scale = 1,
+position = {
+	left: 0,
+	top: 239
+};
+if (document.body.scrollWidth >= 500){
+	document.getElementById("qp").width = 500;
+	document.getElementById("qp").height = 500;
+	document.getElementById("qp").style.left = (document.body.scrollWidth-500)/2+"px";
+	document.getElementById("message").style.left = (document.body.scrollWidth-500)/2+"px";
+	document.getElementById("message2").style.left = (document.body.scrollWidth-500)/2+"px";
+	document.getElementById("length").parentElement.style.left = (document.body.scrollWidth-500)/2+"px";
+	document.getElementById("win").style.left = (document.body.scrollWidth-500)/2+500-124+"px";
+	position.left = (document.body.scrollWidth-500)/2;
+}else{
+	document.getElementById("qp").width = document.body.scrollWidth;
+	document.getElementById("qp").height = document.body.scrollWidth;
+	scale = document.body.scrollWidth/500;
+}
+window.onresize = function (){
+	alert("请不要玩弄你的屏幕");
+	location.reload(false);
+}
+</script>
 		
 		<noscript style="z-index: 1; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-color: #000000; color: #FFFFFF;"><h1>错误！你的浏览器不支持JavaScript，无法运行《五子棋》！</h1></noscript>
 
@@ -148,8 +186,8 @@ function init(){
 			"<span>将无法保存胜率数据</span>"+
 			"<span>若要保存胜率数据，请切换浏览器</span>"
 		;
-		document.getElementById("win").style.left="320px";
-		document.getElementById("win").style.width="188px";
+		// document.getElementById("win").style.left="320px";
+		// document.getElementById("win").style.width="188px";
 		document.getElementById("win").style.color="red";
 	}else{
 		var data=String(localStorage.getItem("五子棋_人机对战2"));
@@ -164,10 +202,10 @@ function init(){
 			'<span style="color:#aaa;">共：'+all+'盘</span>'+
 			'<span style="color:#aaa;">胜率：'+((all==0)?"无法计算":(win/all*100+"％"))+'</span>'
 		;
-		document.getElementById("win").style.top="150px";
-		document.getElementById("win").style.left="384px";
-		document.getElementById("win").style.height="89px";
-		document.getElementById("win").style.width="124px";
+		// document.getElementById("win").style.top="150px";
+		// document.getElementById("win").style.left="384px";
+		// document.getElementById("win").style.height="89px";
+		// document.getElementById("win").style.width="124px";
 	}
 }
 
@@ -194,8 +232,8 @@ function clear_data(){
 }
 
 document.onmousedown = function(e){
-	var y=Math.round((e.pageX-37.7)/24.5);
-	var x=Math.round((e.pageY-270)/24.5);
+	var x=Math.round((e.pageX-position.left-28.5*scale)/(24.722*scale));
+	var y=Math.round((e.pageY-position.top-28.5*scale)/(24.722*scale));
 	
 	console.log(e.pageX+","+e.pageY+"（"+x+","+y+"）");
 	if (qz[x][y] != undefined & qz[x][y] == "" & type == "playing"){
@@ -204,7 +242,13 @@ document.onmousedown = function(e){
 		if (xqf == "黑棋"  & computer != "黑棋"){
 			xqf="白棋";
 			ctx.beginPath();
-			ctx.arc(y*24.5+29,x*24.5+178-150,24.5/2,0,2*Math.PI);
+			ctx.arc(
+				x*(24.5*scale)+(28.5*scale),
+				y*(24.5*scale)+(28.5*scale),
+				24.5/2*scale,
+				0,
+				2*Math.PI
+			);
 			ctx.stroke();
 			ctx.fillStyle="black";
 			ctx.fill();
@@ -213,7 +257,13 @@ document.onmousedown = function(e){
 		}else if (xqf == "白棋"  & computer != "白棋"){
 			xqf="黑棋";
 			ctx.beginPath();
-			ctx.arc(y*24.5+29,x*24.5+178-150,24.5/2,0,2*Math.PI);
+			ctx.arc(
+				x*(24.5*scale)+(28.5*scale),
+				y*(24.5*scale)+(28.5*scale),
+				24.5/2*scale,
+				0,
+				2*Math.PI
+			);
 			ctx.stroke();
 			ctx.fillStyle="white";
 			ctx.fill();
@@ -531,7 +581,13 @@ function computer_play(){
 		var c=document.getElementById("qp");
 		var ctx=c.getContext("2d");
 		ctx.beginPath();
-		ctx.arc(max_p["y"]*24.5+29,max_p["x"]*24.5+178-150,24.5/2,0,2*Math.PI);
+		ctx.arc(
+			max_p["x"]*(24.5*scale)+(28.5*scale),
+			max_p["y"]*(24.5*scale)+(28.5*scale),
+			24.5/2*scale,
+			0,
+			2*Math.PI
+		);
 		ctx.stroke();
 		ctx.fillStyle="black";
 		ctx.fill();
@@ -542,7 +598,13 @@ function computer_play(){
 		var c=document.getElementById("qp");
 		var ctx=c.getContext("2d");
 		ctx.beginPath();
-		ctx.arc(max_p["y"]*24.5+29,max_p["x"]*24.5+178-150,24.5/2,0,2*Math.PI);
+		ctx.arc(
+			max_p["x"]*(24.5*scale)+(28.5*scale),
+			max_p["y"]*(24.5*scale)+(28.5*scale),
+			24.5/2*scale,
+			0,
+			2*Math.PI
+		);
 		ctx.stroke();
 		ctx.fillStyle="white";
 		ctx.fill();
