@@ -80,15 +80,15 @@ position = {
 	top: 216
 };
 if (document.body.scrollWidth >= 500){
-	document.getElementById("qp").width = 500;
-	document.getElementById("qp").height = 500;
+	document.getElementById("qp").style.width = 500;
+	document.getElementById("qp").style.height = 500;
 	document.getElementById("qp").style.left = (document.body.scrollWidth-500)/2+"px";
 	document.getElementById("message").style.left = (document.body.scrollWidth-500)/2+"px";
 	document.getElementById("length").parentElement.style.left = (document.body.scrollWidth-500)/2+"px";
 	position.left = (document.body.scrollWidth-500)/2;
 }else{
-	document.getElementById("qp").width = document.body.scrollWidth;
-	document.getElementById("qp").height = document.body.scrollWidth;
+	document.getElementById("qp").style.width = document.body.scrollWidth;
+	document.getElementById("qp").style.height = document.body.scrollWidth;
 	document.getElementById("length").parentElement.style.top = (720-500+document.body.scrollWidth)+"px";
 	scale = document.body.scrollWidth/500;
 }
@@ -130,15 +130,15 @@ var over=true; //状态
 var xqf; //下棋方
 var qz; //棋子
 
-var message=document.getElementById("message");
-var length=document.getElementById("length"); //下棋数
-var device;
+var message = document.getElementById("message");
+var length = document.getElementById("length"); //下棋数
+var touch = true; //触屏
 if (/ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test(navigator.userAgent.toLowerCase())) {
-	//手机
-	device = true;
+	touch = true; //手机
+	layx.msg("已开启触屏模式");
 }else{
-	//电脑
-	device = false;
+	touch = false; //电脑
+	layx.msg("已关闭触屏模式");
 }
 
 var ctx=document.getElementById("qp").getContext("2d");
@@ -149,30 +149,60 @@ var img=new Image();
 img.src="./image/qp.jpg";
 img.onload=init;
 function init(){
-	xqf="黑棋";
-	message.innerHTML="下棋方："+xqf;
+	xqf = "黑棋";
+	message.innerHTML = "下棋方："+xqf;
 	
-	length.innerHTML=0; //步数
+	length.innerHTML = 0; //步数
 	qz=new Array;
 	for (var i=-5;i<19+5;i++){
 		qz[i]=new Array;
 		for (var j=-5;j<19+5;j++){
 			if (i < 0 | i >= 19 | j < 0 | j >= 19){
-				qz[i][j]=undefined;
+				qz[i][j] = undefined;
 			}else{
-				qz[i][j]="";
+				qz[i][j] = "";
 			}
 		}
 	}
 	
-	ctx.drawImage(img, 0, 0, 500*scale, 500*scale);
-	over=false;
+	ctx.drawImage(img, 0, 0, 500, 500);
+	over = false;
 }
 
 document.getElementById("qp").onmousedown = function (e){
-	var x=Math.round((e.pageX-position.left-28.5*scale)/(24.722*scale));
-	var y=Math.round((e.pageY-position.top-28.5*scale)/(24.722*scale));
+	var x=Math.round((e.pageX-position.left-24.6)/25);
+	var y=Math.round((e.pageY-position.top-24.6)/25);
+	// var x=Math.round((e.pageX-position.left-28.5)/24.722);
+	// var y=Math.round((e.pageY-position.top-28.5)/24.722);
 	console.log(e.pageX+","+e.pageY+"（"+x+","+y+"）");
+	
+	if (touch){ //触屏模式
+		var list = document.getElementsByClassName("test");
+		for (var i=0;i<list.length;i++){
+			list[i].parentElement.removeChild(list[i]);
+		}
+		
+		var test = document.createElement("div");
+		test["data-x"] = x;
+		test["data-y"] = y;
+		test.classList.add("test");
+		test.style.width = 37/2+"px";
+		test.style.height = 37/2+"px";
+		test.style.position = "absolute";
+		test.style.left = x*24.6+37/2+position.left+"px";
+		test.style.top = y*24.6+37/2+position.top+"px";
+		test.style.border = "3px ridge #8af";
+		test.style.borderRadius = "50%";
+		test.onclick = function (){
+			click(Number(this["data-x"]), Number(this["data-y"]));
+			this.parentElement.removeChild(this);
+		}
+		document.body.appendChild(test); // display:none;
+	}else{
+		click(x, y);
+	}
+}
+function click(x, y){
 	if (qz[x][y] != undefined & qz[x][y] == "" & over == false){
 		length.innerHTML=Number(length.innerHTML)+1;
 		qz[x][y]=xqf;
@@ -180,9 +210,9 @@ document.getElementById("qp").onmousedown = function (e){
 			xqf="白棋";
 			ctx.beginPath();
 			ctx.arc(
-				x*(24.5*scale)+(28.5*scale),
-				y*(24.5*scale)+(28.5*scale),
-				24.5/2*scale,
+				x*24.5+28.5,
+				y*24.5+28.5,
+				24.5/2,
 				0,
 				2*Math.PI
 			);
@@ -195,9 +225,9 @@ document.getElementById("qp").onmousedown = function (e){
 			xqf="黑棋";
 			ctx.beginPath();
 			ctx.arc(
-				x*(24.5*scale)+(28.5*scale),
-				y*(24.5*scale)+(28.5*scale),
-				24.5/2*scale,
+				x*24.5+28.5,
+				y*24.5+28.5,
+				24.5/2,
 				0,
 				2*Math.PI
 			);
@@ -250,8 +280,14 @@ window.onkeydown = function(e) {
 		e.preventDefault();
 		e.returnValue = false;
 		return false;
-	}
-}
+	}/* else if (e.keyCode == 123){			//----------------------------------------------
+		layx.msg("已禁用开发者模式，请勿开启");	//---------------发布时开启----------------------
+		return false;						//----------------------------------------------
+	} */									//---------------发布时开启----------------------
+}											//----------------------------------------------
+/* setInterval(function (){					//---------------发布时开启----------------------
+	debugger;								//----------------------------------------------
+},10); */									//---------------发布时开启----------------------
 
 /*
 　┐ ├┬─┐ ┌──┼┼┐		w
