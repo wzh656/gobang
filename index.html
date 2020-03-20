@@ -117,11 +117,14 @@ button{
 	text-align: center;
 	line-height: 60px;
 }
-img{
+.img-box{
 	position: absolute;
 	top: 0px;
-	border-radius: 50%;
+	right: 0px;
 	z-index: -1;
+}
+img{
+	border-radius: 50%;
 }
 </style>
 		
@@ -129,15 +132,17 @@ img{
 	<body>
 		
 		<script>
-//layer.msg('hello'); 
 document.body.style.backgroundSize=`${document.body.scrollWidth}px ${document.body.scrollHeight}px`;
 window.onresize = function(){
 	document.body.style.backgroundSize=`${document.body.scrollWidth}px ${document.body.scrollHeight}px`;
 }
 		</script>
 		
-		<img src="./image/icon/share.jpg" alt="set" />
-		<img src="./image/icon/set.png" alt="share" />
+		<div class="img-box">
+			<img src="./image/icon/set.png" alt="set" />
+			<img src="./image/icon/share.jpg" alt="share" />
+		</div>
+		
 		<h1 id="h1">五子棋</h1>
 		<button
 			onclick="location.href='./two.html';"
@@ -161,8 +166,8 @@ window.onresize = function(){
 		</button>
 		
 		<noscript style="z-index: 1; position: absolute; width: 100%; height: 100px; left: 0px; top: 0px; background-color: #000000; color: #FFFFFF;"><h1>错误！你的浏览器不支持JavaScript，无法运行《五子棋》！</h1></noscript>
-
-
+		
+		
 <script>
 {
 	let message="五子棋";
@@ -193,15 +198,15 @@ window.onresize = function(){
 	},300); 
 }
 
-$("img:eq(0)").click(function (){
+$("img:eq(1)").click(function (){
 	var choice=new Choice(
 		[
 			{
 				name: "分享给QQ好友",
 				onclick: function (){
-					window.open("http://connect.qq.com/widget/shareqq/index.html?url=https%3A%2F%2Fwzh656.github.io%2Fgobang&sharesource=qzone&title=%E4%BA%94%E5%AD%90%E6%A3%8B&pics=https%3A%2F%2Fwzh656.github.io%2Fgobang%2Fimage%2Ficon%2Ficon.png&summary=%E5%BF%AB%E6%9D%A5play%E4%BA%94%E5%AD%90%E6%A3%8B%E5%90%A7%EF%BC%8C%E7%9C%8B%E7%9C%8B%E4%BD%A0%E8%83%BD%E8%B6%85%E8%BF%87%E6%88%91%E5%90%97%EF%BC%9F&desc=");
+					layx.iframe("分享给QQ好友", "分享-QQ好友", "http://connect.qq.com/widget/shareqq/index.html?url=https%3A%2F%2Fwzh656.github.io%2Fgobang&sharesource=qzone&title=%E4%BA%94%E5%AD%90%E6%A3%8B&pics=https%3A%2F%2Fwzh656.github.io%2Fgobang%2Fimage%2Ficon%2Ficon.png&summary=%E5%BF%AB%E6%9D%A5play%E4%BA%94%E5%AD%90%E6%A3%8B%E5%90%A7%EF%BC%8C%E7%9C%8B%E7%9C%8B%E4%BD%A0%E8%83%BD%E8%B6%85%E8%BF%87%E6%88%91%E5%90%97%EF%BC%9F&desc=", {height:640});
 					choice.close();
-					}
+				}
 			},
 			{
 				name: "分享到QQ空间",
@@ -213,14 +218,14 @@ $("img:eq(0)").click(function (){
 			{
 				name: "二维码1",
 				onclick: function (){
-					window.open("./image/QR_code1.png");
+					layx.iframe("二维码1", "分享-二维码1", "./image/QR_code1.png", {width:402,height:552})
 					choice.close();
 				}
 			},
 			{
 				name: "二维码2",
 				onclick: function (){
-					window.open("./image/QR_code2.png");
+					layx.iframe("二维码2", "分享-二维码2", "./image/QR_code2.png", {width:262,height:292})
 					choice.close();
 				}
 			},
