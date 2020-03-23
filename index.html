@@ -106,7 +106,7 @@ body{
 h1{
 	margin: 0px;
 }
-button{
+body>button{
 	width: 50%;
 	height: 12%;
 	color: white;
@@ -196,6 +196,36 @@ window.onresize = function(){
 			i=Number(i)+Number(fx);
 		}
 	},300); 
+}
+
+$("img:eq(0)").click(function (){
+	layx.open({
+		id: "set",
+		title: "设置",
+		bgColor: "#eed",//"rgba(198, 219, 178, 0.8)",
+		icon: `<image src="./image/icon/set.png" style="width: 20px; height: 20px;" />`,
+		moveLimit: {
+			leftOut: false, // 是否允许左边拖出，true允许
+			rightOut: false, // 是否允许右边拖出，true允许
+			topOut: false, // 是否允许上边拖出，true允许，此设置不管是false还是true，窗口都不能拖出窗体
+			bottomOut: false // 是否允许下边拖出，true允许
+		},
+		content:
+			`
+			<h2 style="background-image:none;background-color:black;">设置</h2>
+			<div style="background-color: #fff; margin: 10px;">
+				<p>触屏模式：</p>
+				<input type="radio" name="触屏模式" checked />自动<br>
+				<input type="radio" name="触屏模式" />默认开启（手残党必备）<br>
+				<input type="radio" name="触屏模式" />默认关闭（非手残党）
+				<hr/>
+				<button onclick="save();">确定保存</button>
+			</div>
+			`
+	});
+});
+function save(){
+	
 }
 
 $("img:eq(1)").click(function (){

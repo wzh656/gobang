@@ -49,7 +49,7 @@ h1{
 	position: absolute;
 	top: 6px;
 }
-button{
+.button-box button{
 	height: 36px;
 	color: white;
 	background-color: #6a8;
@@ -87,8 +87,8 @@ if (document.body.scrollWidth >= 500){
 	document.getElementById("length").parentElement.style.left = (document.body.scrollWidth-500)/2+"px";
 	position.left = (document.body.scrollWidth-500)/2;
 }else{
-	document.getElementById("qp").style.width = document.body.scrollWidth;
-	document.getElementById("qp").style.height = document.body.scrollWidth;
+	document.getElementById("qp").style.width = document.body.scrollWidth+"px";
+	document.getElementById("qp").style.height = document.body.scrollWidth+"px";
 	document.getElementById("length").parentElement.style.top = (720-500+document.body.scrollWidth)+"px";
 	scale = document.body.scrollWidth/500;
 }
@@ -135,10 +135,10 @@ var length = document.getElementById("length"); //下棋数
 var touch = true; //触屏
 if (/ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test(navigator.userAgent.toLowerCase())) {
 	touch = true; //手机
-	layx.msg("已开启触屏模式");
+	layx.msg(`已开启触屏模式<button onclick="touch=false;layx.msg('已关闭触屏模式（不是手残党可以关闭）')">关闭</button>`);
 }else{
 	touch = false; //电脑
-	layx.msg("已关闭触屏模式");
+	layx.msg(`已关闭触屏模式<button onclick="touch=true;layx.msg('已开启触屏模式（手残党务必开启）');">开启</button>`);
 }
 
 var ctx=document.getElementById("qp").getContext("2d");
@@ -170,100 +170,100 @@ function init(){
 }
 
 document.getElementById("qp").onmousedown = function (e){
-	var x=Math.round((e.pageX-position.left-24.6)/25);
-	var y=Math.round((e.pageY-position.top-24.6)/25);
+	var x=Math.round((e.pageX-position.left-24.6*scale)/(25*scale));
+	var y=Math.round((e.pageY-position.top-24.6*scale)/(25*scale));
 	// var x=Math.round((e.pageX-position.left-28.5)/24.722);
 	// var y=Math.round((e.pageY-position.top-28.5)/24.722);
 	console.log(e.pageX+","+e.pageY+"（"+x+","+y+"）");
 	
-	if (touch){ //触屏模式
-		var list = document.getElementsByClassName("test");
-		for (var i=0;i<list.length;i++){
-			list[i].parentElement.removeChild(list[i]);
+	var list = document.getElementsByClassName("test");
+	for (var i=0;i<list.length;i++){
+		list[i].parentElement.removeChild(list[i]);
+	}
+	
+	if (qz[x][y] != undefined & qz[x][y] == "" & over == false){
+		if (touch){ //触屏模式
+			var test = document.createElement("div");
+			test["data-x"] = x;
+			test["data-y"] = y;
+			test.classList.add("test");
+			test.style.width = 35.5/2*scale+"px";
+			test.style.height = 35.5/2*scale+"px";
+			test.style.position = "absolute";
+			test.style.left = x*(24.6*scale)+35.5/2*scale+position.left+"px";
+			test.style.top = y*(24.6*scale)+35.5/2*scale+position.top+"px";
+			test.style.border = "3px ridge #8af";
+			test.style.borderRadius = "50%";
+			test.onclick = function (){
+				click(Number(this["data-x"]), Number(this["data-y"]));
+				this.parentElement.removeChild(this);
+			}
+			document.body.appendChild(test);
+		}else{
+			click(x, y);
 		}
-		
-		var test = document.createElement("div");
-		test["data-x"] = x;
-		test["data-y"] = y;
-		test.classList.add("test");
-		test.style.width = 37/2+"px";
-		test.style.height = 37/2+"px";
-		test.style.position = "absolute";
-		test.style.left = x*24.6+37/2+position.left+"px";
-		test.style.top = y*24.6+37/2+position.top+"px";
-		test.style.border = "3px ridge #8af";
-		test.style.borderRadius = "50%";
-		test.onclick = function (){
-			click(Number(this["data-x"]), Number(this["data-y"]));
-			this.parentElement.removeChild(this);
-		}
-		document.body.appendChild(test); // display:none;
-	}else{
-		click(x, y);
 	}
 }
 function click(x, y){
-	if (qz[x][y] != undefined & qz[x][y] == "" & over == false){
-		length.innerHTML=Number(length.innerHTML)+1;
-		qz[x][y]=xqf;
-		if (xqf == "黑棋"){
-			xqf="白棋";
-			ctx.beginPath();
-			ctx.arc(
-				x*24.5+28.5,
-				y*24.5+28.5,
-				24.5/2,
-				0,
-				2*Math.PI
-			);
-			ctx.stroke();
-			ctx.fillStyle="black";
-			ctx.fill();
-			document.getElementById("message").style.color="white";
-			document.getElementById("message").style.backgroundColor="black";			
-		}else if (xqf == "白棋"){
-			xqf="黑棋";
-			ctx.beginPath();
-			ctx.arc(
-				x*24.5+28.5,
-				y*24.5+28.5,
-				24.5/2,
-				0,
-				2*Math.PI
-			);
-			ctx.stroke();
-			ctx.fillStyle="white";
-			ctx.fill();
-			document.getElementById("message").style.color="black";
-			document.getElementById("message").style.backgroundColor="white";
-		}
-		message.innerHTML="下棋方："+xqf;
-		
-		if (over == false){
-			for (var i in qz){
-				for (var j in qz[i]){
-					if (qz[i][j] != "" & qz[i][j] != undefined){
-						if (
-							(qz[i][j] == qz[i][Number(j)+1] & qz[i][j] == qz[i][Number(j)+2] & qz[i][j] == qz[i][Number(j)+3] & qz[i][j] == qz[i][Number(j)+4]) |
-							(qz[i][j] == qz[i][Number(j)-1] & qz[i][j] == qz[i][Number(j)-2] & qz[i][j] == qz[i][Number(j)-3] & qz[i][j] == qz[i][Number(j)-4]) |
-							(qz[i][j] == qz[Number(i)+1][j] & qz[i][j] == qz[Number(i)+2][j] & qz[i][j] == qz[Number(i)+3][j] & qz[i][j] == qz[Number(i)+4][j]) |
-							(qz[i][j] == qz[Number(i)-1][j] & qz[i][j] == qz[Number(i)-2][j] & qz[i][j] == qz[Number(i)-3][j] & qz[i][j] == qz[Number(i)-4][j]) |
-							(qz[i][j] == qz[Number(i)+1][Number(j)+1] & qz[i][j] == qz[Number(i)+2][Number(j)+2] & qz[i][j] == qz[Number(i)+3][Number(j)+3] & qz[i][j] == qz[Number(i)+4][Number(j)+4]) |
-							(qz[i][j] == qz[Number(i)+1][Number(j)-1] & qz[i][j] == qz[Number(i)+2][Number(j)-2] & qz[i][j] == qz[Number(i)+3][Number(j)-3] & qz[i][j] == qz[Number(i)+4][Number(j)-4]) |
-							(qz[i][j] == qz[Number(i)-1][Number(j)-1] & qz[i][j] == qz[Number(i)-2][Number(j)-2] & qz[i][j] == qz[Number(i)-3][Number(j)-3] & qz[i][j] == qz[Number(i)-4][Number(j)-4]) |
-							(qz[i][j] == qz[Number(i)-1][Number(j)+1] & qz[i][j] == qz[Number(i)-2][Number(j)+2] & qz[i][j] == qz[Number(i)-3][Number(j)+3] & qz[i][j] == qz[Number(i)-4][Number(j)+4])	
-						){
-							message.innerHTML="Game over\n"+qz[i][j]+"胜！！！";
-							setTimeout(function (){
-								over=true;
-								layx.alert("Game Over", "历经"+length.innerHTML+"步\n"+qz[i][j]+"胜！！！");
-							},1);
-							return ;
-						}
+	length.innerHTML=Number(length.innerHTML)+1;
+	qz[x][y]=xqf;
+	if (xqf == "黑棋"){
+		xqf="白棋";
+		ctx.beginPath();
+		ctx.arc(
+			x*24.5+28.5,
+			y*24.5+28.5,
+			24.5/2,
+			0,
+			2*Math.PI
+		);
+		ctx.stroke();
+		ctx.fillStyle="black";
+		ctx.fill();
+		document.getElementById("message").style.color="white";
+		document.getElementById("message").style.backgroundColor="black";			
+	}else if (xqf == "白棋"){
+		xqf="黑棋";
+		ctx.beginPath();
+		ctx.arc(
+			x*24.5+28.5,
+			y*24.5+28.5,
+			24.5/2,
+			0,
+			2*Math.PI
+		);
+		ctx.stroke();
+		ctx.fillStyle="white";
+		ctx.fill();
+		document.getElementById("message").style.color="black";
+		document.getElementById("message").style.backgroundColor="white";
+	}
+	message.innerHTML="下棋方："+xqf;
+	
+	if (over == false){
+		for (var i in qz){
+			for (var j in qz[i]){
+				if (qz[i][j] != "" & qz[i][j] != undefined){
+					if (
+						(qz[i][j] == qz[i][Number(j)+1] & qz[i][j] == qz[i][Number(j)+2] & qz[i][j] == qz[i][Number(j)+3] & qz[i][j] == qz[i][Number(j)+4]) |
+						(qz[i][j] == qz[i][Number(j)-1] & qz[i][j] == qz[i][Number(j)-2] & qz[i][j] == qz[i][Number(j)-3] & qz[i][j] == qz[i][Number(j)-4]) |
+						(qz[i][j] == qz[Number(i)+1][j] & qz[i][j] == qz[Number(i)+2][j] & qz[i][j] == qz[Number(i)+3][j] & qz[i][j] == qz[Number(i)+4][j]) |
+						(qz[i][j] == qz[Number(i)-1][j] & qz[i][j] == qz[Number(i)-2][j] & qz[i][j] == qz[Number(i)-3][j] & qz[i][j] == qz[Number(i)-4][j]) |
+						(qz[i][j] == qz[Number(i)+1][Number(j)+1] & qz[i][j] == qz[Number(i)+2][Number(j)+2] & qz[i][j] == qz[Number(i)+3][Number(j)+3] & qz[i][j] == qz[Number(i)+4][Number(j)+4]) |
+						(qz[i][j] == qz[Number(i)+1][Number(j)-1] & qz[i][j] == qz[Number(i)+2][Number(j)-2] & qz[i][j] == qz[Number(i)+3][Number(j)-3] & qz[i][j] == qz[Number(i)+4][Number(j)-4]) |
+						(qz[i][j] == qz[Number(i)-1][Number(j)-1] & qz[i][j] == qz[Number(i)-2][Number(j)-2] & qz[i][j] == qz[Number(i)-3][Number(j)-3] & qz[i][j] == qz[Number(i)-4][Number(j)-4]) |
+						(qz[i][j] == qz[Number(i)-1][Number(j)+1] & qz[i][j] == qz[Number(i)-2][Number(j)+2] & qz[i][j] == qz[Number(i)-3][Number(j)+3] & qz[i][j] == qz[Number(i)-4][Number(j)+4])	
+					){
+						message.innerHTML="Game over\n"+qz[i][j]+"胜！！！";
+						setTimeout(function (){
+							over=true;
+							layx.alert("Game Over", "历经"+length.innerHTML+"步\n"+qz[i][j]+"胜！！！");
+						},1);
+						return ;
 					}
 				}
 			}
-		}		
+		}
 	}
 };
 
@@ -273,6 +273,10 @@ document.oncontextmenu = function (e){
 	e.returnValue = false;
 	return false;
 }
+//屏蔽选择文字
+document.onselectstart = function (){
+	return false;
+};
 //屏蔽ctrl+s保存
 window.onkeydown = function(e) {
 	if (e.ctrlKey && e.keyCode == 83){

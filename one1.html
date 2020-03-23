@@ -74,7 +74,9 @@ h1{
 		</b>
 			
 		<canvas id="qp" width="500" height="500" style="border:1px solid black;position:absolute;left:0px;top:239px;">错误！你的浏览器不支持Canvas，无法运行《五子棋》！</canvas>
-		<b style="position: absolute; top: 740px; margin-bottom: 20px;">步数：<span id="length">0</span></b>
+		<b style="position: absolute; top: 740px; margin-bottom: 20px;">
+			步数：<span id="length">0</span>
+		</b>
 		
 		<noscript style="z-index: 1; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-color: #000000; color: #FFFFFF;"><h1>错误！你的浏览器不支持JavaScript，无法运行《五子棋》！</h1></noscript>
 		
@@ -85,8 +87,8 @@ position = {
 	top: 239
 };
 if (document.body.scrollWidth >= 500){
-	document.getElementById("qp").width = 500;
-	document.getElementById("qp").height = 500;
+	document.getElementById("qp").style.width = 500;
+	document.getElementById("qp").style.height = 500;
 	document.getElementById("qp").style.left = (document.body.scrollWidth-500)/2+"px";
 	document.getElementById("message").style.left = (document.body.scrollWidth-500)/2+"px";
 	document.getElementById("message2").style.left = (document.body.scrollWidth-500)/2+"px";
@@ -94,9 +96,10 @@ if (document.body.scrollWidth >= 500){
 	document.getElementById("win").style.left = (document.body.scrollWidth-500)/2+500-124+"px";
 	position.left = (document.body.scrollWidth-500)/2;
 }else{
-	document.getElementById("qp").width = document.body.scrollWidth;
-	document.getElementById("qp").height = document.body.scrollWidth;
+	document.getElementById("qp").style.width = document.body.scrollWidth+"px";
+	document.getElementById("qp").style.height = document.body.scrollWidth+"px";
 	document.getElementById("length").parentElement.style.top = (740-500+document.body.scrollWidth)+"px";
+	document.getElementById("win").style.left = document.body.scrollWidth-124+"px";
 	scale = document.body.scrollWidth/500;
 }
 window.onresize = function (){
@@ -133,13 +136,21 @@ window.onresize = function (){
 	},300); 
 }
 
-var type="loading"; //状态
+var over = true; //状态
 var xqf; //下棋方
 var computer; //电脑
 var qz; //棋子
 
 var message=document.getElementById("message");
 var length=document.getElementById("length"); //下棋数
+var touch = true; //触屏
+if (/ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test(navigator.userAgent.toLowerCase())) {
+	touch = true; //手机
+	layx.msg(`已开启触屏模式<button onclick="touch=false;layx.msg('已关闭触屏模式（不是手残党可以关闭）')">关闭</button>`);
+}else{
+	touch = false; //电脑
+	layx.msg(`已关闭触屏模式<button onclick="touch=true;layx.msg('已开启触屏模式（手残党务必开启）')">开启</button>`);
+}
 
 var ctx=document.getElementById("qp").getContext("2d");
 ctx.font="66px fzybxskt";
@@ -177,8 +188,8 @@ function init(){
 		}
 	}
 	
-	ctx.drawImage(img, 0, 0, scale*500, scale*500);
-	type="playing";
+	ctx.drawImage(img, 0, 0, 500, 500);
+	over = false;
 	if (computer == xqf){
 		computer_play();
 	}
@@ -228,7 +239,7 @@ function init(){
 
 function clear_data(){
 	if (localStorage == null | localStorage == undefined){
-		alert(
+		layx.alert(
 			"错误警告：\n"+
 			"你的浏览器不支持web存储\n"+
 			"将无法保存或删除胜率数据\n"+
@@ -248,126 +259,166 @@ function clear_data(){
 	}
 }
 
-document.getElementById("qp").onmousedown = function(e){
-	var x=Math.round((e.pageX-position.left-28.5*scale)/(24.722*scale));
-	var y=Math.round((e.pageY-position.top-28.5*scale)/(24.722*scale));
+document.onmousedown = function (e){
+	var list = document.getElementsByClassName("test");
+	for (var i=0;i<list.length;i++){
+		list[i].parentElement.removeChild(list[i]);
+	}
+}
+
+document.getElementById("qp").onmousedown = function (e){
+	e.stopPropagation(); //停止向上冒泡
+	
+	var x=Math.round((e.pageX-position.left-24.6*scale)/(25*scale));
+	var y=Math.round((e.pageY-position.top-24.6*scale)/(25*scale));
+	
+	// var x=Math.round((e.pageX-position.left-28.5)/24.722);
+	// var y=Math.round((e.pageY-position.top-28.5)/24.722);
 	
 	console.log(e.pageX+","+e.pageY+"（"+x+","+y+"）");
-	if (qz[x][y] != undefined & qz[x][y] == "" & type == "playing"){
-		length.innerHTML=Number(length.innerHTML)+1;
-		qz[x][y]=xqf;
-		if (xqf == "黑棋"  & computer != "黑棋"){
-			xqf="白棋";
-			ctx.beginPath();
-			ctx.arc(
-				x*(24.5*scale)+(28.5*scale),
-				y*(24.5*scale)+(28.5*scale),
-				24.5/2*scale,
-				0,
-				2*Math.PI
-			);
-			ctx.stroke();
-			ctx.fillStyle="black";
-			ctx.fill();
-			document.getElementById("message").style.color="white";
-			document.getElementById("message").style.backgroundColor="black";
-		}else if (xqf == "白棋"  & computer != "白棋"){
-			xqf="黑棋";
-			ctx.beginPath();
-			ctx.arc(
-				x*(24.5*scale)+(28.5*scale),
-				y*(24.5*scale)+(28.5*scale),
-				24.5/2*scale,
-				0,
-				2*Math.PI
-			);
-			ctx.stroke();
-			ctx.fillStyle="white";
-			ctx.fill();
-			document.getElementById("message").style.color="black";
-			document.getElementById("message").style.backgroundColor="white";
+	
+	var list = document.getElementsByClassName("test");
+	for (var i=0;i<list.length;i++){
+		list[i].parentElement.removeChild(list[i]);
+	}
+	
+	if (qz[x][y] != undefined & qz[x][y] == "" & over == false){
+		if (touch){ //触屏模式
+			var test = document.createElement("div");
+			test["data-x"] = x;
+			test["data-y"] = y;
+			test.classList.add("test");
+			test.style.width = 35.5/2*scale+"px";
+			test.style.height = 35.5/2*scale+"px";
+			test.style.position = "absolute";
+			test.style.left = x*(24.6*scale)+35.5/2*scale+position.left+"px";
+			test.style.top = y*(24.6*scale)+35.5/2*scale+position.top+"px";
+			test.style.border = "3px ridge #8af";
+			test.style.borderRadius = "50%";
+			test.onclick = function (){
+				click(Number(this["data-x"]), Number(this["data-y"]));
+				this.parentElement.removeChild(this);
+			}
+			document.body.appendChild(test);
+		}else{
+			click(x, y);
 		}
-		
-		message.innerHTML="下棋方："+xqf;
-		
-		if (xqf == computer){
-			computer_play();
-		}
-		
-		for (var i in qz){
-			for (var j in qz[i]){
-				if (qz[i][j] != "" & qz[i][j] != undefined){
-					if (
-						(qz[i][j] == qz[i][Number(j)+1] & qz[i][j] == qz[i][Number(j)+2] & qz[i][j] == qz[i][Number(j)+3] & qz[i][j] == qz[i][Number(j)+4]) |
-						(qz[i][j] == qz[i][Number(j)-1] & qz[i][j] == qz[i][Number(j)-2] & qz[i][j] == qz[i][Number(j)-3] & qz[i][j] == qz[i][Number(j)-4]) |
-						(qz[i][j] == qz[Number(i)+1][j] & qz[i][j] == qz[Number(i)+2][j] & qz[i][j] == qz[Number(i)+3][j] & qz[i][j] == qz[Number(i)+4][j]) |
-						(qz[i][j] == qz[Number(i)-1][j] & qz[i][j] == qz[Number(i)-2][j] & qz[i][j] == qz[Number(i)-3][j] & qz[i][j] == qz[Number(i)-4][j]) |
-						(qz[i][j] == qz[Number(i)+1][Number(j)+1] & qz[i][j] == qz[Number(i)+2][Number(j)+2] & qz[i][j] == qz[Number(i)+3][Number(j)+3] & qz[i][j] == qz[Number(i)+4][Number(j)+4]) |
-						(qz[i][j] == qz[Number(i)+1][Number(j)-1] & qz[i][j] == qz[Number(i)+2][Number(j)-2] & qz[i][j] == qz[Number(i)+3][Number(j)-3] & qz[i][j] == qz[Number(i)+4][Number(j)-4]) |
-						(qz[i][j] == qz[Number(i)-1][Number(j)-1] & qz[i][j] == qz[Number(i)-2][Number(j)-2] & qz[i][j] == qz[Number(i)-3][Number(j)-3] & qz[i][j] == qz[Number(i)-4][Number(j)-4]) |
-						(qz[i][j] == qz[Number(i)-1][Number(j)+1] & qz[i][j] == qz[Number(i)-2][Number(j)+2] & qz[i][j] == qz[Number(i)-3][Number(j)+3] & qz[i][j] == qz[Number(i)-4][Number(j)+4])	
-					){
-						message.innerHTML="Game over\n"+qz[i][j]+"胜！！！";
-						setTimeout(function (){
-							type="over";
-							if (localStorage == null | localStorage == undefined){
-								alert("历经"+length.innerHTML+"步\n"+qz[i][j]+"胜！！！");
-							}else{
-								var data=String(localStorage.getItem("五子棋_人机对战1"));
-								var win=0,all=0;
-								if (data.split(";").length == 2){ //已初始化
-									win=Number(data.split(";")[0]);
-									all=Number(data.split(";")[1]);
-								}
-								if (qz[i][j] != computer){
-									win++;
-								}
-								all++;
-								localStorage.setItem("五子棋_人机对战1",win+";"+all);
-								document.getElementById("win").innerHTML=
-									'<span style="color:#f00;">胜：'+win+'盘</span>'+
-									'<span style="color:#000;">负：'+(all-win)+'盘</span>'+
-									'<span style="color:#aaa;">共：'+all+'盘</span>'+
-									'<span style="color:#'+
-									(
-										all == 0?
-											"aaa"
-										:
-											(
-												(Math.round(255-win/all*255)).toString(16).length<2?
-													"0"+(Math.round(255-win/all*255)).toString(16)
-												:
-													(Math.round(255-win/all*255)).toString(16)
-											)+
-											(
-												(Math.round(win/all*255)).toString(16).length<2?
-													"0"+(Math.round(win/all*255)).toString(16)
-												:
-													(Math.round(win/all*255)).toString(16)
-											)+
-											"00"
-									)+
-									';">胜率：'+((all==0)?"无法计算":(Math.round(win/all*10000)/100+"％"))+'</span>'
-								;
-								layx.alert(
-									(qz[i][j] == computer?"游戏结束（失败）":"游戏结束（成功）"),
-									`历经${length.innerHTML}步<br>
-									${qz[i][j]}（${qz[i][j] == computer?"电脑":"玩家"}）胜！！！<br>
-									============<br>
-									胜：${win}盘<br>
-									负：${all-win}盘<br>
-									共：${all}盘<br>
-									胜率：${win/all*100}％`
-								);
+	}
+}
+function click(x, y){
+	length.innerHTML=Number(length.innerHTML)+1;
+	qz[x][y]=xqf;
+	if (xqf == "黑棋"  & computer != "黑棋"){
+		xqf="白棋";
+		ctx.beginPath();
+		ctx.arc(
+			x*24.5+28.5,
+			y*24.5+28.5,
+			24.5/2,
+			0,
+			2*Math.PI
+		);
+		ctx.stroke();
+		ctx.fillStyle="black";
+		ctx.fill();
+		document.getElementById("message").style.color="white";
+		document.getElementById("message").style.backgroundColor="black";
+	}else if (xqf == "白棋"  & computer != "白棋"){
+		xqf="黑棋";
+		ctx.beginPath();
+		ctx.arc(
+			x*24.5+28.5,
+			y*24.5+28.5,
+			24.5/2,
+			0,
+			2*Math.PI
+		);
+		ctx.stroke();
+		ctx.fillStyle="white";
+		ctx.fill();
+		document.getElementById("message").style.color="black";
+		document.getElementById("message").style.backgroundColor="white";
+	}
+	
+	message.innerHTML="下棋方："+xqf;
+	
+	if (xqf == computer){
+		computer_play();
+	}
+	
+	for (var i in qz){
+		for (var j in qz[i]){
+			if (qz[i][j] != "" & qz[i][j] != undefined){
+				if (
+					(qz[i][j] == qz[i][Number(j)+1] & qz[i][j] == qz[i][Number(j)+2] & qz[i][j] == qz[i][Number(j)+3] & qz[i][j] == qz[i][Number(j)+4]) |
+					(qz[i][j] == qz[i][Number(j)-1] & qz[i][j] == qz[i][Number(j)-2] & qz[i][j] == qz[i][Number(j)-3] & qz[i][j] == qz[i][Number(j)-4]) |
+					(qz[i][j] == qz[Number(i)+1][j] & qz[i][j] == qz[Number(i)+2][j] & qz[i][j] == qz[Number(i)+3][j] & qz[i][j] == qz[Number(i)+4][j]) |
+					(qz[i][j] == qz[Number(i)-1][j] & qz[i][j] == qz[Number(i)-2][j] & qz[i][j] == qz[Number(i)-3][j] & qz[i][j] == qz[Number(i)-4][j]) |
+					(qz[i][j] == qz[Number(i)+1][Number(j)+1] & qz[i][j] == qz[Number(i)+2][Number(j)+2] & qz[i][j] == qz[Number(i)+3][Number(j)+3] & qz[i][j] == qz[Number(i)+4][Number(j)+4]) |
+					(qz[i][j] == qz[Number(i)+1][Number(j)-1] & qz[i][j] == qz[Number(i)+2][Number(j)-2] & qz[i][j] == qz[Number(i)+3][Number(j)-3] & qz[i][j] == qz[Number(i)+4][Number(j)-4]) |
+					(qz[i][j] == qz[Number(i)-1][Number(j)-1] & qz[i][j] == qz[Number(i)-2][Number(j)-2] & qz[i][j] == qz[Number(i)-3][Number(j)-3] & qz[i][j] == qz[Number(i)-4][Number(j)-4]) |
+					(qz[i][j] == qz[Number(i)-1][Number(j)+1] & qz[i][j] == qz[Number(i)-2][Number(j)+2] & qz[i][j] == qz[Number(i)-3][Number(j)+3] & qz[i][j] == qz[Number(i)-4][Number(j)+4])	
+				){
+					message.innerHTML="Game over\n"+qz[i][j]+"胜！！！";
+					setTimeout(function (){
+						over = true;
+						if (localStorage == null | localStorage == undefined){
+							alert("历经"+length.innerHTML+"步\n"+qz[i][j]+"胜！！！");
+						}else{
+							var data=String(localStorage.getItem("五子棋_人机对战1"));
+							var win=0,all=0;
+							if (data.split(";").length == 2){ //已初始化
+								win=Number(data.split(";")[0]);
+								all=Number(data.split(";")[1]);
 							}
-						},1);
-						return ;
-					}
+							if (qz[i][j] != computer){
+								win++;
+							}
+							all++;
+							localStorage.setItem("五子棋_人机对战1",win+";"+all);
+							document.getElementById("win").innerHTML=
+								'<span style="color:#f00;">胜：'+win+'盘</span>'+
+								'<span style="color:#000;">负：'+(all-win)+'盘</span>'+
+								'<span style="color:#aaa;">共：'+all+'盘</span>'+
+								'<span style="color:#'+
+								(
+									all == 0?
+										"aaa"
+									:
+										(
+											(Math.round(255-win/all*255)).toString(16).length<2?
+												"0"+(Math.round(255-win/all*255)).toString(16)
+											:
+												(Math.round(255-win/all*255)).toString(16)
+										)+
+										(
+											(Math.round(win/all*255)).toString(16).length<2?
+												"0"+(Math.round(win/all*255)).toString(16)
+											:
+												(Math.round(win/all*255)).toString(16)
+										)+
+										"00"
+								)+
+								';">胜率：'+((all==0)?"无法计算":(Math.round(win/all*10000)/100+"％"))+'</span>'
+							;
+							layx.alert(
+								(qz[i][j] == computer?"游戏结束（失败）":"游戏结束（成功）"),
+								`历经${length.innerHTML}步<br>
+								${qz[i][j]}（${qz[i][j] == computer?"电脑":"玩家"}）胜！！！<br>
+								============<br>
+								胜：${win}盘<br>
+								负：${all-win}盘<br>
+								共：${all}盘<br>
+								胜率：${win/all*100}％`
+							);
+						}
+					},1);
+					return ;
 				}
 			}
 		}
 	}
-};
+}
 
 function computer_play(){
 	var max=-1;
@@ -518,9 +569,9 @@ function computer_play(){
 		xqf="白棋";
 		ctx.beginPath();
 		ctx.arc(
-			max_p["x"]*(24.5*scale)+(28.5*scale),
-			max_p["y"]*(24.5*scale)+(28.5*scale),
-			24.5/2*scale,
+			max_p["x"]*24.5+28.5,
+			max_p["y"]*24.5+28.5,
+			24.5/2,
 			0,
 			2*Math.PI
 		);
@@ -533,9 +584,9 @@ function computer_play(){
 		xqf="黑棋";
 		ctx.beginPath();
 		ctx.arc(
-			max_p["x"]*(24.5*scale)+(28.5*scale),
-			max_p["y"]*(24.5*scale)+(28.5*scale),
-			24.5/2*scale,
+			max_p["x"]*24.5+28.5,
+			max_p["y"]*24.5+28.5,
+			24.5/2,
 			0,
 			2*Math.PI
 		);
@@ -555,6 +606,10 @@ document.oncontextmenu = function (e){
 	e.returnValue = false;
 	return false;
 }
+//屏蔽选择文字
+document.onselectstart = function (){
+	return false;
+};
 //屏蔽ctrl+s保存
 window.onkeydown = function(e) {
 	if (e.ctrlKey && e.keyCode == 83){
@@ -562,8 +617,14 @@ window.onkeydown = function(e) {
 		e.preventDefault();
 		e.returnValue = false;
 		return false;
-	}
-}
+	}/* else if (e.keyCode == 123){			//----------------------------------------------
+		layx.msg("已禁用开发者模式，请勿开启");	//---------------发布时开启----------------------
+		return false;						//----------------------------------------------
+	} */									//---------------发布时开启----------------------
+}											//----------------------------------------------
+/* setInterval(function (){					//---------------发布时开启----------------------
+	debugger;								//----------------------------------------------
+},10); */
 
 /*
 　┐ ├┬─┐ ┌──┼┼┐		w
