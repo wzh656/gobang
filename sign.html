@@ -9,6 +9,9 @@
 		<link href="./css/p.css" rel="stylesheet" type="text/css" />
 		<link href="./css/clear.css" rel="stylesheet" type="text/css" />
 		
+		<link href="./LayX/layx.min.css" rel="stylesheet" type="text/css" />
+		<script src="./LayX/layx.min.js" type="text/javascript"></script>
+		
 <style>
 h1{
 	font-size: 50px;
@@ -49,17 +52,25 @@ button{
 		
 	</head>
 	<body>
-	
-		<h1>联机对战</h1>
-		<b>黑方：</b><p id='black'></p>
-		<b>白方：</b><p id='white'></p>
-		<b id='state'>没有服务器信息</b><br/>
 		
-		<button onclick='location.href = "./index.html";'>返回</button>
-		<button onclick='location.reload(true);'>刷新</button>
-		<button onclick='rename(prompt("请输入更改后的名称", id));'>重命名</button>
-		<noscript><h1>错误！你的浏览器不支持JavaScript，无法使用《五子棋》！</h1></noscript>
-
+		<script>
+		layx.open({
+			id: "登录",
+			title: "登录",
+			minimizable: false,
+			content: `
+				<h1>联机对战</h1>
+				<b>黑方：</b><p id='black'></p>
+				<b>白方：</b><p id='white'></p>
+				<b id='state'>没有服务器信息</b><br/>
+				
+				<button onclick='location.href = "./index.html";'>返回</button>
+				<button onclick='location.reload(true);'>刷新</button>
+				<button onclick='rename(prompt("请输入更改后的名称", id));'>重命名</button>
+				<noscript><h1>错误！你的浏览器不支持JavaScript，无法使用《五子棋》！</h1></noscript>
+			`
+		});
+		</script>
 <script>
 try{
 	
@@ -165,9 +176,33 @@ try{
 
 	document.onkeydown = function (){ //禁用F5刷新
 		if (event.keyCode == 116){ //F5
-			alert('F5刷新已禁用');
-			event.keyCode = 0;
-			event.cancelBubble = true;
+			var reload = new Array;
+			reload[0] = setTimeout(function (){
+				location.reload();
+			},666);
+			reload[1] = new Msgbox(
+				{
+					name: "刷新",
+					color: "#a88",
+					font_size: "36px"
+				},
+				{
+					name: "刷新中……",
+					font_size: "26px"
+				},
+				[
+					{
+						name: "取消",
+						width: "100%",
+						onclick: function (){
+							clearTimeout(reload[0]);
+							reload[1].close();
+						}
+					}
+				],
+				"loading",
+				function (){}
+			).show();
 			return false;
 		}
 	};

@@ -12,7 +12,12 @@
 		<script src="./LayX/layx.min.js" type="text/javascript"></script>
 		
 		<script src="./js/jq.js"></script>
+		<script>
+		window.$ = window.jQuery = require("./js/jq");
+		</script>
+		
 		<script src="./js/choice.js"></script>
+		<script src="./js/box.js"></script>
 		
 		<!--
 		<script src="//cdn.jsdelivr.net/npm/eruda"></script>
@@ -67,8 +72,8 @@ img:nth-child(3){
 	}
 }
 
-/*0.6<宽/高<1（平板）*/
-@media screen and (max-aspect-ratio:100/100) and (min-aspect-ratio:70/100){
+/*0.75<宽/高<1（平板）*/
+@media screen and (max-aspect-ratio:100/100) and (min-aspect-ratio:74/100){
 	h1{
 		font-size: 600%;
 	}
@@ -197,6 +202,7 @@ window.onresize = function(){
 		}
 	},300); 
 }
+new Box(undefined, undefined, "title").show();
 
 $("img:eq(0)").click(function (){
 	layx.open({

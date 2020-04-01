@@ -108,5 +108,5 @@ function exit(id){
 }
 
 http.listen(60, "192.168.31.89", function() {
-	console.log('listening on 192.168.31.89:60');
+	console.log('服务器搭建成功，端口:60');
 });
