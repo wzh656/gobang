@@ -1,7 +1,8 @@
-function Box(bg, box, title, main, button, icon){
+function Box(bg, windows, title, main, button, icon){
 	this.title = title;
-	this.main = main;
+	this.windows = windows;
 	this.button = button;
+	this.main = main;
 	this.icon = icon;
 	this.bg = bg;
 	this.state=false;
@@ -24,41 +25,62 @@ function Box(bg, box, title, main, button, icon){
 		
 		this.box
 			.append(
-				$("<div></div>")
-					.css("position", "absolute")
-					.css("height", "auto")
-					.css("top", "50%")
-					.css("left", "50%")
-					.css("border-radius", "30px")
-					.css("transform", "translateX(-50%) translateY(-50%)")
-					.css("z-index", "2")
-					.append(
-						this.title?
-							typeof(this.bg) == "object"?
-								$("<div></div>")
-									.css("position", "absolute")
-									.css("width", "100%")
-									.css("height", "auto")
-									.css("top", "50%")
-									.css("left", "50%")
-									.css("border-left-top-radius", "30px")
-									.css("border-right-top-radius", "30px")
-									.css("background-color", "#CCC")
+				typeof(this.windows) == "string"?
+					$("<div>"+this.windows+"</div>")
+						.css("position", "absolute")
+						.css("width", "80%")
+						.css("height", "auto")
+						.css("top", "50%")
+						.css("left", "50%")
+						.css("border-radius", "10px")
+						.css("overflow", "hidden")
+						.css("background-color", "#FFF")
+						.css("transform", "translateX(-50%) translateY(-50%)")
+						.css("z-index", "2")
+				:
+					$("<div></div>")
+						.css("position", "absolute")
+						.css("width", "80%")
+						.css("height", "auto")
+						.css("top", "50%")
+						.css("left", "50%")
+						.css("border-radius", "10px")
+						.css("overflow", "hidden")
+						.css("background-color", "#FFF")
+						.css("transform", "translateX(-50%) translateY(-50%)")
+						.css("z-index", "2")
+						.append(
+							this.title?
+								typeof(this.title) != "string"?
+									$("<div>"+this.title.innerHTML+"</div>")
+										.css("width", "100%")
+										.css("height", "auto")
+										.css("background-color", "#ddd")
+								:
+									$("<div>"+this.title+"</div>")
+										.css("width", "100%")
+										.css("height", "auto")
+										.css("background-color", "#ddd")
 							:
-								$("<div>"+title+"</div>")
-									.css("position", "absolute")
-									.css("width", "100%")
-									.css("height", "auto")
-									.css("top", "50%")
-									.css("left", "50%")
-									.css("border-left-top-radius", "30px")
-									.css("border-right-top-radius", "30px")
-									.css("background-color", "#CCC")
-						:
-							""
-					)
+								""
+						)
+						.append(
+							this.main?
+								typeof(this.main) != "string"?
+									$("<div>"+this.main.innerHTML+"</div>")
+										.css("width", "100%")
+										.css("height", "auto")
+										.css("background-color", "#fff")
+								:
+									$("<div>"+this.main+"</div>")
+										.css("width", "100%")
+										.css("height", "auto")
+										.css("background-color", "#fff")
+							:
+								""
+						)
 			)
-		
+		;
 	}
 	this.init();
 	
@@ -67,15 +89,23 @@ function Box(bg, box, title, main, button, icon){
 		$("body").append(this.box);
 		
 		if (typeof(this.bg) == "object"){
-			for (var i in bg){
-				this.box.find("div:eq(0)")
-					.attr(i, bg[i])
+			for (var i in this.bg){
+				eval(`this.box.find("div:eq(0)")[0].${i} = this.bg[i];`);
 			}
 		}
-		if (typeof(this.box) == "object"){
-			for (var i in box){
-				this.box.find("div:eq(1)")
-					.attr(i, box[i])
+		if (typeof(this.windows) == "object"){
+			for (var i in this.windows){
+				eval(`this.box.find("div:eq(1)")[0].${i} = this.windows[i];`);
+			}
+		}
+		if (typeof(this.title) == "object"){
+			for (var i in this.title){
+				eval(`this.box.find("div:eq(1) div:eq(0)")[0].${i} = this.title[i];`);
+			}
+		}
+		if (typeof(this.main) == "object"){
+			for (var i in this.main){
+				eval(`this.box.find("div:eq(1) div:eq(2)")[0].${i} = this.main[i];`);
 			}
 		}
 		
