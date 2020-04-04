@@ -79,8 +79,46 @@ function Box(bg, windows, title, main, button, icon){
 							:
 								""
 						)
+						.append(
+							this.button?
+								typeof(this.button) == "object"?
+									$("<div></div>")
+								:
+									$("<div>"+this.button+"</div>")
+							:
+								""
+						)
 			)
 		;
+		var button_width = 100;
+		if (this.button.length == 1){
+			button_width = 100/1;
+		}else if (this.button.length == 2){
+			button_width = 100/2;
+		}else if (this.button.length == 3){
+			button_width = 100/3;
+		}else if (this.button.length == 4){
+			button_width = 100/2;
+		}else{
+			button_width = 100/3;
+		}
+		for (var i in this.button){
+			this.box.find("div:eq(1) div:eq(2)")
+				.append(
+					typeof(this.button[i]) != "string"?
+						$("<button>"+this.main.innerHTML+"</button>")
+							.css("width", "100%")
+							.css("height", "30px")
+							.css("background-color", "#eee")
+							.css("color", "#334")
+					:
+						$("<button>"+this.button[i]+"</button>")
+							.css("width", button_width+"%")
+							.css("height", "30px")
+							.css("background-color", "#eee")
+							.css("color", "#334")
+				)
+		}
 	}
 	this.init();
 	
@@ -90,27 +128,42 @@ function Box(bg, windows, title, main, button, icon){
 		
 		if (typeof(this.bg) == "object"){
 			for (var i in this.bg){
-				eval(`this.box.find("div:eq(0)")[0].${i} = this.bg[i];`);
+				eval(`this.box.find("div:eq(0)")[0].${i} = this.bg[${i}];`);
 			}
 		}
 		if (typeof(this.windows) == "object"){
 			for (var i in this.windows){
-				eval(`this.box.find("div:eq(1)")[0].${i} = this.windows[i];`);
+				eval(`this.box.find("div:eq(1)")[0].${i} = this.windows[${i}];`);
 			}
 		}
 		if (typeof(this.title) == "object"){
 			for (var i in this.title){
-				eval(`this.box.find("div:eq(1) div:eq(0)")[0].${i} = this.title[i];`);
+				eval(`this.box.find("div:eq(1) div:eq(0)")[0].${i} = this.title[${i}];`);
 			}
 		}
 		if (typeof(this.main) == "object"){
 			for (var i in this.main){
-				eval(`this.box.find("div:eq(1) div:eq(2)")[0].${i} = this.main[i];`);
+				eval(`this.box.find("div:eq(1) div:eq(1)")[0].${i} = this.main[${i}];`);
+			}
+		}
+		for (var i in this.button){
+			if (typeof(this.button[i]) == "object"){
+				for (var j in this.button[i]){
+					eval(`this.box.find("div:eq(1) div:eq(2) button")[${i}].${j} = this.main[${j}];`);
+				}
 			}
 		}
 		
 		this.box.show("slow");
 		this.state = true;
+		return this;
+	};
+	this.close = function (){
+		var _box = this.box; //防止无法在函数内使用this
+		this.box.hide("slow", function(){
+			_box.remove();
+		});
+		this.state = false;
 		return this;
 	};
 }

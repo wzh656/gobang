@@ -202,7 +202,9 @@ window.onresize = function(){
 		}
 	},300); 
 }
-a=new Box(undefined, undefined, "title", "name:<input value='123456'/>").show();
+a=new Box(undefined, undefined, "title", "name:<input value='123456'/>", [
+	"ok"
+]).show();
 
 $("img:eq(0)").click(function (){
 	layx.open({
