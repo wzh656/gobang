@@ -3,6 +3,6 @@
 	src:url("../fonts/fzybxskt.ttf");
 }
 
-p,b,input{
+.fzybxskt{
 	font-family:fzybxskt;
 }

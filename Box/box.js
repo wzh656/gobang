@@ -7,12 +7,12 @@ function Box(bg, windows, title, main, button, icon){
 	this.bg = bg;
 	this.state=false;
 	this.init = function (){
-		this.box = $("<div></div>")
+		this.box = $("<box-div></box-div>")
 			.append(
 				this.bg & typeof(this.bg)!="object"?
 					this.bg
 				:
-					$("<div></div>")
+					$("<box-div></box-div>")
 						.css("position", "absolute")
 						.css("left", "0px")
 						.css("top", "0px")
@@ -26,7 +26,7 @@ function Box(bg, windows, title, main, button, icon){
 		this.box
 			.append(
 				typeof(this.windows) == "string"?
-					$("<div>"+this.windows+"</div>")
+					$("<box-div>"+this.windows+"</box-div>")
 						.css("position", "absolute")
 						.css("width", "80%")
 						.css("height", "auto")
@@ -38,7 +38,7 @@ function Box(bg, windows, title, main, button, icon){
 						.css("transform", "translateX(-50%) translateY(-50%)")
 						.css("z-index", "2")
 				:
-					$("<div></div>")
+					$("<box-div></box-div>")
 						.css("position", "absolute")
 						.css("width", "80%")
 						.css("height", "auto")
@@ -52,27 +52,31 @@ function Box(bg, windows, title, main, button, icon){
 						.append(
 							this.title?
 								typeof(this.title) != "string"?
-									$("<div>"+this.title.innerHTML+"</div>")
+									$("<box-div></box-div>")
 										.css("width", "100%")
 										.css("height", "auto")
 										.css("background-color", "#ddd")
+										.css("font-size", "30px")
+										.attr("class","ThreeD")
 								:
-									$("<div>"+this.title+"</div>")
+									$("<box-div>"+this.title+"</box-div>")
 										.css("width", "100%")
 										.css("height", "auto")
 										.css("background-color", "#ddd")
+										.css("font-size", "30px")
+										.attr("class","ThreeD")
 							:
 								""
 						)
 						.append(
 							this.main?
 								typeof(this.main) != "string"?
-									$("<div>"+this.main.innerHTML+"</div>")
+									$("<box-div></box-div>")
 										.css("width", "100%")
 										.css("height", "auto")
 										.css("background-color", "#fff")
 								:
-									$("<div>"+this.main+"</div>")
+									$("<box-div>"+this.main+"</box-div>")
 										.css("width", "100%")
 										.css("height", "auto")
 										.css("background-color", "#fff")
@@ -82,9 +86,9 @@ function Box(bg, windows, title, main, button, icon){
 						.append(
 							this.button?
 								typeof(this.button) == "object"?
-									$("<div></div>")
+									$("<box-div></box-div>")
 								:
-									$("<div>"+this.button+"</div>")
+									$("<box-div>"+this.button+"</box-div>")
 							:
 								""
 						)
@@ -103,16 +107,16 @@ function Box(bg, windows, title, main, button, icon){
 			button_width = 100/3;
 		}
 		for (var i in this.button){
-			this.box.find("div:eq(1) div:eq(2)")
+			this.box.find("box-div:eq(1) box-div:eq(2)")
 				.append(
 					typeof(this.button[i]) != "string"?
-						$("<button>"+this.main.innerHTML+"</button>")
+						$("<box-button></box-button>")
 							.css("width", "100%")
 							.css("height", "30px")
 							.css("background-color", "#eee")
 							.css("color", "#334")
 					:
-						$("<button>"+this.button[i]+"</button>")
+						$("<box-button>"+this.button[i]+"</box-button>")
 							.css("width", button_width+"%")
 							.css("height", "30px")
 							.css("background-color", "#eee")
@@ -128,28 +132,28 @@ function Box(bg, windows, title, main, button, icon){
 		
 		if (typeof(this.bg) == "object"){
 			for (var i in this.bg){
-				eval(`this.box.find("div:eq(0)")[0].${i} = this.bg[${i}];`);
+				eval(`this.box.find("box-div:eq(0)")[0].${i} = this.bg[i];`);
 			}
 		}
 		if (typeof(this.windows) == "object"){
 			for (var i in this.windows){
-				eval(`this.box.find("div:eq(1)")[0].${i} = this.windows[${i}];`);
+				eval(`this.box.find("box-div:eq(1)")[0].${i} = this.windows[i];`);
 			}
 		}
 		if (typeof(this.title) == "object"){
 			for (var i in this.title){
-				eval(`this.box.find("div:eq(1) div:eq(0)")[0].${i} = this.title[${i}];`);
+				eval(`this.box.find("box-div:eq(1) box-div:eq(0)")[0].${i} = this.title[i];`);
 			}
 		}
 		if (typeof(this.main) == "object"){
 			for (var i in this.main){
-				eval(`this.box.find("div:eq(1) div:eq(1)")[0].${i} = this.main[${i}];`);
+				eval(`this.box.find("box-div:eq(1) box-div:eq(1)")[0].${i} = this.main[i];`);
 			}
 		}
 		for (var i in this.button){
 			if (typeof(this.button[i]) == "object"){
 				for (var j in this.button[i]){
-					eval(`this.box.find("div:eq(1) div:eq(2) button")[${i}].${j} = this.main[${j}];`);
+					eval(`this.box.find("box-div:eq(1) box-div:eq(2) box-button")[${i}].${j} = this.button[i][j];`);
 				}
 			}
 		}

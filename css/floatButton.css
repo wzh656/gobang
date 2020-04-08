@@ -1,13 +1,7 @@
-@font-face{
-	font-family:hwxk; /*华文楷体*/
-	src:url("../fonts/hwxk.ttf");
-}
-
-button{
+.floatButton{
 	margin: 0 auto;
 	background: #70c3ff;
 	color: white;
-	font-family: hwxk;
 	font-size: 1rem;
 	text-align: center;
 	border-radius: 8px;
@@ -17,7 +11,7 @@ button{
 	overflow: hidden;
 	transition: all .3s ease;
 }
-button::after{
+.floatButton::after{
 	content: "";
 	position: absolute;
 	/*首先隐藏子元素*/
@@ -38,11 +32,11 @@ button::after{
 	transition: inherit;
 }
 
-button:hover::after {
+.floatButton:hover::after {
 	/*鼠标放在父元素上 移动子元素*/
 	left: 100%;
 }
-button:hover {
+.floatButton:hover {
 	/*向上移动6个像素*/
 	-moz-transform: translateY(-6px);
 	-webkit-transform: translateY(-6px);

@@ -1,10 +1,4 @@
-@font-face{
-	font-family:kt; /*楷体*/
-	src:url("../fonts/kt.ttf");
-}
-
-h1,h2,h3,h4,h5,h6,title{
-	font-family: kt;
+.title{
 	text-align: center;
 	/* 设置背景透明色 */
 	background-image: -webkit-linear-gradient(left, blue,

@@ -1,0 +1,203 @@
+﻿<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>jQuery感知方向悬停按钮特效 - 站长素材</title>
+
+<script src="js/jquery.min.js"></script>
+
+<style>
+body {
+  font-family: 'Inconsolata', sans-serif;
+  background: #2a364f;
+}
+
+h1{
+  text-align: center;
+  color: rgba(255,255,255,0.8);
+}
+
+.credit{
+  text-align: center;
+  color: rgba(255,255,255,0.4);
+
+}
+
+.content{
+  padding-top: 45px;
+  padding-bottom: 20px;
+}
+
+.button_container{
+    width: 176px;
+    margin: 0 auto;
+    margin-top: 30px;
+    padding-top: 40px;
+}
+
+.button_su{
+  overflow: hidden;
+  position: relative;
+  display: inline-block;
+  border-radius: 3px;
+  margin-bottom: 30px;
+}
+
+.su_button_circle{
+  background-color: red;
+  border-radius: 1000px;
+  position: absolute;
+  left:0;
+  top:0;
+  width: 0px;
+  height: 0px;
+  margin-left: 0px;
+  margin-top: 0px;
+  pointer-events: none;
+  /*animation-timing-function: ease-in-out; */
+}
+
+.button_su_inner{
+    display: inline-block;
+    background: #F8B627;
+    color: #F4F4F4;
+    font-size: 16px;
+    font-weight: normal;
+    width: 132px;
+    text-align: center;
+    border-radius: 3px;
+    transition: 400ms;
+    text-decoration: none;
+    padding: 22px;
+    z-index: 100000;
+}
+
+.button_text_container{
+   position:relative;
+   z-index: 10000;
+}
+
+.explode-circle {
+   animation: explode 0.5s forwards;
+
+}
+
+.desplode-circle{
+   animation: desplode 0.5s forwards;
+}
+
+@keyframes explode {
+  0% {
+    width: 0px;
+    height: 0px;
+    margin-left: 0px;
+    margin-top: 0px;
+    background-color: rgba(42, 53, 80,0.2);
+  }
+  100% {
+    width: 400px;
+    height: 400px;
+    margin-left: -200px;
+    margin-top: -200px;
+    background-color: rgba(20, 180, 87,0.8);
+  }
+}
+
+@keyframes desplode {
+  0% {
+    width: 400px;
+    height: 400px;
+    margin-left: -200px;
+    margin-top: -200px;
+    background-color: rgba(20, 180, 87,0.8);
+  }
+  100% {
+    width: 0px;
+    height: 0px;
+    margin-left: 0px;
+    margin-top: 0px;
+    background-color: rgba(129, 80, 108,0.6);
+  }
+}
+</style>
+
+</head>
+<body>
+
+<div class="content">
+  <h1>Bubble hover effect</h1>
+  <div class="button_container">
+      <div class="button_su">
+        <span class="su_button_circle">
+        </span>
+        <a href="#" class="button_su_inner">
+          <span class="button_text_container">
+            Simple button
+          </span>
+        </a>
+      </div>
+
+      <div class="button_su">
+        <span class="su_button_circle">
+        </span>
+        <a href="#" class="button_su_inner">
+          <span class="button_text_container">
+            Another button
+          </span>
+        </a>
+      </div>
+
+      <div class="button_su">
+        <span class="su_button_circle">
+        </span>
+        <a href="#" class="button_su_inner">
+          <span class="button_text_container">
+            A third button
+          </span>
+        </a>
+      </div>
+
+      <div class="button_su">
+        <span class="su_button_circle">
+        </span>
+        <a href="#" class="button_su_inner">
+          <span class="button_text_container">
+            A forth button
+          </span>
+        </a>
+      </div>
+  </div>
+</div>
+
+<script>
+$( ".button_su_inner" ).mouseenter(function(e) {
+   var parentOffset = $(this).offset(); 
+  
+   var relX = e.pageX - parentOffset.left;
+   var relY = e.pageY - parentOffset.top;
+   $(this).prev(".su_button_circle").css({"left": relX, "top": relY });
+   $(this).prev(".su_button_circle").removeClass("desplode-circle");
+   $(this).prev(".su_button_circle").addClass("explode-circle");
+
+});
+
+$( ".button_su_inner" ).mouseleave(function(e) {
+
+     var parentOffset = $(this).offset(); 
+
+     var relX = e.pageX - parentOffset.left;
+     var relY = e.pageY - parentOffset.top;
+     $(this).prev(".su_button_circle").css({"left": relX, "top": relY });
+     $(this).prev(".su_button_circle").removeClass("explode-circle");
+     $(this).prev(".su_button_circle").addClass("desplode-circle");
+
+});
+</script>
+
+<div style="text-align:center;margin:10px 0; font:normal 14px/24px 'MicroSoft YaHei';color:#ffffff">
+<p>适用浏览器：360、FireFox、Chrome、Opera、傲游、搜狗、世界之窗. 不支持Safari、IE8及以下浏览器。</p>
+<p>来源：<a href="http://sc.chinaz.com/" target="_blank">站长素材</a></p>
+</div>
+</body>
+</html>
+
