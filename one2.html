@@ -4,14 +4,29 @@
 		<meta charset="UTF-8" />
 		<meta content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=yes" name="viewport" />
 		<title>五子棋-人机对战</title>
+		
+		<link href="./css/kt-title.css" rel="stylesheet" type="text/css" />
 		<link href="./css/title.css" rel="stylesheet" type="text/css" />
-		<link href="./css/button.css" rel="stylesheet" type="text/css" />
-		<link href="./css/p.css" rel="stylesheet" type="text/css" />
+		<link href="./css/fzybxskt-p.css" rel="stylesheet" type="text/css" />
+		<link href="./css/hwkt-button.css" rel="stylesheet" type="text/css" />
 		<link href="./css/clear.css" rel="stylesheet" type="text/css" />
+		
+		<script src="./js/jq.js" type="text/javascript"></script>
+		<script>
+		if (require)
+			window.$ = window.jQuery = require("./js/jq");
+		</script>
 		
 		<link href="./LayX/layx.min.css" rel="stylesheet" type="text/css" />
 		<script src="./LayX/layx.min.js" type="text/javascript"></script>
 		
+		<link href="./BubbleHoverButton/BubbleHoverButton.css" rel="stylesheet" type="text/css" />
+		<script src="./BubbleHoverButton/BubbleHoverButton.js" type="text/javascript"></script>
+		
+		<script src="./js/vconsole.min.js" type="text/javascript"></script>
+		<script type="text/javascript">
+		var vConsole = new VConsole();
+		</script>
 		<!--
 		<script src="//cdn.jsdelivr.net/npm/eruda"></script>
 		<script>
@@ -35,12 +50,12 @@ h1{
 	position: absolute;
 	top: 6px;
 }
-.button-box button{
-	height:36px;
-	color:white;
-	background-color:#6a8;
+.button-box > .button_su{
+	/* height: 36px; */
+	color: white;
+	background-color: #6a8;
 	/*border-radius:40px;*/
-	line-height:20px;
+	line-height: 0px/* 20px */;
 }
 #win{
 	border:1px solid black;
@@ -60,12 +75,36 @@ h1{
 	<body>
 		
 		<div class="button-box">
-			<button onclick="location.href='./index.html';" id="back">返回</button>
-			<button onclick="init();" id="again_two">重来</button>
-			<button onclick="clear_data();">清除胜率数据</button>
+			<div class="button_su">
+				<span class="su_button_circle"></span>
+				<a href="./index.html" class="button_su_inner">
+					<span class="button_text_container hwkt">
+						返回
+					</span>
+				</a>
+			</div>
+			<div class="button_su">
+				<span class="su_button_circle"></span>
+				<a href="javascript:init();" class="button_su_inner">
+					<span class="button_text_container hwkt">
+						重来
+					</span>
+				</a>
+			</div>
+			<div class="button_su">
+				<span class="su_button_circle"></span>
+				<a href="javascript:clear_data();" class="button_su_inner">
+					<span class="button_text_container hwkt">
+						清除胜率数据
+					</span>
+				</a>
+			</div>
+			<!-- <button onclick="location.href='./index.html';">返回</button>
+			<button onclick="init();">重来</button>
+			<button onclick="clear_data();">清除胜率数据</button> -->
 		</div>
 		
-		<h1 id="h1">五子棋-人机对战</h1>
+		<h1 id="h1" class="title kt">五子棋-人机对战</h1>
 		<br/><b id="message" style="position:absolute;top:200px;">下棋方：黑棋</b>
 		<br/><b id="message2" style="position:absolute;top:220px;"></b>
 		<b id="win">
