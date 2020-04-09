@@ -1,6 +1,28 @@
+@font-face{
+	font-family:hwxk; /*华文楷体*/
+	src:url("../fonts/hwxk.ttf");
+}
+
 box-div{
 	display: block;
 }
+
 box-button{
 	display: inline-block;
+	
+	border: 2px outset #aaa;
+	border-radius: 5px;
+	
+	text-align: center;
+	line-height: 30px;
+	
+	font-size: 20px;
+	font-family: hwxk;
+}
+box-button:active{
+	border: 2px inset #aaa;
+}
+
+box-button{
+	
 }

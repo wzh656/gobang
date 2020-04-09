@@ -32,6 +32,7 @@ function Box(bg, windows, title, main, button, icon){
 						.css("height", "auto")
 						.css("top", "50%")
 						.css("left", "50%")
+						.css("border", "3px outset #aaa")
 						.css("border-radius", "10px")
 						.css("overflow", "hidden")
 						.css("background-color", "#FFF")
@@ -44,6 +45,7 @@ function Box(bg, windows, title, main, button, icon){
 						.css("height", "auto")
 						.css("top", "50%")
 						.css("left", "50%")
+						.css("border", "3px outset #aaa")
 						.css("border-radius", "10px")
 						.css("overflow", "hidden")
 						.css("background-color", "#FFF")
@@ -111,14 +113,12 @@ function Box(bg, windows, title, main, button, icon){
 				.append(
 					typeof(this.button[i]) != "string"?
 						$("<box-button></box-button>")
-							.css("width", "100%")
-							.css("height", "30px")
+							.css("width", button_width+"%")
 							.css("background-color", "#eee")
 							.css("color", "#334")
 					:
 						$("<box-button>"+this.button[i]+"</box-button>")
 							.css("width", button_width+"%")
-							.css("height", "30px")
 							.css("background-color", "#eee")
 							.css("color", "#334")
 				)
@@ -127,8 +127,22 @@ function Box(bg, windows, title, main, button, icon){
 	this.init();
 	
 	this.show = function(){
-		this.box.hide();
 		$("body").append(this.box);
+		$("body")
+			.css("overflow", "hidden")
+		;
+		this.box.find("box-div:eq(0)")
+			.css("position", "absolute")
+			.css("top", "100%")
+			.css("opacity", "0")
+		;
+		this.box.find("box-div:eq(1)")
+			.css("position", "absolute")
+			.css("top", "100%")
+			.css("opacity", "0")
+		this.box.find("box-div:eq(1) *")
+			.css("position", "static")
+		;
 		
 		if (typeof(this.bg) == "object"){
 			for (var i in this.bg){
@@ -158,15 +172,39 @@ function Box(bg, windows, title, main, button, icon){
 			}
 		}
 		
-		this.box.show("slow");
+		this.box.find("box-div:eq(0)").animate({
+			opacity: "0.5"
+		});
+		this.box.find("box-div:eq(1)").animate({
+			opacity: "1"
+		});
+		this.box.find("box-div:eq(0)").animate({
+			top: "0%"
+		});
+		this.box.find("box-div:eq(1)").animate({
+			top: "50%"
+		}, () => {
+			$("body")
+				.css("overflow", "");
+		});
+		
 		this.state = true;
 		return this;
 	};
 	this.close = function (){
-		var _box = this.box; //防止无法在函数内使用this
-		this.box.hide("slow", function(){
-			_box.remove();
+		this.box.find("box-div:eq(0)").animate({
+			top: "-100%"
 		});
+		this.box.find("box-div:eq(1)").animate({
+			top: "-100%"
+		}, () => {
+			$("body")
+				.css("overflow", "");
+		});
+		var _box = this.box; //防止无法在函数内使用this
+		this.box.hide("slow", () => {
+			_box.remove();
+		}, "slow");
 		this.state = false;
 		return this;
 	};

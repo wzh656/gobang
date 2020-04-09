@@ -13,7 +13,7 @@
 		
 		<script src="./js/jq.js" type="text/javascript"></script>
 		<script>
-		if (require)
+		if (typeof(require) != "undefined")
 			window.$ = window.jQuery = require("./js/jq");
 		</script>
 		
@@ -69,6 +69,17 @@ h1{
 	justify-content:space-around;
 	align-items:center;
 }
+noscript{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	left: 0px;
+	top: 0px;
+	margin: 0;
+	z-index: 666666;
+	background-color: #000000;
+	color: #FFFFFF;
+}
 </style>
 		
 	</head>
@@ -104,9 +115,9 @@ h1{
 			<button onclick="clear_data();">清除胜率数据</button> -->
 		</div>
 		
-		<h1 id="h1" class="title kt">五子棋-人机对战</h1>
-		<br/><b id="message" style="position:absolute;top:200px;">下棋方：黑棋</b>
-		<br/><b id="message2" style="position:absolute;top:220px;"></b>
+		<h1 id="h1" class="title kt">五子棋-人机对战（中级）</h1>
+		<br/><b id="message" style="position:absolute;top:200px;" class="fzybxskt">下棋方：黑棋</b>
+		<br/><b id="message2" style="position:absolute;top:220px;" class="fzybxskt"></b>
 		<b id="win">
 			<span style="color:#f00;">胜：0盘</span>
 			<span style="color:#000;">负：0盘</span>
@@ -114,12 +125,12 @@ h1{
 			<span style="color:#aaa;">胜率：无法计算</span>
 		</b>
 		
-		<canvas id="qp" width="500" height="500" style="border:1px solid black;position:absolute;left:0px;top:239px;">错误！你的浏览器不支持Canvas，无法运行《五子棋》！</canvas>
-		<b style="position: absolute; top: 740px; margin-bottom: 20px;">
+		<canvas id="qp" width="500" height="500" style="border:1px solid black;position:absolute;left:0px;top:239px;" class="fzybxskt">错误！你的浏览器不支持Canvas，无法运行《五子棋》！</canvas>
+		<b style="position: absolute; top: 740px; margin-bottom: 20px;" class="fzybxskt">
 			步数：<span id="length">0</span>
 		</b>
 		
-		<noscript style="z-index: 1; position: absolute; width: 100%; height: 100%; left: 0px; top: 0px; background-color: #000000; color: #FFFFFF;"><h1>错误！你的浏览器不支持JavaScript，无法运行《五子棋》！</h1></noscript>
+		<noscript class="fzybxskt"><h1>错误！你的浏览器不支持JavaScript，无法运行《五子棋》！</h1></noscript>
 		
 <script>
 var scale = 1,
@@ -306,8 +317,10 @@ document.onmousedown = function (e){
 		list[i].parentElement.removeChild(list[i]);
 	}
 }
-
 document.getElementById("qp").onmousedown = function(e){
+	e.stopPropagation(); //停止向上冒泡(W3C)
+	e.cancelBubble = true //停止向上冒泡(IE)
+	
 	var x=Math.round((e.pageX-position.left-24.6*scale)/(25*scale));
 	var y=Math.round((e.pageY-position.top-24.6*scale)/(25*scale));
 	
@@ -334,7 +347,10 @@ document.getElementById("qp").onmousedown = function(e){
 			test.style.top = y*(24.6*scale)+35.5/2*scale+position.top+"px";
 			test.style.border = "3px ridge #8af";
 			test.style.borderRadius = "50%";
-			test.onclick = function (){
+			test.onmousedown = function (e){
+				e.stopPropagation(); //停止向上冒泡(W3C)
+				e.cancelBubble = true //停止向上冒泡(IE)
+				
 				click(Number(this["data-x"]), Number(this["data-y"]));
 				this.parentElement.removeChild(this);
 			}
