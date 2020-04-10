@@ -7,12 +7,12 @@ function Box(bg, windows, title, main, button, icon){
 	this.bg = bg;
 	this.state=false;
 	this.init = function (){
-		this.box = $("<box-div></box-div>")
+		this.box = $("<box-background></box-background>")
 			.append(
 				this.bg & typeof(this.bg)!="object"?
 					this.bg
 				:
-					$("<box-div></box-div>")
+					$("<box-background></box-background>")
 						.css("position", "absolute")
 						.css("left", "0px")
 						.css("top", "0px")
@@ -26,7 +26,7 @@ function Box(bg, windows, title, main, button, icon){
 		this.box
 			.append(
 				typeof(this.windows) == "string"?
-					$("<box-div>"+this.windows+"</box-div>")
+					$("<box-window>"+this.windows+"</box-window>")
 						.css("position", "absolute")
 						.css("width", "80%")
 						.css("height", "auto")
@@ -39,7 +39,7 @@ function Box(bg, windows, title, main, button, icon){
 						.css("transform", "translateX(-50%) translateY(-50%)")
 						.css("z-index", "2")
 				:
-					$("<box-div></box-div>")
+					$("<box-window></box-window>")
 						.css("position", "absolute")
 						.css("width", "80%")
 						.css("height", "auto")
@@ -128,7 +128,7 @@ function Box(bg, windows, title, main, button, icon){
 	
 	this.show = function(){
 		$("body").append(this.box);
-		$("body")
+		/* $("body")
 			.css("overflow", "hidden")
 		;
 		this.box.find("box-div:eq(0)")
@@ -142,7 +142,7 @@ function Box(bg, windows, title, main, button, icon){
 			.css("opacity", "0")
 		this.box.find("box-div:eq(1) *")
 			.css("position", "static")
-		;
+		; */
 		
 		if (typeof(this.bg) == "object"){
 			for (var i in this.bg){
@@ -172,7 +172,7 @@ function Box(bg, windows, title, main, button, icon){
 			}
 		}
 		
-		this.box.find("box-div:eq(0)").animate({
+		/* this.box.find("box-div:eq(0)").animate({
 			opacity: "0.5"
 		});
 		this.box.find("box-div:eq(1)").animate({
@@ -186,7 +186,7 @@ function Box(bg, windows, title, main, button, icon){
 		}, () => {
 			$("body")
 				.css("overflow", "");
-		});
+		}); */
 		
 		this.state = true;
 		return this;

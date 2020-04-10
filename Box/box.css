@@ -3,7 +3,7 @@
 	src:url("../fonts/hwxk.ttf");
 }
 
-box-div{
+box-div, box-window, box-window{
 	display: block;
 }
 
