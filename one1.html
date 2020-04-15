@@ -3,13 +3,14 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta content="width=device-width, height=device-height, initial-scale=1.0, user-scalable=yes" name="viewport" />
-		<title>五子棋-人机对战</title>
+		<title>五子棋-人机对战-简单</title>
 		
 		<link href="./css/kt-title.css" rel="stylesheet" type="text/css" />
 		<link href="./css/title.css" rel="stylesheet" type="text/css" />
 		<link href="./css/fzybxskt-p.css" rel="stylesheet" type="text/css" />
 		<link href="./css/hwkt-button.css" rel="stylesheet" type="text/css" />
 		<link href="./css/clear.css" rel="stylesheet" type="text/css" />
+		<link href="./css/3d.css" rel="stylesheet" type="text/css" />
 		
 		<script src="./js/jq.js" type="text/javascript"></script>
 		<script>
@@ -20,8 +21,11 @@
 		<link href="./LayX/layx.min.css" rel="stylesheet" type="text/css" />
 		<script src="./LayX/layx.min.js" type="text/javascript"></script>
 		
-		<link href="./BubbleHoverButton/BubbleHoverButton.css" rel="stylesheet" type="text/css" />
-		<script src="./BubbleHoverButton/BubbleHoverButton.js" type="text/javascript"></script>
+		<script src="./css/Box/box.js" type="text/javascript"></script>
+		<link href="./css/Box/box.css" rel="stylesheet" type="text/css" />
+		
+		<link href="./css/BubbleHoverButton/BubbleHoverButton.css" rel="stylesheet" type="text/css" />
+		<script src="./css/BubbleHoverButton/BubbleHoverButton.js" type="text/javascript"></script>
 		
 		<script src="./js/vconsole.min.js" type="text/javascript"></script>
 		<script type="text/javascript">
@@ -46,17 +50,26 @@ h1{
 	font-size: 45px;
 	margin-top: 45px;
 }
+
 .button-box{
 	position: absolute;
 	top: 6px;
 }
-.button-box > .button_su{
-	/* height: 36px; */
-	color: white;
-	background-color: #6a8;
-	/*border-radius:40px;*/
-	line-height: 0px/* 20px */;
+.button_su{
+	height: 36px;
+	min-width: 50px;
+	
+	margin-bottom: 0px;
+	border-radius: 10px;
 }
+.button_su_inner{
+	height: 36px;
+	min-width: 50px;
+	
+	padding: 0px;
+	font-size: auto;
+}
+
 #win{
 	border:1px solid black;
 	position:absolute;
@@ -69,6 +82,7 @@ h1{
 	justify-content:space-around;
 	align-items:center;
 }
+
 noscript{
 	position: absolute;
 	width: 100%;
@@ -115,7 +129,7 @@ noscript{
 			<button onclick="clear_data();">清除胜率数据</button> -->
 		</div>
 		
-		<h1 id="h1" class="title kt">五子棋-人机对战（简单）</h1>
+		<h1 id="h1" class="title kt">五子棋-人机对战-简单</h1>
 		<b id="message" style="position:absolute;top:200px;" class="fzybxskt">下棋方：黑棋</b>
 		<b id="message2" style="position:absolute;top:220px;" class="fzybxskt"></b>
 		<b id="win" class="fzybxskt">
@@ -455,7 +469,50 @@ function click(x, y){
 								)+
 								';">胜率：'+((all==0)?"无法计算":(Math.round(win/all*10000)/100+"％"))+'</span>'
 							;
-							layx.alert(
+							var game_over_box = new Box(
+								{
+									onclick: function (){
+										game_over.close();
+									}
+								},
+								undefined,
+								qz[i][j] == computer?"游戏结束<b>（失败）</b>":"<b>游戏结束（成功）</b>",
+								`历经${length.innerHTML}步<br>
+								<b>${qz[i][j]}（${qz[i][j] == computer?"电脑":"玩家"}）</b>胜！！！<br>
+								<hr/>
+								<span class="fzybxskt">
+									<b style="color:#f00;">胜：${win}盘</b><br>
+									<b style="color:#000;">负：${all-win}盘</b><br>
+									<b style="color:#aaa;">共：${all}盘</b><br>
+									<b style="color:#${
+										all == 0?
+											"aaa"
+										:
+											(
+												(Math.round(255-win/all*255)).toString(16).length<2?
+													"0"+(Math.round(255-win/all*255)).toString(16)
+												:
+													(Math.round(255-win/all*255)).toString(16)
+											)+
+											(
+												(Math.round(win/all*255)).toString(16).length<2?
+													"0"+(Math.round(win/all*255)).toString(16)
+												:
+													(Math.round(win/all*255)).toString(16)
+											)+
+											"00"
+									};">胜率：${win/all*100}％</b>
+								</span>`,
+								[
+									{
+										innerHTML: "确定",
+										onclick: function (){
+											game_over_box.close();
+										}
+									}
+								]
+							).show();
+							/* layx.alert(
 								(qz[i][j] == computer?"游戏结束（失败）":"游戏结束（成功）"),
 								`历经${length.innerHTML}步<br>
 								${qz[i][j]}（${qz[i][j] == computer?"电脑":"玩家"}）胜！！！<br>
@@ -464,7 +521,7 @@ function click(x, y){
 								负：${all-win}盘<br>
 								共：${all}盘<br>
 								胜率：${win/all*100}％`
-							);
+							); */
 						}
 					},1);
 					return ;

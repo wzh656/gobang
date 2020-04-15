@@ -21,11 +21,8 @@
 		
 		<script src="./js/choice.js" type="text/javascript"></script>
 		
-		<script src="./Box/box.js" type="text/javascript"></script>
-		<link href="./Box/box.css" rel="stylesheet" type="text/css" />
-		
-		<script src="./BubbleHoverButton/BubbleHoverButton.js" type="text/javascript"></script>
-		<link href="./BubbleHoverButton/BubbleHoverButton.css" rel="stylesheet" type="text/css" />
+		<script src="./css/BubbleHoverButton/BubbleHoverButton.js" type="text/javascript"></script>
+		<link href="./css/BubbleHoverButton/BubbleHoverButton.css" rel="stylesheet" type="text/css" />
 		
 		<script src="./js/vconsole.min.js" type="text/javascript"></script>
 		<script type="text/javascript">
@@ -47,7 +44,7 @@ body{
 h1{
 	font-size: 400%;
 }
-a.hwkt.floatButton{
+button.hwkt.floatButton{
 	font-size: 115%;
 }
 img{
@@ -69,7 +66,7 @@ img:nth-child(3){
 	h1{
 		font-size: 600%;
 	}
-	a.hwkt.floatButton{
+	button.hwkt.floatButton{
 		font-size: 200%;
 	}
 	img{
@@ -89,7 +86,7 @@ img:nth-child(3){
 	h1{
 		font-size: 600%;
 	}
-	a.hwkt.floatButton{
+	button.hwkt.floatButton{
 		font-size: 260%;
 	}
 	img{
@@ -123,7 +120,8 @@ body{
 h1{
 	margin: 0px;
 }
-a.hwkt.floatButton{
+
+button.hwkt.floatButton{
 	text-decoration: none;
 	width: 50%;
 	height: 12%;
@@ -135,6 +133,26 @@ a.hwkt.floatButton{
 	text-align: center;
 	line-height: 60px;
 }
+
+.float-box{
+	width: 50%;
+	height: 12%;
+}
+button.hwkt.floatButton.float-front{
+	height: 100%;
+	width: 100%;
+}
+button.hwkt.floatButton.float-back1{
+	height: 100%;
+	transform: translateY(-100%);
+	z-index: -1;
+}
+button.hwkt.floatButton.float-back2{
+	height: 100%;
+	transform: translateX(100%) translateY(-200%);
+	z-index: -1;
+}
+
 .img-box{
 	position: absolute;
 	top: 0px;
@@ -205,30 +223,36 @@ window.onresize = function(){
 				</span>
 			</a>
 		</div> -->
-		<a
-			href="./two.html"
+		<button
+			onclick="location.href='./two.html';"
 			class="hwkt floatButton"
 			title="点击进入双人对战">
 			双人对战
-		</a>
-		<a
-			href="./one1.html"
-			class="hwkt floatButton"
-			title="点击进入人机对战（算法1）">
-			人机对战（简单）
-		</a>
-		<a
-			href="./one2.html"
-			class="hwkt floatButton"
-			title="点击进入人机对战（算法2）">
-			人机对战（中级）
-		</a>
-		<a
-			href="./sign.html"
+		</button>
+		<div class="float-box">
+			<button
+				class="hwkt floatButton float-front">
+				人机对战
+			</button>
+			<button
+				onclick="location.href='./one1.html';"
+				class="hwkt floatButton float-back1"
+				title="点击进入人机对战（算法1）">
+				简单
+			</button>
+			<button
+				onclick="location.href='./one2.html';"
+				class="hwkt floatButton float-back2"
+				title="点击进入人机对战（算法2）">
+				中级
+			</button>
+		</div>
+		<button
+			onclick="location.href='./sign.html';"
 			class="hwkt floatButton"
 			title="点击进入联机对战">
 			登录/联机
-		</a>
+		</button>
 		
 		<noscript class="fzybxskt"><h1>错误！你的浏览器不支持JavaScript，无法运行《五子棋》！</h1></noscript>
 		
@@ -262,22 +286,29 @@ window.onresize = function(){
 		}
 	},300); 
 }
-a=new Box(undefined, undefined, "title", "name:<input value='123456'/>", [
-	{
-		innerHTML:"关闭",
-		onclick: function(){
-			alert();
-			a.close();
-		}
-	},"2","3",
-	{
-		innerHTML:"4",
-		"style.width":"50%"
-	},{
-		innerHTML:"5",
-		"style.width":"50%"
-	},
-]).show();
+
+$(".float-box")[0].onmousemove = function (){
+	$(".float-front").css("transform", "translateY(-50%)");
+	$(".float-back1")
+		.css("transform", "translateY(-50%)")
+		.css("z-index", "0")
+	;
+	$(".float-back2")
+		.css("transform", "translateX(100%)translateY(-150%)")
+		.css("z-index", "0")
+	;
+}
+$(".float-box")[0].onmouseout = function (){
+	$(".float-front").css("transform", "translateY(0%)");
+	$(".float-back1")
+		.css("transform", "translateY(-100%)")
+		.css("z-index", "-1")
+	;
+	$(".float-back2")
+		.css("transform", "translateX(100%)translateY(-200%)")
+		.css("z-index", "-1")
+	;
+}
 
 $("img:eq(0)").click(function (){
 	layx.open({
