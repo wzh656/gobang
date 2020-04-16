@@ -102,6 +102,10 @@ img:nth-child(3){
 }
 
 /*通用*/
+*{
+	outline-color: #fff;
+}
+
 body{
 	position: absolute;
 	left: 0px;
@@ -299,6 +303,30 @@ $(".float-box")[0].onmousemove = function (){
 	;
 }
 $(".float-box")[0].onmouseout = function (){
+	$(".float-front").css("transform", "translateY(0%)");
+	$(".float-back1")
+		.css("transform", "translateY(-100%)")
+		.css("z-index", "-1")
+	;
+	$(".float-back2")
+		.css("transform", "translateX(100%)translateY(-200%)")
+		.css("z-index", "-1")
+	;
+}
+$(".float-front")[0].onclick = function (e){
+	e.stopPropagation(); //停止向上冒泡(W3C)
+	e.cancelBubble = true //停止向上冒泡(IE)
+	$(".float-front").css("transform", "translateY(-50%)");
+	$(".float-back1")
+		.css("transform", "translateY(-50%)")
+		.css("z-index", "0")
+	;
+	$(".float-back2")
+		.css("transform", "translateX(100%)translateY(-150%)")
+		.css("z-index", "0")
+	;
+}
+document.onmousedown = function (){
 	$(".float-front").css("transform", "translateY(0%)");
 	$(".float-back1")
 		.css("transform", "translateY(-100%)")
