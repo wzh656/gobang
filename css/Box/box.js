@@ -81,7 +81,6 @@ function Box(bg, windows, title, main, button, icon){
 	this.show = function(){
 		$("body").append(this.box);
 		
-		
 		$("body").css("overflow", "hidden");
 		setTimeout(() => {
 			$("body").css("overflow", "visible");
@@ -158,10 +157,55 @@ function Box(bg, windows, title, main, button, icon){
 		this.state = false;
 		return this;
 	};
+	this.setBg = function (value){
+		this.bg = value;
+		this.init();
+		return this;
+	}
+	this.getBg = function (){
+		return this.bg;
+	}
+	
+	this.setWindows = function (value){
+		this.windows = value;
+		this.init();
+		return this;
+	}
+	this.getWindows = function (){
+		return this.windows;
+	}
+	
+	this.setTitle = function (value){
+		this.title = value;
+		this.init();
+		return this;
+	}
+	this.getTitle = function (){
+		return this.title;
+	}
+	
+	this.setMain = function (value){
+		this.main = value;
+		this.init();
+		return this;
+	}
+	this.getMain = function (){
+		return this.main;
+	}
+	
+	this.setButton = function (value){
+		this.button = value;
+		this.init();
+		return this;
+	}
+	this.getButton = function (){
+		return this.button;
+	}
 }
 
 
 function Notice(box, msg, time){
 	this.msg = msg;
 	this.time = time;
+	
 }

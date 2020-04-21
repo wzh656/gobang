@@ -19,6 +19,9 @@
 			window.$ = window.jQuery = require("./js/jq");
 		</script>
 		
+		<script src="./css/Box/box.js" type="text/javascript"></script>
+		<link href="./css/Box/box.css" rel="stylesheet" type="text/css" />
+		
 		<script src="./js/choice.js" type="text/javascript"></script>
 		
 		<script src="./css/BubbleHoverButton/BubbleHoverButton.js" type="text/javascript"></script>
@@ -294,11 +297,11 @@ window.onresize = function(){
 $(".float-box")[0].onmousemove = function (){
 	$(".float-front").css("transform", "translateY(-50%)");
 	$(".float-back1")
-		.css("transform", "translateY(-50%)")
+		.css("transform", "translateX(-100%)translateY(-100%)")
 		.css("z-index", "0")
 	;
 	$(".float-back2")
-		.css("transform", "translateX(100%)translateY(-150%)")
+		.css("transform", "translateX(200%)translateY(-200%)")
 		.css("z-index", "0")
 	;
 }
@@ -337,6 +340,26 @@ document.onmousedown = function (){
 		.css("z-index", "-1")
 	;
 }
+new Box(
+	{
+		onclick: function (){
+			game_over.close();
+		}
+	},
+	undefined,
+	"title",
+	`message`,
+	[
+		{
+			innerHTML: "确定",
+			onclick: function (){
+				game_over_box.close();
+			}
+		}
+	],
+	"./image/icon/icon.png"
+).show();
+//new Notice(undefined, "message", 1000);
 
 $("img:eq(0)").click(function (){
 	layx.open({
