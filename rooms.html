@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<!-- Copyright © 2021 by wzh -->
+<html lang="zh">
+	<head>
+		<meta charset="UTF-8" />
+		<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+		<title>多人联机 | 五子棋</title>
+		
+		<!--icon-->
+		<link href="./img/icon.png" rel="icon" type="image/x-icon"/>
+		
+		<!-- 异步fonts加载 -->
+		<script src="./js/webfontloader.js"></script>
+		<script>
+		if (typeof require != "undefined"){ //electron
+			console.log("electron")
+			document.write(`<link href="./css/fonts.css" rel="stylesheet" type="text/css" />`);
+			window.onload = function(){
+				console.log("onload")
+				$("body").addClass("wf-active");
+			}
+		}else{
+			WebFont.load({
+				google: {
+					families: ["kt", "st", "xs", "zyyt"],
+					api: "./css/fonts.css"
+				}
+			});
+		}
+		</script>
+		
+		<style>
+		/* 字体缩放方案 */
+		@media screen and (max-width:320px){
+			body {font-size: calc(0.018 * 320px + 6px) !important;}
+		}
+		body{
+			font-size: calc(1.8vw + 6px) !important;
+		}
+		@media screen and (min-width: 960px){
+			body {font-size: calc(0.018 * 960px + 6px) !important;}
+		}
+		
+		/* element */
+		*{
+			outline: none; /* 无点击线 */
+		}
+		html{
+			/* 禁止选择 */
+			-moz-user-select: none;
+			-khtml-user-select: none;
+			user-select: none;
+			
+			background: #fffae8; /* 背景 */
+		}
+		
+		body{
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			margin: 0;
+			padding: 0;
+			overflow-x: hidden;
+			
+			background: #fffae8; /* 背景 */
+		}
+		
+		/*   列表   */
+		/* header */
+		body > header{
+			display: flex;
+			width: 100%;
+			background-color: #aef;
+		}
+		body > header > i{
+			flex: none;
+			padding: 0.3rem;
+			font-size: 2.5em !important;
+			font-weight: bold;
+			
+			background-color: #aef;
+			border: none;
+			transition: background-color 0.3s;
+		}
+		body > header > i:focus{
+			background-color: #afe;
+		}
+		body > header > i:active{
+			background-color: #9ed;
+		}
+		body > header > h1{
+			display: inline-block;
+			width: 100%;
+			margin: 0;
+			padding: 10px 0;
+			font-size: 2em;
+			font-weight: bold; /* 粗体 layui */
+			text-align: center;
+		}
+		
+		/* state */
+		.state{
+			flex: none;
+			margin: 0;
+			padding: 0;
+			text-align: center;
+		}
+		.state.connecting{
+			background-color: yellow;
+			color: red;
+		}
+		.state.success{
+			/*display: none;*/
+			background-color: blue;
+			color: white;
+		}
+		.state.failed{
+			background-color: red;
+			color: white;
+		}
+		
+		/* rooms */
+		#rooms{
+			margin: 1rem;
+			font-size: 1.3em;
+			text-align: center;
+		}
+		#rooms > li{
+			margin: 1rem 0.6rem;
+			padding: 0.6rem;
+			transition: background-color 0.2s;
+		}
+		#rooms > li.able{
+			border: 1px solid #6af;
+			background-color: #def;
+		}
+		#rooms > li.able:active{
+			background-color: #cde;
+		}
+		#rooms > li.unable{
+			border: 1px solid #fa6;
+			background-color: #fed;
+		}
+		#rooms > li.unable:active{
+			background-color: #edc;
+		}
+		#rooms > li > h3{
+			margin: 0.3rem 0;
+			font-weight: bold;
+		}
+		#rooms > li > p{
+			font-size: 0.9em;
+		}
+		
+		
+		/*   房间   */
+		#room{
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			left: 0;
+			top: 0;
+			
+			display: flex;
+			flex-direction: column;
+			
+			background: #fffae8;
+			font-size: 1em;
+		}
+		
+		/* header */
+		#room > header{
+			flex: none;
+			display: flex;
+			width: 100%;
+			background-color: #aef;
+		}
+		#room > header > i{
+			flex: none;
+			padding: 0.3rem;
+			font-size: 2.5em !important;
+			font-weight: bold;
+			
+			background-color: #aef;
+			border: none;
+			transition: background-color 0.3s;
+		}
+		#room > header > i:focus{
+			background-color: #afe;
+		}
+		#room > header > i:active{
+			background-color: #9ed;
+		}
+		#room > header > h2{
+			display: inline-block;
+			width: 100%;
+			margin: 0;
+			padding: 10px 0;
+			font-size: 2em;
+			text-align: center;
+			font-weight: bold;
+		}
+		
+		/* label */
+		#room > label{
+			flex: none;
+			margin: 1rem;
+			margin-top: 1.6rem;
+			margin-bottom: 0.3rem;
+			font-size: 1.3em;
+		}
+		
+		/* ul */
+		#players{
+			flex: none;
+			margin: 0.3rem;
+			font-size: 1.2em;
+			text-align: center;
+		}
+		#players > li{
+			margin: 0.6rem;
+			padding: 0.6rem;
+			background-color: #68a;
+			color: #fff;
+			border-radius: 2px;
+		}
+		
+		/* buttons */
+		#room > div{
+			margin: 0.6rem auto;
+		}
+		#room > i{ /* 撑开内容 */
+			height: 100%;
+		}
+		#room > button{
+			flex: none;
+			width: 80vw;
+			margin: 1rem auto;
+		}
+		</style>
+		
+		<!-- jquery -->
+		<script src="./js/jquery.min.js"></script>
+		<script>
+		if (typeof require != "undefined") //electron
+			window.$ = window.jQuery = require("./js/jquery.min.js");
+		</script>
+		
+		<!-- layui -->
+		<!--<link rel="stylesheet" href="https://unpkg.com/layui@2.6.4/dist/css/layui.css">
+		<script src="https://unpkg.com/layui@2.6.8/dist/layui.js"></script>-->
+		<script src="./layui/layui.js"></script>
+		<link rel="stylesheet" href="./layui/css/layui.css">
+		
+		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
+		<script>
+		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
+			//手机
+			eruda.init();
+			new VConsole();
+		}
+		</script>
+		
+		<script src="https://wzh.glitch.me/socket.io/socket.io.js"></script> <!-- socket -->
+		
+		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
+		
+	</head>
+	<body>
+		<header>
+			<i class="back layui-icon layui-icon-return"></i>
+			<h1>联机房间</h1>
+			<i class="new layui-icon layui-icon-addition"></i>
+		</header>
+		<p class="state connecting">连接服务器中……</p>
+		<ul id="rooms">获取房间中……</ul>
+		<section id="room" style="display: none;">
+			<header>
+				<i class="back layui-icon layui-icon-return"></i>
+				<h2></h2>
+				<i class="exit layui-icon layui-icon-close"></i>
+			</header>
+			<p class="state connecting">连接服务器中……</p>
+			<label>成员：</label>
+			<ul id="players">加载中……</ul>
+			<label>选择先手/后手：</label>
+			<div class="layui-btn-group">
+				<button class="random layui-btn layui-btn-normal">随机</button>
+				<button class="first layui-btn layui-btn-primary layui-border-green">先手</button>
+				<button class="last layui-btn layui-btn-primary layui-border-green">后手</button>
+			</div>
+			<i></i>
+			<button class="start layui-btn layui-btn-normal layui-btn-radius layui-btn-disabled" style="display: none;">开始游戏</button>
+		</section>
+
+
+<script>
+$("body").hide().fadeIn(1000);
+function go(url){
+	if (url == "index.html"){
+		$("html").css("min-height", "100%")
+			.css("background", '#1b2036 url("./img/background.jpg") no-repeat fixed center')
+			.css("background-size", "cover")
+			.css("max-width", "100%")
+			.css("margin", "auto");
+		$("body").animate({
+			top: "100%"
+		}, 600, function(){
+			location.href = url;
+		});
+		layer.load(0);
+		
+	}else{
+		$("html").css("background", "#fffae8");
+		$("body").animate({
+			top: "-100%"
+		}, 600, function(){
+			location.href = url;
+		});
+		layer.load(0);
+	}
+}
+
+
+
+//切换先手
+function setFirst(first){
+	switch (first){
+		case null:
+			$("#room > div > .random")
+				.removeClass("layui-btn-primary layui-border-blue")
+				.addClass("layui-btn-normal");
+			$("#room > div > .first")
+				.addClass("layui-btn-primary layui-border-green");
+			$("#room > div > .last")
+				.addClass("layui-btn-primary layui-border-green");
+			break;
+		
+		case true:
+			$("#room > div > .random")
+				.removeClass("layui-btn-normal")
+				.addClass("layui-btn-primary layui-border-blue");
+			$("#room > div > .first")
+				.removeClass("layui-btn-primary layui-border-green");
+			$("#room > div > .last")
+				.removeClass("layui-btn-normal")
+				.addClass("layui-btn-primary layui-border-green");
+			break;
+		
+		case false:
+			$("#room > div > .random")
+				.removeClass("layui-btn-normal")
+				.addClass("layui-btn-primary layui-border-blue");
+			$("#room > div > .first")
+				.removeClass("layui-btn-normal")
+				.addClass("layui-btn-primary layui-border-green");
+			$("#room > div > .last")
+				.removeClass("layui-btn-primary layui-border-green");
+			break;
+	}
+}
+
+let socket, //socket.io
+	send, //send
+	ID, //分配的ID
+	ROOMLIST = [], //房间列表
+	ROOM = null, //加入的房间
+	startRoomLoader; //开始游戏等待
+if (typeof io == "undefined"){ //未加载socket.io.js
+	$(".state").html("网络错误，请检查网络连接！")
+		.removeClass().addClass("state failed");
+	
+}else{
+	socket = io("https://wzh.glitch.me/");
+	
+	send = function(name, ...data){
+		console.log("↑", name, data);
+		socket.emit(name, ...data);
+	};
+	
+	socket.on("connecting", function(data){
+		$(".state").html("连接服务器中……")
+			.removeClass().addClass("state connecting");
+	});
+	socket.on("connect", function(data){
+		send("type", "gobang"); //type
+		send("gobang_roomList"); //房间列表
+		if (ROOM)
+			send("gobang_roomPeople", ROOM); //房间人员
+		$(".state").html("服务器连接成功")
+			.removeClass().addClass("state success");
+		layer.msg("服务器连接成功", {icon:1});
+	});
+	socket.on("connect_failed", function(data){
+		$(".state").html("服务器连接失败")
+			.removeClass().addClass("state failed");
+		layer.msg("服务器连接失败", {icon:2});
+	});
+	socket.on("disconnect", function(data){
+		$(".state").html("与服务器连接断开")
+			.removeClass().addClass("state failed");
+		layer.msg("与服务器连接断开", {icon:2});
+	});
+	socket.on("reconnecting", function(data){
+		$(".state").html("重连中……")
+			.removeClass().addClass("state connecting");
+	});
+	socket.on("reconnect", function(data){
+		send("type", "gobang"); //type
+		send("gobang_roomList"); //房间列表
+		if (ROOM)
+			send("gobang_roomPeople", ROOM); //房间人员
+		$(".state").html("服务器重连成功")
+			.removeClass().addClass("state success");
+		layer.msg("服务器重连成功", {icon:1});
+	});
+	socket.on("reconnect_failed", function(data){
+		$(".state").html("服务器重连失败")
+			.removeClass().addClass("state failed");
+		layer.msg("服务器重连失败", {icon:2});
+	});
+	socket.on("error", function(data){
+		console.error(data);
+		$(".state").html("服务器连接错误！")
+			.removeClass().addClass("state failed");
+		layer.msg("服务器连接错误！", {icon:2});
+	});
+	
+	
+	//分配ID
+	socket.on("gobang_assignID", function(data){
+		console.log("↓ gobang_assignID", data)
+		ID = data;
+		$(".state").html("你的分配ID：" + ID);
+	});
+	
+	//房间列表
+	socket.on("gobang_roomList", function(list){
+		console.log("↓ gobang_roomList", list)
+		$("#rooms").empty(); //清空
+		
+		ROOMLIST = list;
+		if ( !(ROOM in ROOMLIST) ){
+			ROOM = null;
+			$("#room").css("left", "0%")
+				.animate({
+					left: "100%"
+				}, "slow", ()=>$("#room").hide());
+		}
+		
+		if (Object.keys(list).length == 0)
+			return $("#rooms").html("暂无房间，快去创建一个吧");
+		
+		for (const [name,v] of Object.entries(list))
+			$("#rooms").append(
+				$("<li></li>")
+					.append(
+						$("<h3></h3>").html(name)
+					)
+					.append(
+						$("<p></p>").html("房主：" + v.people[0])
+					)
+					.append(
+						$("<p></p>").html("人数：" + v.people.length)
+					)
+					.append(
+						$("<p></p>").html("先手：" + (v.first===true? "房主先手": v.first===false? "房主后手": "随机"))
+					)
+					.append(
+						$("<p></p>").html("状态：" + (v.state? "已开始游戏": "等待开始游戏"))
+					)
+					.addClass((v.people.length>=2 || v.state)? "unable": "able")
+					.click( ()=>joinRoom(name) )
+			);
+	});
+	
+	//房间成员
+	socket.on("gobang_roomPeople", function(list){
+		console.log("↓ gobang_roomPeople", list)
+		
+		ROOMLIST[ROOM].people = list;
+		
+		$("#room > ul").empty(); //清空
+		
+		if (Object.keys(list).length == 0)
+			return $("#room > ul").html("房间没有成员？这一定是bug");
+		
+		for (const [i,v] of Object.entries(list))
+			$("#room > ul").append(
+				$("<li></li>").html((i==0? "房主：": i==1? "成员：": "") + v + (v==ID? "（我）": ""))
+			);
+		
+		if (Object.keys(list).length >= 2){ //可以开始游戏
+			$("#room > button.start").removeClass("layui-btn-disabled");
+		}else{ //不可开始游戏
+			$("#room > button.start").addClass("layui-btn-disabled");
+		}
+	});
+	
+	//房间关闭
+	socket.on("gobang_closeRoom", function(room){
+		console.log("↓ gobang_closeRoom", room)
+		layer.msg(`“${room}”房间已关闭`);
+		ROOM = null;
+		$("#room").css("left", "0%")
+			.animate({
+				left: "100%"
+			}, "slow", ()=>$("#room").hide());
+	});
+	
+	//设置先手
+	socket.on("gobang_roomFirst", function(first){
+		console.log("↓ gobang_roomFirst", first)
+		ROOMLIST[ROOM].first = first;
+		setFirst(first);
+	});
+	
+	//开始游戏
+	socket.on("gobang_roomStart", function(room){
+		console.log("↓ gobang_roomStart", room)
+		go("online.html?" +
+			"id=" + ID +
+			"&room=" + ROOM +
+			"&type=" + +(ROOMLIST[ROOM].people[0] == ID) +
+			"&first=" + JSON.stringify( ROOMLIST[ROOM].first )
+		);
+	});
+	
+	/*//退出房间
+	socket.on("gobang_exitRoom", function(){
+		console.log("↓ gobang_exitRoom")
+		layer.msg(`已退出“${ROOM}”房间`);
+		ROOM = null;
+		$("#room").css("left", "0%")
+			.animate({
+				left: "100%"
+			}, "slow", ()=>$("#room").hide());
+	});*/
+	
+	
+	//newRoom失败 有同名房间
+	socket.on("gobang_newRoom_failed", function(room){
+		console.log("↓ gobang_newRoom_failed", room)
+		layer.msg("创建房间失败，已有同名房间", {icon: 5});
+		ROOM = null;
+		$("#room").css("left", "0%")
+			.animate({
+				left: "100%"
+			}, "slow", ()=>$("#room").hide());
+	});
+	
+	//closeRoom失败 房间关闭
+	socket.on("gobang_closeRoom_failed", function(room){
+		console.log("↓ gobang_closeRoom_failed", room)
+		layer.msg("关闭房间失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		$("#room").css("left", "0%")
+			.animate({
+				left: "100%"
+			}, "slow", ()=>$("#room").hide());
+	});
+	
+	//exitRoom失败 房间关闭
+	socket.on("gobang_exitRoom_failed", function(room){
+		console.log("↓ gobang_exitRoom_failed", room)
+		layer.msg("退出房间失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		$("#room").css("left", "0%")
+			.animate({
+				left: "100%"
+			}, "slow", ()=>$("#room").hide());
+	});
+	
+	//roomPeople失败 房间关闭
+	socket.on("gobang_roomPeople_failed", function(room){
+		console.log("↓ gobang_roomPeople_failed", room)
+		layer.msg("获取房间成员失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		$("#room").css("left", "0%")
+			.animate({
+				left: "100%"
+			}, "slow", ()=>$("#room").hide());
+	});
+	
+	//joinRoom失败
+	socket.on("gobang_joinRoom_failed", function(room){
+		console.log("↓ gobang_joinRoom_failed", room)
+		layer.msg("加入房间失败，房间已满或已被关闭", {icon: 5});
+		ROOM = null;
+		$("#room").css("left", "0%")
+			.animate({
+				left: "100%"
+			}, "slow", ()=>$("#room").hide());
+	});
+	
+	//setFirst失败
+	socket.on("gobang_setFirst_failed", function(room){
+		console.log("↓ gobang_setFirst_failed", room)
+		layer.msg("设置先手失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		$("#room").css("left", "0%")
+			.animate({
+				left: "100%"
+			}, "slow", ()=>$("#room").hide());
+	});
+	
+	//roomStart失败
+	socket.on("gobang_roomStart_failed", function(room){
+		console.log("↓ gobang_roomStart_failed", room)
+		layer.close( startRoomLoader );
+		layer.msg("开始游戏失败，房间已被关闭或人数不足", {icon: 5});
+	});
+	
+}
+
+
+
+//返回
+$("body > header > .back").click(function(){
+	go("index.html");
+});
+
+//新建房间
+$("body > header > .new").click(function(){
+	if (socket.disconnected) //未连接
+		return layer.msg("请等待连接到服务器", {icon: 5});
+	
+	if (ROOM)
+		return layer.msg(`您已加入房间“${ROOM}”，请先退出房间再创建`, {icon: 5});
+
+	layer.prompt({
+		title: "请输入房间名",
+		maxlength: 10
+	}, function(value, index, elem){
+		if (!value)
+			return layer.msg("请输入房间名", {icon: 5});
+			
+		if (ROOMLIST[value])
+			return layer.msg(`房间“${value}”已存在`, {icon: 5});
+		
+		layer.close(index);
+		
+		send("gobang_newRoom", value);
+		ROOM = value; //默认加入房间
+		$("#room").show().css("left", "100%")
+			.animate({
+				left: "0%"
+			}, "slow");
+		$("#room > header > h2").html(value);
+		$("#player").empty();
+		setFirst(null);
+		$("#room > .start").show(); //房主才可以开始游戏
+	});
+});
+
+//加入房间
+function joinRoom(name){
+	if (socket.disconnected) //未连接
+		return layer.msg("请等待连接到服务器", {icon: 5});
+	
+	if (name == ROOM){ //回到本房间
+		$("#room").show().css("left", "100%")
+			.animate({
+				left: "0%"
+			}, "slow");
+		
+	}else{ //加入新房间
+		
+		if (ROOM)
+			return layer.msg(`您已加入房间“${ROOM}”，请先退出房间再创建`, {icon: 5});
+		
+		if ( ROOMLIST[name].people.length >= 2 ||
+			ROOMLIST[name].state != false
+		) return layer.msg("当前房间已满员或已开始游戏", {icon: 5});
+		
+		send("gobang_joinRoom", name);
+		ROOM = name;
+		$("#room").show().css("left", "100%")
+			.animate({
+				left: "0%"
+			}, "slow");
+		$("#room > header > h2").html(name);
+		$("#player").empty();
+		setFirst(ROOMLIST[ROOM].first);
+		$("#room > .start").hide(); //非房主不能开始游戏
+	}
+}
+
+//返回
+$("#room > header >  .back").click(function(){
+	$("#room").css("left", "0%")
+		.animate({
+			left: "100%"
+		}, "slow", ()=>$("#room").hide());
+});
+
+//解散房间
+$("#room > header >  .exit").click(function(){
+	if (ROOMLIST[ROOM].people[0] == ID){ //自己为房主
+		layer.confirm(`真的要关闭房间“${ROOM}”吗？`, {
+			icon:3,
+			title:"是否关闭房间"
+		}, function(index){
+			layer.close(index);
+			
+			if (socket.disconnected) //未连接
+				return layer.msg("请等待连接到服务器", {icon: 5});
+			
+			send("gobang_closeRoom", ROOM);
+			ROOM = null;
+			$("#room").css("left", "0%")
+				.animate({
+					left: "100%"
+				}, "slow", ()=>$("#room").hide());
+		});
+		
+	}else{ //自己为成员
+		layer.confirm(`真的要退出房间“${ROOM}”吗？`, {
+			icon:3,
+			title:"是否退出房间"
+		}, function(index){
+			layer.close(index);
+			
+			if (socket.disconnected) //未连接
+				return layer.msg("请等待连接到服务器", {icon: 5});
+			
+			send("gobang_exitRoom", ROOM);
+			ROOM = null;
+			$("#room").css("left", "0%")
+				.animate({
+					left: "100%"
+				}, "slow", ()=>$("#room").hide());
+		});
+	}
+});
+
+//先手
+$("#room > div > .random").click(function(){
+	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
+	send("gobang_setFirst", ROOM, null);
+	setFirst(null);
+});
+$("#room > div > .first").click(function(){
+	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
+	send("gobang_setFirst", ROOM, true);
+	setFirst(true);
+});
+$("#room > div > .last").click(function(){
+	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
+	send("gobang_setFirst", ROOM, false);
+	setFirst(false);
+});
+
+//开始游戏
+$("#room > .start").click(function(){
+	if (ROOMLIST[ROOM].people.length < 2)
+		return layer.msg("人数不足，无法开始游戏", {icon: 5});
+	
+	send("gobang_roomStart", ROOM);
+	startRoomLoader = layer.load(1);
+});
+
+
+</script>
+		
+	</body>
+</html>

@@ -1,8 +1,0 @@
-@font-face{
-	font-family:kt; /*楷体*/
-	src:url("../fonts/kt.ttf");
-}
-
-.kt{
-	font-family: kt;
-}
