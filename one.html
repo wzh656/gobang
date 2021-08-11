@@ -31,7 +31,7 @@
 		
 		<style>
 		/* 字体缩放方案 */
-		@media screen and (max-width:320px){
+		/* @media screen and (max-width:320px){
 			body {font-size: calc(0.018 * 320px + 6px) !important;}
 		}
 		body{
@@ -39,7 +39,7 @@
 		}
 		@media screen and (min-width: 960px){
 			body {font-size: calc(0.018 * 960px + 6px) !important;}
-		}
+		} */
 		
 		/* element */
 		*{
@@ -860,7 +860,7 @@ let waiting = false; //等待中
 $("#board").click(function(e){
 	const {offsetX: x, offsetY: y} = e;
 	const [i, j] = board.xy2ij(x,y, place);
-	console.log(e, [x, y], [i, j])
+	console.log("click", [x, y], [i, j])
 	
 	if (game.winner !== false) return; //已结束
 	

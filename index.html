@@ -31,7 +31,7 @@
 		
 		<style>
 		/* 字体缩放方案 */
-		@media screen and (max-width:320px){
+		/* @media screen and (max-width:320px){
 			body {font-size: calc(0.018 * 320px + 6px) !important;}
 		}
 		body{
@@ -39,7 +39,7 @@
 		}
 		@media screen and (min-width: 960px){
 			body {font-size: calc(0.018 * 960px + 6px) !important;}
-		}
+		} */
 		
 		/* element */
 		*{
@@ -158,6 +158,9 @@
 		/* flex填满 */
 		#settings > form{
 			padding-right: 0.6rem;
+		}
+		#settings > form label{
+			text-overflow: clip;
 		}
 		/*#settings > form > div{
 			margin: 1rem;
@@ -316,28 +319,31 @@ const setting = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}
 function saveSetting(){ //保存设置
 	localStorage.setItem("五子棋_游戏设置", JSON.stringify(setting));
 }
-form.n.value = setting.N || 5;
-form.cols.value = setting.cols || 19;
-form.rows.value = setting.rows || 19;
+setting.N = setting.N || 5;
+setting.cols = setting.cols || 19;
+setting.rows = setting.rows || 19;
+setting.place = setting.place || 0;
+form.n.value = setting.N;
+form.cols.value = setting.cols;
+form.rows.value = setting.rows;
 if (+setting.place == 1)
 	form.place[1].click();
 if ( setting.mistake ){ //有设置
 	if (+setting.mistake == 0){
-		$("#settings > form input.mistake").next().removeClass("layui-form-onswitch");
+		$("#settings > form input.mistake")[0].checked = false;
 	}else{
-		$("#settings > form input.mistake").next().addClass("layui-form-onswitch");
+		$("#settings > form input.mistake")[0].checked = true;
 	}
 }else{ //无设置 自动
 	if (device){ //手机
-		$("#settings > form input.mistake").next().addClass("layui-form-onswitch");
+		$("#settings > form input.mistake")[0].checked = true;
 		setting.mistake = true;
-		saveSetting(); //保存设置
 	}else{ //电脑
-		$("#settings > form input.mistake").next().removeClass("layui-form-onswitch");
+		$("#settings > form input.mistake")[0].checked = false;
 		setting.mistake = false;
-		saveSetting(); //保存设置
 	}
 }
+saveSetting(); //保存设置
 
 //输入改变
 $("#settings > form input[type='number']").change(function(){
