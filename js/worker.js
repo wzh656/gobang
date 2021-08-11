@@ -249,9 +249,9 @@ self.addEventListener("message", function(e){
 	switch (e.data.type){
 		// 初始化
 		case "init":
-			const {size, N, mis} = e.data;
+			const {cols, rows, N, mis} = e.data;
 			
-			pieces = new PiecesSystem(size, size, N);
+			pieces = new PiecesSystem(cols, rows, N);
 			mistake = mis;
 			
 			break;
@@ -259,7 +259,7 @@ self.addEventListener("message", function(e){
 			
 		// 下棋
 		case "play":
-			const {i, j} = e.data;
+			const {i, j, direct=false} = e.data;
 			
 			if (pieces.winner !== false) //已结束
 				return self.postMessage({type: "play"});
@@ -314,7 +314,7 @@ self.addEventListener("message", function(e){
 			};
 			
 			
-			if (mistake){ //防误触
+			if (mistake && !direct){ //防误触
 				if (first.i !== null && first.j !== null){ //第二次
 					self.postMessage({
 						type: "play",

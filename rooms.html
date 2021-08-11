@@ -31,7 +31,7 @@
 		
 		<style>
 		/* 字体缩放方案 */
-		@media screen and (max-width:320px){
+		/* @media screen and (max-width:320px){
 			body {font-size: calc(0.018 * 320px + 6px) !important;}
 		}
 		body{
@@ -39,7 +39,7 @@
 		}
 		@media screen and (min-width: 960px){
 			body {font-size: calc(0.018 * 960px + 6px) !important;}
-		}
+		} */
 		
 		/* element */
 		*{
@@ -284,7 +284,7 @@
 			<p class="state connecting">连接服务器中……</p>
 			<label>成员：</label>
 			<ul id="players">加载中……</ul>
-			<label>选择先手/后手：</label>
+			<label>先手/后手：</label>
 			<div class="layui-btn-group">
 				<button class="random layui-btn layui-btn-normal">随机</button>
 				<button class="first layui-btn layui-btn-primary layui-border-green">先手</button>
@@ -368,7 +368,7 @@ let socket, //socket.io
 	ROOM = null, //加入的房间
 	startRoomLoader; //开始游戏等待
 if (typeof io == "undefined"){ //未加载socket.io.js
-	$(".state").html("网络错误，请检查网络连接！")
+	$(".state").html("网络错误，请检查网络连接再刷新页面！")
 		.removeClass().addClass("state failed");
 	
 }else{

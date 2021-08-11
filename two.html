@@ -31,7 +31,7 @@
 		
 		<style>
 		/* 字体缩放方案 */
-		@media screen and (max-width:320px){
+		/* @media screen and (max-width:320px){
 			body {font-size: calc(0.018 * 320px + 6px) !important;}
 		}
 		body{
@@ -39,7 +39,7 @@
 		}
 		@media screen and (min-width: 960px){
 			body {font-size: calc(0.018 * 960px + 6px) !important;}
-		}
+		} */
 		
 		/* element */
 		*{
@@ -165,7 +165,8 @@
 			width: 0;
 			height: 0;
 			margin: 0 auto;
-			border: 1px solid #aaa;
+			border: 2px outset #fcce73;
+			background-color: #fcce73;
 		}
 		
 		/* 工具按钮 */
@@ -292,18 +293,19 @@
 		</section>
 		
 <script>
+let WIDTH;
 function resize(){
 	console.log("resize")
-	$("#board").css("width", 0)
-		.css("height", 0);
-	const min = Math.min(innerWidth-18, innerHeight - $("#main > div").height()*2);
-	$("#board").css("width", min+"px")
-		.css("height", min+"px");
+	$("#board").css("width", "0px")
+		.css("height", "0px");
+	WIDTH = Math.min(innerWidth-20, innerHeight - $("#main > div").height()*2);
+	$("#board").css("width", WIDTH + "px")
+		.css("height", WIDTH + "px");
 	
 	$("#tools > .scores").attr("width", innerWidth-18);
 }
 resize();
-$(window).resize(resize);
+//$(window).resize(resize);
 </script>
 <script>
 $("body").hide().fadeIn(1000);
@@ -453,19 +455,17 @@ class Board{
 	}
 }
 
-const N = +(localStorage.getItem("五子棋_N") || 5), //连子数
-	size = +(localStorage.getItem("五子棋_size") || 19), //横竖棋子个数
-	picSize = +(localStorage.getItem("五子棋_picSize") || 30), //棋子大小
-	place = +(localStorage.getItem("五子棋_place") || 0), //是否在格内
-	mistake = +(localStorage.getItem("五子棋_mistake") || 1), //防误触
-	board = new Board({
-		canvas: $("#board")[0],
-		background: "#fcce73",
-		rows: size + place,
-		columns: size + place,
-		picSize
-	}).update(); //棋盘
-
+const {N=5, cols=19, rows=19, place=0, mistake=true} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}");
+$("#board").attr("height", $("#board").attr("width") *rows/cols)
+	.css("height", WIDTH *rows/cols + "px");
+const board = new Board({ //棋盘
+	canvas: $("#board")[0],
+	background: "#fcce73",
+	rows: rows + place,
+	columns: cols + place,
+	picSize: $("#board").attr("width")/(cols + place) *0.9
+}).add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10) //多加一个以备删除
+	.add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10);
 
 
 let game = {
@@ -654,7 +654,7 @@ let game = {
 							continue;
 						ctx.beginPath();
 						ctx.strokeStyle = v.color;
-						ctx.lineWidth = v.width;
+						ctx.lineWidth = v.width-3+1;
 						ctx.moveTo(...v.start);
 						ctx.lineTo(...v.end);
 						ctx.stroke();
@@ -692,7 +692,7 @@ let game = {
 				
 				ctx.beginPath();
 				ctx.strokeStyle = "#f00";
-				ctx.lineWidth = 5;
+				ctx.lineWidth = N-3+1;
 				for (const v of lines){
 					console.table(v)
 					ctx.moveTo(v.start[0], v.start[1]);
@@ -745,8 +745,8 @@ function init(){
 	//棋盘
 	board.updateCallback.win = board.updateCallback.analyse = null;
 	board.clear()
-		.add((size-1)/2, (size-1)/2, place, "#000", undefined, undefined, 10) //多加一个以备删除
-		.add((size-1)/2, (size-1)/2, place, "#000", undefined, undefined, 10);
+		.add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10) //多加一个以备删除
+		.add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10);
 	
 	//游戏
 	game.steps = 0;
@@ -774,7 +774,8 @@ function init(){
 	worker = new Worker("./js/worker.js"); //多线程
 	worker.postMessage({
 		type: "init", //初始化
-		size,
+		cols,
+		rows,
 		N,
 		mis: mistake
 	});
@@ -830,7 +831,7 @@ $("#board").click(function(e){
 			case 2: //下黑棋
 				board.remove(-1)
 					.add(i, j, place, "#000")
-					.add(i, j, place, undefined, "#fff", 2, picSize+2);
+					.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
 				game.set(0);
 				game.steps++;
 				break;
@@ -838,7 +839,7 @@ $("#board").click(function(e){
 			case 1: //下白棋
 				board.remove(-1)
 					.add(i, j, place, "#fff", "#000")
-					.add(i, j, place, undefined, "#fff", 2, picSize+2);
+					.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
 				game.set(1);
 				game.steps++;
 				break;

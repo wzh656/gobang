@@ -31,7 +31,7 @@
 		
 		<style>
 		/* 字体缩放方案 */
-		@media screen and (max-width:320px){
+		/* @media screen and (max-width:320px){
 			body {font-size: calc(0.018 * 320px + 6px) !important;}
 		}
 		body{
@@ -39,7 +39,7 @@
 		}
 		@media screen and (min-width: 960px){
 			body {font-size: calc(0.018 * 960px + 6px) !important;}
-		}
+		} */
 		
 		/* element */
 		*{
@@ -103,22 +103,22 @@
 		
 		
 		/* state */
-		.state{
+		#state{
 			flex: none;
 			margin: 0;
 			padding: 0;
 			text-align: center;
 		}
-		.state.connecting{
+		#state.connecting{
 			background-color: yellow;
 			color: red;
 		}
-		.state.success{
+		#state.success{
 			/*display: none;*/
 			background-color: blue;
 			color: white;
 		}
-		.state.failed{
+		#state.failed{
 			background-color: red;
 			color: white;
 		}
@@ -187,7 +187,8 @@
 			width: 0;
 			height: 0;
 			margin: 0 auto;
-			border: 1px solid #aaa;
+			border: 2px outset #fcce73;
+			background-color: #fcce73;
 		}
 		
 		/* 工具按钮 */
@@ -267,7 +268,7 @@
 		</header>
 		<p id="state" class="connecting">连接服务器中……</p>
 		<section id="main">
-			<div class="side opposite white">
+			<div class="side opposite">
 				<i></i>
 				<div>
 					<p class="name"></p>
@@ -278,7 +279,7 @@
 				</div>
 			</div>
 			<canvas id="board" width="600" height="600"></canvas>
-			<div class="side self black">
+			<div class="side self">
 				<div>
 					<p class="name"></p>
 					<p class="time">
@@ -318,34 +319,26 @@
 		</section>
 		
 <script>
+let WIDTH;
 function resize(){
 	console.log("resize")
-	$("#board").css("width", 0)
-		.css("height", 0);
-	const min = Math.min(innerWidth-18, innerHeight - $("#main > div").height()*2);
-	$("#board").css("width", min+"px")
-		.css("height", min+"px");
+	$("#board").css("width", "0px")
+		.css("height", "0px");
+	WIDTH = Math.min(innerWidth-20, innerHeight - $("#main > div").height()*2);
+	$("#board").css("width", WIDTH + "px")
+		.css("height", WIDTH + "px");
 	
 	$("#tools > .scores").attr("width", innerWidth-18);
 }
 resize();
-$(window).resize(resize);
+//$(window).resize(resize);
 </script>
 <script>
 $("body").hide().fadeIn(1000);
 function go(url){
-	$("html").css("min-height", "100%")
-		.css("background", '#1b2036 url("./img/background.jpg") no-repeat fixed center')
-		.css("background-size", "cover")
-		.css("max-width", "100%")
-		.css("margin", "auto");
-	/*min-height: 100%;
-			background: #1b2036 url("./img/background.jpg") no-repeat fixed center;
-			background-size: cover;
-			max-width: 100%;
-			margin: auto;*/
+	$("html").css("background", "#fffae8");
 	$("body").animate({
-		top: "100%"
+		top: "-100%"
 	}, 600, function(){
 		location.href = url;
 	});
@@ -479,19 +472,27 @@ class Board{
 	}
 }
 
-const N = +(localStorage.getItem("五子棋_N") || 5), //连子数
-	size = +(localStorage.getItem("五子棋_size") || 19), //横竖棋子个数
-	picSize = +(localStorage.getItem("五子棋_picSize") || 30), //棋子大小
-	place = +(localStorage.getItem("五子棋_place") || 0), //是否在格内
-	mistake = +(localStorage.getItem("五子棋_mistake") || 1), //防误触
-	board = new Board({
-		canvas: $("#board")[0],
-		background: "#fcce73",
-		rows: size + place,
-		columns: size + place,
-		picSize
-	}).update(); //棋盘
+const {N=5, cols=19, rows=19, place=0, mistake=true} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}");
+$("#board").attr("height", $("#board").attr("width") *rows/cols)
+	.css("height", WIDTH *rows/cols + "px");
+const board = new Board({ //棋盘
+	canvas: $("#board")[0],
+	background: "#fcce73",
+	rows: rows + place,
+	columns: cols + place,
+	picSize: $("#board").attr("width")/(cols + place) *0.9
+}).add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10) //多加一个以备删除
+	.add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10);
 
+let socket, //socket.io
+	send, //send
+	ID, //分配的ID
+	oldID = location.getQueryString("id"), //上次分配的ID
+	ROOM = location.getQueryString("room"), //房间
+	TYPE = !!+location.getQueryString("type"), //房主: true, 成员: false
+	FIRST = JSON.parse( location.getQueryString("first") ), //先手
+	waiting = false; //等待中
+$("body > header > h1").html(ROOM);
 
 
 let game = {
@@ -588,17 +589,99 @@ let game = {
 				this.updateTime(this.turn);
 				
 				if (this.time[this.turn].step <= 0){ //超出步时
-					this.winner = 1-this.turn;
-					clearInterval( this.ids[this.turn] );
-					$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 					//worker.terminate(); //关闭线程
-					const t = (new Date() - game.startTime) / 1000;
-					layer.alert(`${this.turn==1? "黑方": "白方"}超时<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
-						{title: "游戏结束！"}
-					);
+					
+					if (this.turn != this.first) return; //不是自己超时 可能网卡
+					if (game.winner !== false) return; //游戏已结束
+					send("gobang_game_timeout", ROOM, oldID); //自己超时 发送timeout
+					game.over(this.turn != this.first, this.turn==1?"黑方超时":"白方超时");
 				}
 				
 			}, 200);
+		},
+		
+		//下棋
+		play(i, j, direct=false){
+			console.log("play", i, j, direct)
+			if (waiting) return; //上次未响应
+			waiting = true; //开始等待
+			
+			request({
+				type: "play", //下棋
+				i, j, direct
+			}).then((data)=>{
+				waiting = false;
+				console.log("play callback:", data.action)
+				switch (data.action){
+					case 2: //下黑棋
+						board.remove(-1)
+							.add(i, j, place, "#000")
+							.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
+						game.set(0);
+						game.steps++;
+						send("gobang_game_play", {
+							room: ROOM,
+							i, j,
+							side: 2, //黑棋
+							time: +new Date()
+						});
+						break;
+						
+					case 1: //下白棋
+						board.remove(-1)
+							.add(i, j, place, "#fff", "#000")
+							.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
+						game.set(1);
+						game.steps++;
+						send("gobang_game_play", {
+							room: ROOM,
+							i, j,
+							side: 1, //白棋
+							time: +new Date()
+						});
+						break;
+						
+					case -2: //添加标记
+						board.add(i, j, place, undefined, "#00f", 2);
+						break;
+						
+					case -1: //删除标记
+						board.remove(-1);
+						break;
+				}
+			});
+		},
+		
+		//游戏结束
+		over(win, text){
+			console.log("game over", win, text)
+			
+			const t = (new Date() - this.startTime) / 1000;
+			clearInterval( this.ids[this.turn] );
+			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
+			
+			if (win === true){
+				game.winner = this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "胜利！", icon: 6}
+				);
+				$("#state").html( text );
+				
+			}else if (win === false){
+				game.winner = 1-this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "你失败了！", icon: 5}
+				);
+				$("#state").html( text );
+				
+			}else{
+				game.winner = this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "平局"}
+				);
+				$("#state").html( text );
+				
+			}
 		},
 		
 		//更新分数
@@ -681,7 +764,7 @@ let game = {
 							continue;
 						ctx.beginPath();
 						ctx.strokeStyle = v.color;
-						ctx.lineWidth = v.width;
+						ctx.lineWidth = v.width-3+1;
 						ctx.moveTo(...v.start);
 						ctx.lineTo(...v.end);
 						ctx.stroke();
@@ -691,18 +774,15 @@ let game = {
 			board.update();
 		}
 	},
+	
 	worker,
 	workerCallback = {  //收到消息回调
 		//获胜
 		won(data){
 			const {winner, steps} = data;
-			game.winner = winner;
-			clearInterval( game.ids[game.turn] ); //停止计时 不关闭线程
-			$("#toolBtn > button.review").removeAttr("disabled"); //解除禁用
-			const t = (new Date() - game.startTime) / 1000;
-			layer.alert(`${winner==2? "黑方": "白方"}胜<br>历时${~~(t/60)}分${~~t%60}秒<br>${steps}步（${steps/2}回合）`,
-				{title: "游戏结束！"}
-			);
+			
+			if (game.winner !== false) return; //游戏已结束
+			game.over(winner == game.first+1, winner==2?"黑方胜":"白方胜");
 		},
 		
 		//获胜画线
@@ -719,7 +799,7 @@ let game = {
 				
 				ctx.beginPath();
 				ctx.strokeStyle = "#f00";
-				ctx.lineWidth = 5;
+				ctx.lineWidth = N-3+1;
 				for (const v of lines){
 					console.table(v)
 					ctx.moveTo(v.start[0], v.start[1]);
@@ -733,14 +813,10 @@ let game = {
 		
 		//平局
 		gameOver(){
-			game.winner = null;
-			clearInterval( game.ids[game.turn] ); //停止计时
-			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 			//worker.terminate(); //关闭线程
-			const t = (new Date() - game.startTime) / 1000;
-			layer.alert(`平局<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
-				{title: "游戏结束！"}
-			);
+			
+			if (game.winner !== false) return; //游戏已结束
+			game.over(null, "平局");
 		},
 		
 		//分析
@@ -771,8 +847,8 @@ function init(){
 	//棋盘
 	board.updateCallback.win = board.updateCallback.analyse = null;
 	board.clear()
-		.add((size-1)/2, (size-1)/2, place, "#000", undefined, undefined, 10) //多加一个以备删除
-		.add((size-1)/2, (size-1)/2, place, "#000", undefined, undefined, 10);
+		.add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10) //多加一个以备删除
+		.add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10);
 	
 	//游戏
 	game.startTime = +new Date();
@@ -800,7 +876,8 @@ function init(){
 	worker = new Worker("./js/worker.js"); //多线程
 	worker.postMessage({
 		type: "init", //初始化
-		size,
+		cols,
+		rows,
 		N,
 		mis: mistake
 	});
@@ -818,7 +895,320 @@ function init(){
 	$("#toolBtn > .review").attr("disabled", "disabled");
 	$("#tools > .review").slideUp("fast");
 }
-setTimeout(init, 1000); //等待淡入动画结束
+//setTimeout(init, 1000); //等待淡入动画结束
+
+
+
+/* socket */
+if (typeof io == "undefined"){ //未加载socket.io.js
+	$("#state").html("网络错误，请检查网络连接再刷新页面！")
+		.removeClass().addClass("state failed");
+	
+}else{
+	socket = io("https://wzh.glitch.me/");
+	
+	send = function (name, ...data){
+		console.log("↑", name, data);
+		socket.emit(name, ...data);
+	};
+	
+	socket.on("connecting", function(data){
+		$("#state").html("连接服务器中……")
+			.removeClass().addClass("state connecting");
+	});
+	socket.on("connect", function(data){
+		send("type", "gobang"); //type
+		send("gobang_game_room", {
+			oldID,
+			room: ROOM,
+			type: TYPE,
+			first: FIRST
+		}); //加入游戏房间
+		$("#state").html("服务器连接成功")
+			.removeClass().addClass("state success");
+		layer.msg("服务器连接成功", {icon:1});
+	});
+	socket.on("connect_failed", function(data){
+		$("#state").html("服务器连接失败")
+			.removeClass().addClass("state failed");
+		layer.msg("服务器连接失败", {icon:2});
+	});
+	socket.on("disconnect", function(data){
+		$("#state").html("与服务器连接断开")
+			.removeClass().addClass("state failed");
+		layer.msg("与服务器连接断开", {icon:2});
+		
+		if (game.winner !== false) return; //游戏已结束
+		if (game.first === null) return; //未开始游戏
+		game.over(false, "与服务器连接断开，游戏失败");
+	});
+	socket.on("reconnecting", function(data){
+		$("#state").html("重连中……")
+			.removeClass().addClass("state connecting");
+	});
+	socket.on("reconnect", function(data){
+		send("type", "gobang"); //type
+		send("gobang_game_room", {
+			oldID,
+			room: ROOM,
+			type: TYPE,
+			first: FIRST
+		}); //加入游戏房间
+		$("#state").html("服务器重连成功")
+			.removeClass().addClass("state success");
+		layer.msg("服务器重连成功", {icon:1});
+	});
+	socket.on("reconnect_failed", function(data){
+		$("#state").html("服务器重连失败")
+			.removeClass().addClass("state failed");
+		layer.msg("服务器重连失败", {icon:2});
+	});
+	socket.on("error", function(data){
+		console.error(data);
+		$("#state").html("服务器连接错误！")
+			.removeClass().addClass("state failed");
+		layer.msg("服务器连接错误！", {icon:2});
+	});
+	
+	
+	//分配新ID
+	socket.on("gobang_assignID", function(data){
+		console.log("↓ gobang_assignID", data)
+		ID = data;
+		$("#main > div.self > div > p.name").html(oldID);
+		$("#state").html("等待对方加入中……");
+	});
+	
+	//准备好了
+	socket.on("gobang_game_ready", function(data){
+		console.log("↓ gobang_game_ready", data)
+		
+		game.first = (data.first && TYPE) || //房主 且 房主先手
+			(!data.first && !TYPE); //成员 且 房主后手
+		
+		if (game.first){
+			$("#main > div.self").removeClass("white").addClass("black");
+			$("#main > div.opposite").removeClass("black").addClass("white");
+			$("#main > div.self > div > p.name").html( "："+data.oldID[1-TYPE] );
+			$("#main > div.opposite > div > p.name").html( "："+data.oldID[+TYPE] );
+			layer.msg("你执黑棋，对方执白棋");
+			$("#state").html("游戏开始，你执黑棋，对方执白棋");
+			
+		}else{
+			$("#main > div.self").removeClass("black").addClass("white");
+			$("#main > div.opposite").removeClass("white").addClass("black");
+			$("#main > div.self > div > p.name").html( "："+data.oldID[1-TYPE] );
+			$("#main > div.opposite > div > p.name").html( "："+data.oldID[+TYPE] );
+			layer.msg("你执白棋，对方执黑棋");
+			$("#state").html("游戏开始，你执白棋，对方执黑棋");
+		}
+		init();
+		game.set(1); //黑棋先下
+	});
+	
+	//对方离开
+	socket.on("gobang_game_leave", function(old_id){
+		console.log("↓ gobang_game_leave", old_id)
+		
+		if (old_id != oldID)
+			$("#state").html( `对方“${old_id}”退出了房间` );
+		
+		if (game.winner !== false) return; //游戏已结束
+		game.over(true, `对方“${old_id}”退出了房间，游戏结束！`);
+	});
+	
+	//下棋
+	socket.on("gobang_game_play", function(data={}){
+		console.log("↓ gobang_game_play", data)
+		const {i, j, side, time} = data;
+		
+		const delay = (new Date()-time)/1000; //延时
+		game.time[game.turn].total += delay;
+		game.time[game.turn].step += delay;
+		
+		$("#state").html("下棋延时：" + delay*1000 + "ms")
+		if (side != game.first+1)
+			game.play(i, j, true); //直接下
+	});
+	
+	//超时
+	socket.on("gobang_game_timeout", function(old_id){
+		console.log("↓ gobang_game_timeout", old_id)
+		
+		if (game.winner !== false) return; //游戏已结束
+		game.over(true, `对方“${old_id}”超时，游戏结束`);
+	});
+	
+	//认输
+	socket.on("gobang_game_giveUp", function(old_id){
+		console.log("↓ gobang_game_giveUp", old_id)
+		
+		if (game.winner !== false) return; //游戏已结束
+		game.over(true, `对方“${old_id}”认输，游戏结束`);
+	});
+	
+	//求和
+	socket.on("gobang_game_drawMatch", function(old_id){
+		console.log("↓ gobang_game_drawMatch", old_id)
+		
+		if (game.winner !== false) return; //游戏已结束
+		
+		layer.confirm(`对方“${old_id}”请求求和，是否同意？`, {
+			btn: ["同意", "拒绝"],
+			btn1: function(index){
+				layer.close(index);
+				send("gobang_game_drawMatch_agree", ROOM, oldID);
+				game.over(null, "求和成功，游戏结束");
+			},
+			btn2: function(index){
+				layer.close(index);
+				send("gobang_game_drawMatch_disagree", ROOM, oldID);
+			}
+		});
+	});
+	
+	//同意求和
+	socket.on("gobang_game_drawMatch_agree", function(old_id){
+		console.log("↓ gobang_game_drawMatch_agree", old_id)
+		
+		game.over(null, "求和成功，游戏结束");
+	});
+	
+	//拒绝求和
+	socket.on("gobang_game_drawMatch_disagree", function(old_id){
+		console.log("↓ gobang_game_drawMatch_disagree", old_id)
+		
+		layer.msg("对方拒绝了你的求和请求");
+	});
+	
+	//再来一局
+	socket.on("gobang_game_replay", function(old_id){
+		console.log("↓ gobang_game_replay", old_id)
+		
+		layer.confirm(`对方“${old_id}”请求再来一局，是否同意？`, {
+			btn: ["同意", "拒绝"],
+			btn1: function(index){
+				layer.close(index);
+				send("gobang_game_replay_agree", ROOM, oldID);
+				
+				init();
+				send("gobang_game_room", {
+					oldID,
+					room: ROOM,
+					type: TYPE,
+					first: FIRST
+				}); //加入游戏房间
+			},
+			btn2: function(index){
+				layer.close(index);
+				send("gobang_game_replay_disagree", ROOM, oldID);
+			}
+		});
+	});
+	
+	//同意再来一局
+	socket.on("gobang_game_replay_agree", function(old_id){
+		console.log("↓ gobang_game_replay_agree", old_id)
+		
+		layer.msg("对方同意了你再来一局的请求");
+		init();
+		send("gobang_game_room", {
+			oldID,
+			room: ROOM,
+			type: TYPE,
+			first: FIRST
+		}); //加入游戏房间
+	});
+	
+	//拒绝再来一局
+	socket.on("gobang_game_replay_disagree", function(old_id){
+		console.log("↓ gobang_game_replay_disagree", old_id)
+		
+		layer.msg("对方拒绝了你再来一局的请求");
+	});
+	
+	
+	//下棋失败
+	socket.on("gobang_game_play_failed", function(){
+		console.log("↓ gobang_game_play_failed", room)
+		layer.msg("下棋失败，房间已被关闭", {icon: 5});
+		
+		if (game.winner === false)
+			game.winner = 1-game.first; //自己失败
+	});
+	
+	//超时失败
+	socket.on("gobang_game_timeout_failed", function(){
+		console.log("↓ gobang_game_timeout_failed", room)
+		layer.msg("发送超时失败，房间已被关闭", {icon: 5});
+		
+		if (game.winner === false)
+			game.winner = 1-game.first; //自己失败（超时）
+	});
+	
+	//认输失败
+	socket.on("gobang_game_giveUp_failed", function(){
+		console.log("↓ gobang_game_giveUp_failed", room)
+		layer.msg("发送认输失败，房间已被关闭", {icon: 5});
+		
+		if (game.winner === false)
+			game.winner = 1-game.first; //自己失败（认输）
+	});
+	
+	//求和失败
+	socket.on("gobang_game_drawMatch_failed", function(){
+		console.log("↓ gobang_game_drawMatch_failed", room)
+		layer.msg("发送求和失败，房间已被关闭", {icon: 5});
+		
+		if (game.winner === false)
+			game.winner = 1-game.first; //自己失败
+	});
+	
+	//同意求和失败
+	socket.on("gobang_game_drawMatch_agree_failed", function(){
+		console.log("↓ gobang_game_drawMatch_agree_failed", room)
+		layer.msg("同意求和失败，房间已被关闭", {icon: 5});
+		
+		if (game.winner === false)
+			game.winner = 1-game.first; //自己失败
+	});
+	
+	//拒绝求和失败
+	socket.on("gobang_game_drawMatch_disagree_failed", function(){
+		console.log("↓ gobang_game_drawMatch_disagree_failed", room)
+		layer.msg("拒绝求和失败，房间已被关闭", {icon: 5});
+		
+		if (game.winner === false)
+			game.winner = 1-game.first; //自己失败
+	});
+	
+	//再来一局失败
+	socket.on("gobang_game_replay_failed", function(){
+		console.log("↓ gobang_game_replay_failed", room)
+		layer.msg("发送求和失败，房间已被关闭", {icon: 5});
+		
+		if (game.winner === false)
+			game.winner = 1-game.first; //自己失败
+	});
+	
+	//同意再来一局失败
+	socket.on("gobang_game_replay_agree_failed", function(){
+		console.log("↓ gobang_game_replay_agree_failed", room)
+		layer.msg("同意再来一局失败，房间已被关闭", {icon: 5});
+		
+		if (game.winner === false)
+			game.winner = 1-game.first; //自己失败
+	});
+	
+	//拒绝再来一局失败
+	socket.on("gobang_game_replay_disagree_failed", function(){
+		console.log("↓ gobang_game_replay_disagree_failed", room)
+		layer.msg("拒绝再来一局失败，房间已被关闭", {icon: 5});
+		
+		if (game.winner === false)
+			game.winner = 1-game.first; //自己失败
+	});
+}
 
 
 
@@ -834,152 +1224,55 @@ function request(data){
 }
 
 
-let waiting = false; //等待中
 $("#board").click(function(e){
 	const {offsetX: x, offsetY: y} = e;
 	const [i, j] = board.xy2ij(x,y, place);
-	console.log(e, [x, y], [i, j])
+	console.log("click", [x, y], [i, j])
+	
+	if (game.first != game.turn) return; //未轮到自己
 	
 	if (game.winner !== false) return; //已结束
 	
-	if (waiting) return; //上次未响应
-	
-	waiting = true; //开始等待
-	
-	request({
-		type: "play", //下棋
-		i, j
-	}).then((data)=>{
-		waiting = false;
-		console.log(data.action)
-		switch (data.action){
-			case 2: //下黑棋
-				board.remove(-1)
-					.add(i, j, place, "#000")
-					.add(i, j, place, undefined, "#fff", 2, picSize+2);
-				game.set(0);
-				game.steps++;
-				break;
-				
-			case 1: //下白棋
-				board.remove(-1)
-					.add(i, j, place, "#fff", "#000")
-					.add(i, j, place, undefined, "#fff", 2, picSize+2);
-				game.set(1);
-				game.steps++;
-				break;
-				
-			case -2: //添加标记
-				board.add(i, j, place, undefined, "#00f", 2);
-				break;
-				
-			case -1: //删除标记
-				board.remove(-1);
-				break;
-		}
-	});
+	game.play(i, j);
 });
-
-
-
-let socket, //socket.io
-	send, //send
-	ID, //分配的ID
-	oldID = location.getQueryString("id"), //上次分配的ID
-	ROOM = location.getQueryString("room"), //房间
-	type = location.getQueryString("type"), //房主: 1, 成员: 0
-	first = JSON.parse( location.getQueryString("first") ); //先手
-if (typeof io == "undefined"){ //未加载socket.io.js
-	$(".state").html("网络错误，请检查网络连接！")
-		.removeClass().addClass("state failed");
-	
-}else{
-	socket = io("https://wzh.glitch.me/");
-	
-	send = function(name, ...data){
-		console.log("↑", name, data);
-		socket.emit(name, ...data);
-	};
-	
-	socket.on("connecting", function(data){
-		$(".state").html("连接服务器中……")
-			.removeClass().addClass("state connecting");
-	});
-	socket.on("connect", function(data){
-		send("type", "gobang"); //type
-		send("gobang_game_room", {oldID, room: ROOM, type, first}); //加入游戏房间
-		$(".state").html("服务器连接成功")
-			.removeClass().addClass("state success");
-		layer.msg("服务器连接成功", {icon:1});
-	});
-	socket.on("connect_failed", function(data){
-		$(".state").html("服务器连接失败")
-			.removeClass().addClass("state failed");
-		layer.msg("服务器连接失败", {icon:2});
-	});
-	socket.on("disconnect", function(data){
-		$(".state").html("与服务器连接断开")
-			.removeClass().addClass("state failed");
-		layer.msg("与服务器连接断开", {icon:2});
-	});
-	socket.on("reconnecting", function(data){
-		$(".state").html("重连中……")
-			.removeClass().addClass("state connecting");
-	});
-	socket.on("reconnect", function(data){
-		send("type", "gobang"); //type
-		send("gobang_game_room", {oldID, room: ROOM, type, first}); //加入游戏房间
-		$(".state").html("服务器重连成功")
-			.removeClass().addClass("state success");
-		layer.msg("服务器重连成功", {icon:1});
-	});
-	socket.on("reconnect_failed", function(data){
-		$(".state").html("服务器重连失败")
-			.removeClass().addClass("state failed");
-		layer.msg("服务器重连失败", {icon:2});
-	});
-	socket.on("error", function(data){
-		console.error(data);
-		$(".state").html("服务器连接错误！")
-			.removeClass().addClass("state failed");
-		layer.msg("服务器连接错误！", {icon:2});
-	});
-	
-	
-	//分配新ID
-	socket.on("gobang_assignID", function(data){
-		console.log("↓ gobang_assignID", data)
-		ID = data;
-		$(".state").html("等待对方加入中……");
-	});
-	
-	//准备好了
-	socket.on("gobang_game_ready", function(data){
-		console.log("↓ gobang_game_ready", data)
-		game.first = data.first;
-		if (data.first){
-			layer.msg("你执黑棋，对方执白棋");
-		}else{
-			layer.msg("你执白棋，对方执黑棋");
-		}
-		game.set(1); //黑棋先下
-		$(".state").html("游戏开始");
-	});
-}
 
 
 
 /* header */
 //返回
 $("#back").click(function(){
-	go("index.html");
+	go("rooms.html");
 });
 
 //重来
-$("#restart").click(init);
+$("#restart").click(function(){
+	layer.confirm("确定请求再来一局吗？", function(index){
+		layer.close(index);
+		send("gobang_game_replay", ROOM, oldID);
+		layer.msg("请求再来一局中……");
+	});
+});
 
 
 /* tools */
+//认输
+$("#toolBtn > .giveUp").click(function(){
+	layer.confirm("真的要认输吗？", function(index){
+		layer.close(index);
+		send("gobang_game_giveUp", ROOM, oldID);
+		game.over(false, "你认输了，游戏结束");
+	});
+});
+
+//求和
+$("#toolBtn > .drawMatch").click(function(){
+	layer.confirm("确定请求求和吗？", function(index){
+		layer.close(index);
+		send("gobang_game_drawMatch", ROOM, oldID);
+		layer.msg("请求求和中……");
+	})
+});
+
 //评分
 $("#toolBtn > .scores").click(function(){
 	if ($("#tools > .review").css("display") != "none")
@@ -1030,7 +1323,7 @@ $("#toolBtn > .review").click(function(){
 					const {i,j,v} = data.steps[++index];
 					board.remove(-1)
 						.add(i, j, place, v==2? "#000": "#fff", v==2? "#fff":"#000")
-						.add(i, j, place, undefined, "#fff", 2, picSize+2);
+						.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
 					return false;
 				},
 				last = ()=>{
@@ -1040,7 +1333,7 @@ $("#toolBtn > .review").click(function(){
 					board.updateCallback.win = null;
 					board.remove(-1)
 						.remove(-1)
-						.add(i, j, place, undefined, "#fff", 2, picSize+2);
+						.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
 					return false;
 				};
 			
