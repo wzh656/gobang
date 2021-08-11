@@ -141,21 +141,25 @@
 			top: 0;
 			margin: 0;
 			padding: 0;
+			overflow-y: auto;
 			
 			background-color: #fafafa;
-			font-size: 1.5em;
+			font-size: 1.3em;
 		}
 		
 		/* h2 */
 		#settings > h2{
-			margin: 0.6rem;
-			font-size: 1.6em;
+			margin: 1rem;
+			font-size: 2em;
 			font-weight: bold;
 			text-align: center;
 		}
 		
 		/* flex填满 */
-		#settings > form > div{
+		#settings > form{
+			padding-right: 0.6rem;
+		}
+		/*#settings > form > div{
 			margin: 1rem;
 			display: flex;
 		}
@@ -172,16 +176,21 @@
 		#settings > form > div > input[type="number"],
 		#settings > form > div > button{
 			width: 100%;
-		}
+		}*/
 		
 		/* button */
-		#settings > form > div > button{
-			padding: 0.2rem;
+		#settings > form > div.btn{
+			display: flex;
+		}
+		#settings > form > div.btn > button{
+			width: 100%;
+			margin: 0.3rem;
+			padding: 0.3rem;
 			font-size: 1.2em;
 			
 			transition: color 0.3s, background-color 0.3s;
 		}
-		#settings > form > div > button.ok{
+		#settings > form > div.btn > button.ok{
 			color: #fff;
 			background-color: #6af;
 			border: 3px outset #6af;
@@ -191,22 +200,22 @@
 			color: #fff;
 			background-color: #6af;
 		}*/
-		#settings > form > div > button.ok:active{
+		#settings > form > div.btn > button.ok:active{
 			background-color: #59e;
 			border: 3px inset #6af;
 		}
 		
-		#settings > form > div > button.cancel{
+		#settings > form > div.btn > button.cancel{
 			color: #ea6;
 			background-color: #fff;
 			border: 3px outset #ea6;
 			border-radius: 0.3rem;
 		}
-		#settings > form > div > button.cancel:hover{
+		#settings > form > div.btn > button.cancel:hover{
 			color: #fff;
 			background-color: #ea6;
 		}
-		#settings > form > div > button.cancel:active{
+		#settings > form > div.btn > button.cancel:active{
 			background-color: #d95;
 			border: 3px inset #ea6;
 		}
@@ -249,35 +258,46 @@
 		<button id="online">多人联机</button>
 		<section id="settings" style="display: none;">
 			<h2>设置</h2>
-			<form>
-				<div>
-					<label>连子数：</label>
-					3<input type="range" min="3" max="10" value="5" class="n" />10
-					<input type="number" min="3" max="10" value="5" />
+			<form class="layui-form">
+				<div class="layui-form-item">
+					<label class="layui-form-label">连子数</label>
+					<div class="layui-input-inline">
+						<input type="number" name="n" min="3" max="10" value="5" class="layui-input" />
+					</div>
+					<div class="layui-form-mid layui-word-aux">指获胜需要的连续棋子数</div>
 				</div>
-				<div>
-					<label>棋盘大小(格)：</label>
-					3<input type="range" min="3" max="20" value="19" class="size" />20
-					<input type="number" min="3" max="20" value="19" />
+				<div class="layui-form-item">
+					<label class="layui-form-label">棋盘行数</label>
+					<div class="layui-input-inline">
+						<input type="number" name="cols" min="3" max="30" value="19" class="layui-input" />
+					</div>
+					<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
 				</div>
-				<div>
-					<label>棋子大小(px)：</label>
-					10<input type="range" min="10" max="100" value="30" class="picSize" />100
-					<input type="number" min="10" max="100" value="30" />
+				<div class="layui-form-item">
+					<label class="layui-form-label">棋盘列数</label>
+					<div class="layui-input-inline">
+						<input type="number" name="rows" min="3" max="30" value="19" class="layui-input" />
+					</div>
+					<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
 				</div>
-				<div>
-					<label>下棋位置：</label>
-					<input type="radio" name="place" checked />格点
-					<input type="radio" name="place" class="place" />格内
+				<div class="layui-form-item">
+					<label class="layui-form-label">下棋位置</label>
+					<div class="layui-input-inline">
+						<input type="radio" name="place" title="格点" checked />
+						<input type="radio" name="place" title="格内" />
+					</div>
+					<div class="layui-form-mid layui-word-aux">指在线的交点处 或围成的方格内落子</div>
 				</div>
-				<div>
-					<label>防误触摸式：</label>
-					<input type="radio" name="mistake" class="mistake" />开启
-					<input type="radio" name="mistake" />关闭
+				<div class="layui-form-item">
+					<label class="layui-form-label">防误触摸式</label>
+					<div class="layui-input-inline">
+						<input type="checkbox" name="mistake" class="mistake" lay-skin="switch" lay-text="开启|关闭" />
+					</div>
+					<div class="layui-form-mid layui-word-aux">即是否需要两次点击落子以防止误触</div>
 				</div>
-				<div>
-					<button class="cancel">取消</button>
+				<div class="btn">
 					<button class="ok">确定</button>
+					<button class="cancel">取消</button>
 				</div>
 			</form>
 		</section>
@@ -291,37 +311,37 @@ if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test(
 }
 </script>
 <script>
-$("#settings > form input.n").val( localStorage.getItem("五子棋_N") || 5 )
-	.next().val( localStorage.getItem("五子棋_N") || 5 );
-$("#settings > form input.size").val( localStorage.getItem("五子棋_size") || 19 )
-	.next().val( localStorage.getItem("五子棋_size") || 19 );
-$("#settings > form input.picSize").val( localStorage.getItem("五子棋_picSize") || 30 )
-	.next().val( localStorage.getItem("五子棋_picSize") || 30 );
-if (+localStorage.getItem("五子棋_place") == 1)
-	$("#settings > form input.place").click();
-if (localStorage.getItem("五子棋_mistake")){
-	if (+localStorage.getItem("五子棋_mistake") == 0){
-		$("#settings > form input.mistake").next().click();
+const setting = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
+	form = $("#settings > form")[0];
+function saveSetting(){ //保存设置
+	localStorage.setItem("五子棋_游戏设置", JSON.stringify(setting));
+}
+form.n.value = setting.N || 5;
+form.cols.value = setting.cols || 19;
+form.rows.value = setting.rows || 19;
+if (+setting.place == 1)
+	form.place[1].click();
+if ( setting.mistake ){ //有设置
+	if (+setting.mistake == 0){
+		$("#settings > form input.mistake").next().removeClass("layui-form-onswitch");
 	}else{
-		$("#settings > form input.mistake").click();
+		$("#settings > form input.mistake").next().addClass("layui-form-onswitch");
 	}
-}else{
+}else{ //无设置 自动
 	if (device){ //手机
-		$("#settings > form input.mistake").click();
-		localStorage.setItem("五子棋_mistake", 1);
+		$("#settings > form input.mistake").next().addClass("layui-form-onswitch");
+		setting.mistake = true;
+		saveSetting(); //保存设置
 	}else{ //电脑
-		$("#settings > form input.mistake").next().click();
-		localStorage.setItem("五子棋_mistake", 0);
+		$("#settings > form input.mistake").next().removeClass("layui-form-onswitch");
+		setting.mistake = false;
+		saveSetting(); //保存设置
 	}
 }
 
 //输入改变
-$("#settings > form input[type='range']").change(function(){
-	$(this).next().val( this.value );
-});
 $("#settings > form input[type='number']").change(function(){
-	$(this).prev().val( +this.value );
-	this.value = $(this).prev().val();
+	this.value = Math.limitRange(+this.value, +this.min, +this.max);
 });
 
 
@@ -372,11 +392,12 @@ $("#settings button.cancel").click(function(){
 
 //确定
 $("#settings button.ok").click(function(){
-	localStorage.setItem("五子棋_N", $("#settings > form input.n").val());
-	localStorage.setItem("五子棋_size", $("#settings > form input.size").val());
-	localStorage.setItem("五子棋_picSize", $("#settings > form input.picSize").val());
-	localStorage.setItem("五子棋_place", +$("#settings > form input.place")[0].checked);
-	localStorage.setItem("五子棋_mistake", +$("#settings > form input.mistake")[0].checked);
+	setting.N = +form.n.value;
+	setting.cols = +form.cols.value;
+	setting.rows = +form.rows.value;
+	setting.place = +form.place[1].checked;
+	setting.mistake = form.mistake.checked;
+	saveSetting();
 	layer.msg("设置成功");
 	$("#settings").slideUp("slow");
 });

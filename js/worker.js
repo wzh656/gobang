@@ -16,9 +16,9 @@ const DIRS = [ //方向
 	];
 
 class PiecesSystem{
-	constructor(rows, columns, N){
-		this.rows = rows;
+	constructor(columns, rows, N){
 		this.columns = columns;
+		this.rows = rows;
 		this.pieces = new Array(columns);
 		for (let i=0; i<columns;i++)
 			this.pieces[i] = new Array(rows).fill(0); //0:空白 1:白 2:黑 undefined:超出范围
@@ -155,8 +155,8 @@ class PiecesSystem{
 				if (pic !== 0) continue; //有棋子 跳过
 				
 				let score = 1/(
-					(x - (pieces.rows-1)/2) **2 +
-					(y - (pieces.columns-1)/2) **2 +
+					(x - (pieces.columns-1)/2) **2 +
+					(y - (pieces.rows-1)/2) **2 +
 					Math.random() + 1
 				);
 				
@@ -249,9 +249,9 @@ self.addEventListener("message", function(e){
 	switch (e.data.type){
 		// 初始化
 		case "init":
-			const {size, N, mis} = e.data;
+			const {cols, rows, N, mis} = e.data;
 			
-			pieces = new PiecesSystem(size, size, N);
+			pieces = new PiecesSystem(cols, rows, N);
 			mistake = mis;
 			
 			break;
@@ -259,7 +259,7 @@ self.addEventListener("message", function(e){
 			
 		// 下棋
 		case "play":
-			const {i, j} = e.data;
+			const {i, j, direct=false} = e.data;
 			
 			if (pieces.winner !== false) //已结束
 				return self.postMessage({type: "play"});
@@ -314,7 +314,7 @@ self.addEventListener("message", function(e){
 			};
 			
 			
-			if (mistake){ //防误触
+			if (mistake && !direct){ //防误触
 				if (first.i !== null && first.j !== null){ //第二次
 					self.postMessage({
 						type: "play",
