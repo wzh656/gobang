@@ -59,6 +59,11 @@
 			margin: auto;
 		}
 		
+		/* layui */
+		.layui-btn-group .layui-btn:not(:first-child){
+			border-left-style: none !important;
+		}
+		
 		/* 初始页 */
 		body{
 			position: absolute;
@@ -263,6 +268,15 @@
 			<h2>设置</h2>
 			<form class="layui-form">
 				<div class="layui-form-item">
+					<label class="layui-form-label">维数</label>
+					<div class="layui-input-inline layui-btn-group">
+						<button class="two layui-btn">2D</button>
+						<button class="three layui-btn layui-btn-primary layui-border-green">3D</button>
+						<button class="four layui-btn layui-btn-primary layui-border-green">4D</button>
+					</div>
+					<div class="text layui-form-mid layui-word-aux">2D：回归传统，品味经典游戏</div>
+				</div>
+				<div class="layui-form-item">
 					<label class="layui-form-label">连子数</label>
 					<div class="layui-input-inline">
 						<input type="number" name="n" min="3" max="10" value="5" class="layui-input" />
@@ -326,8 +340,7 @@ setting.place = setting.place || 0;
 form.n.value = setting.N;
 form.cols.value = setting.cols;
 form.rows.value = setting.rows;
-if (+setting.place == 1)
-	form.place[1].click();
+form.place[+setting.place].checked = true;
 if ( setting.mistake ){ //有设置
 	if (+setting.mistake == 0){
 		$("#settings > form input.mistake")[0].checked = false;
@@ -344,6 +357,32 @@ if ( setting.mistake ){ //有设置
 	}
 }
 saveSetting(); //保存设置
+
+//维数切换
+$("#settings > form button.two").click(function(){
+	setting.D = 2;
+	saveSetting();
+	$(this).removeClass("layui-btn-primary layui-border-green")
+		.siblings().addClass("layui-btn-primary layui-border-green")
+		.parent().parent().children(".text")
+		.html("2D：回归传统，品味经典游戏");
+});
+$("#settings > form button.three").click(function(){
+	setting.D = 3;
+	saveSetting();
+	$(this).removeClass("layui-btn-primary layui-border-green")
+		.siblings().addClass("layui-btn-primary layui-border-green")
+		.parent().parent().children(".text")
+		.html("3D：创意之作，体味烧脑乐趣");
+});
+$("#settings > form button.four").click(function(){
+	setting.D = 4;
+	saveSetting();
+	$(this).removeClass("layui-btn-primary layui-border-green")
+		.siblings().addClass("layui-btn-primary layui-border-green")
+		.parent().parent().children(".text")
+		.html("4D：四维空间，挑战最强大脑");
+});
 
 //输入改变
 $("#settings > form input[type='number']").change(function(){

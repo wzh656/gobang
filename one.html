@@ -864,6 +864,8 @@ $("#board").click(function(e){
 	
 	if (game.winner !== false) return; //已结束
 	
+	if (game.first === null) return; //未开始
+	
 	if (waiting) return; //上次未响应
 	
 	waiting = true; //开始等待

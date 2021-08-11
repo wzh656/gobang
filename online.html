@@ -472,7 +472,11 @@ class Board{
 	}
 }
 
-const {N=5, cols=19, rows=19, place=0, mistake=true} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}");
+const N = +location.getQueryString("N"),
+	cols = +location.getQueryString("cols"),
+	rows = +location.getQueryString("rows"),
+	place = +location.getQueryString("place"),
+	{mistake=true} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}");
 $("#board").attr("height", $("#board").attr("width") *rows/cols)
 	.css("height", WIDTH *rows/cols + "px");
 const board = new Board({ //棋盘
