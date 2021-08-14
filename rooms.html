@@ -53,16 +53,44 @@
 			
 			background: #fffae8; /* 背景 */
 		}
+		html.outDown{
+			min-height: 100%;
+			background: #1b2036 url("./img/background.jpg") no-repeat fixed center;
+			background-size: cover;
+			max-width: 100%;
+			margin: auto;
+			
+			overflow-y: hidden;
+		}
+		html.outHeight{
+			overflow-y: hidden;
+		}
 		
 		body{
 			position: absolute;
 			width: 100%;
 			height: 100%;
+			left: 0;
+			top: 0;
 			margin: 0;
 			padding: 0;
 			overflow-x: hidden;
 			
 			background: #fffae8; /* 背景 */
+			
+			opacity: 0; /* 完全透明 */
+			transition: opacity 1s, top 0.6s; /* 出入动画 */
+		}
+		html.fadeIn > body{
+			opacity: 1; /* 不透明 */
+		}
+		html.outDown > body{
+			top: 100%; /* 下滑 */
+			overflow-y: hidden;
+		}
+		html.outHeight > body{
+			height: 0%; /* 高度减小 */
+			overflow-y: hidden;
 		}
 		
 		/* layui */
@@ -344,30 +372,13 @@
 
 
 <script>
-$("body").hide().fadeIn(1000);
+$("html").addClass("fadeIn");
 function go(url){
-	if (url == "index.html"){
-		$("html").css("min-height", "100%")
-			.css("background", '#1b2036 url("./img/background.jpg") no-repeat fixed center')
-			.css("background-size", "cover")
-			.css("max-width", "100%")
-			.css("margin", "auto");
-		$("body").animate({
-			top: "100%"
-		}, 600, function(){
-			location.href = url;
-		});
-		layer.load(0);
-		
-	}else{
-		$("html").css("background", "#fffae8");
-		$("body").animate({
-			top: "-100%"
-		}, 600, function(){
-			location.href = url;
-		});
-		layer.load(0);
-	}
+	$("html").addClass(url == "index.html"? "outDown": "outHeight");
+	setTimeout(function(){
+		location.href = url;
+	}, 600);
+	layer.load(0);
 }
 
 
@@ -670,13 +681,24 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_roomStart", function(room){
 		console.log("↓ gobang_roomStart", room)
 		const type = ROOMLIST[ROOM].people[0] == ID;
-		go("online.html?" +
-			"id=" + ID +
+		let path;
+		switch (setting.D){
+			case 2:
+				path = "online_2D.html";
+				break;
+			case 3:
+				path = "online_3D.html";
+				break;
+			case 4:
+				path = "online_4D.html";
+				break;
+		}
+		go(path +
+			"?id=" + ID +
 			"&room=" + ROOM +
 			"&type=" + +type +
 			"&first=" + JSON.stringify( ROOMLIST[ROOM].first ) +
 			"&N=" + ROOMLIST[ROOM].N +
-			"&D=" + ROOMLIST[ROOM].D +
 			"&cols=" + ROOMLIST[ROOM].cols +
 			"&rows=" + ROOMLIST[ROOM].rows +
 			"&place=" + ROOMLIST[ROOM].place

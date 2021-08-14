@@ -1,83 +1,296 @@
-const DIRS = [ //方向
+const TWO_DIRS_OPP = [ //2D正方向 8/2=4
 		[1, 0],
 		[0, 1],
-		[1, 1],
-		[-1, 1],
-		[-1, 0],
-		[0, -1],
-		[-1, -1],
-		[1, -1]
-	],
-	OPP_DIR = [ //正方向
-		[1, 0],
-		[0, 1],
+		
 		[1, 1],
 		[-1, 1]
+	],
+	TWO_DIRS = [ //2D方向 3²-1=8
+		...TWO_DIRS_OPP,
+		...TWO_DIRS_OPP.map(v => [-v[0], -v[1]]),
+	],
+	THREE_DIRS_OPP = [ //3D正方向 26/2=13
+		[1, 0, 0],
+		[0, 1, 0],
+		[0, 0, 1],
+		
+		[1, 1, 0],
+		[1, 0, 1],
+		[0, 1, 1],
+		
+		[1, 1, 1],
+		
+		[-1, 1, 0],
+		[-1, 0, 1],
+		[0, -1, 1],
+		
+		[-1, 1, 1],
+		[1, -1, 1],
+		[1, 1, -1]
+	],
+	THREE_DIRS = [ //3D方向 3³-1=26
+		...THREE_DIRS_OPP,
+		...THREE_DIRS_OPP.map(v => [-v[0], -v[1], -v[2]]),
+	],
+	FOUR_DIRS_OPP = [ //4D正方向 80/2=40
+		[1, 0, 0, 0],
+		[0, 1, 0, 0],
+		[0, 0, 1, 0],
+		[0, 0, 0, 1],
+		
+		[1, 1, 0, 0],
+		[1, 0, 1, 0],
+		[1, 0, 0, 1],
+		[0, 1, 1, 0],
+		[0, 1, 0, 1],
+		[0, 0, 1, 1],
+		
+		[1, 1, 1, 0],
+		[1, 1, 0, 1],
+		[1, 0, 1, 1],
+		[0, 1, 1, 1],
+		
+		[1, 1, 1, 1],
+		
+		[-1, 1, 0, 0],
+		[-1, 0, 1, 0],
+		[-1, 0, 0, 1],
+		[0, -1, 1, 0],
+		[0, -1, 0, 1],
+		[0, 0, -1, 1],
+		
+		[-1, 1, 1, 0],
+		[1, -1, 1, 0],
+		[1, 1, -1, 0],
+		[-1, 1, 0, 1],
+		[1, -1, 0, 1],
+		[1, 1, 0, -1],
+		[-1, 0, 1, 1],
+		[1, 0, -1, 1],
+		[1, 0, 1, -1],
+		[0, -1, 1, 1],
+		[0, 1, -1, 1],
+		[0, 1, 1, -1],
+		
+		[-1, 1, 1, 1],
+		[1, -1, 1, 1],
+		[1, 1, -1, 1],
+		[1, 1, 1, -1],
+		[-1, -1, 1, 1],
+		[-1, 1, -1, 1],
+		[-1, 1, 1, -1]
+	],
+	FOUR_DIRS = [ //4D方向 3⁴-1=80
+		...FOUR_DIRS_OPP,
+		...FOUR_DIRS_OPP.map(v=>[-v[0], -v[1], -v[2], -v[3]])
 	];
 
 class PiecesSystem{
-	constructor(columns, rows, N){
-		this.columns = columns;
-		this.rows = rows;
+	constructor({columns, rows, depth, lengthFour, D, N}){
+		this.columns = columns; //列数
+		this.rows = rows; //行数
+		this.depth = depth; //深度
+		this.lengthFour = lengthFour; //4维长度
 		this.pieces = new Array(columns);
-		for (let i=0; i<columns;i++)
-			this.pieces[i] = new Array(rows).fill(0); //0:空白 1:白 2:黑 undefined:超出范围
+		switch (D){
+			case 2:
+				for (let i=0; i<columns;i++)
+					this.pieces[i] = new Array(rows).fill(0); //0:空白 1:白 2:黑 undefined:超出范围
+				break;
+				
+			case 3:
+				for (let i=0; i<columns; i++){
+					this.pieces[i] = [];
+					for (let j=0; j<depth; j++)
+						this.pieces[i][j] = new Array(rows).fill(0); //0:空白 1:白 2:黑 undefined:超出范围
+				}
+				break;
+				
+			case 4:
+				for (let i=0; i<columns; i++){
+					this.pieces[i] = [];
+					for (let j=0; j<depth; j++){
+						this.pieces[i][j] = [];
+						for (let k=0; j<lengthFour; j++)
+							this.pieces[i][j][k] = new Array(rows).fill(0); //0:空白 1:白 2:黑 undefined:超出范围
+					}
+				}
+				break;
+		}
+		this.D = D;
 		this.N = N;
 		this.winner = false; //获胜者 1:黑, 0:白, null:平 false:未获胜
 		this.steps = []; //步数
 	}
 	
 	//获取棋子
-	get(i, j){
-		return this.pieces[i] && this.pieces[i][j];
+	get(i, j, k, l){
+		switch (this.D){
+			case 2:
+				return this.pieces[i] && this.pieces[i][j];
+				break;
+			case 3:
+				return this.pieces[i] && this.pieces[i][j] && this.pieces[i][j][k];
+				break;
+			case 4:
+				return this.pieces[i] && this.pieces[i][j] && this.pieces[i][j][k] && this.pieces[i][j][k][l];
+				break;
+		}
 	}
 	
 	//设置棋子
-	set(i, j, v){
-		if ((this.pieces[i] && this.pieces[i][j]) !== undefined)
-			this.pieces[i][j] = v;
+	set(i, j, k, l, v){
+		switch (this.D){
+			case 2:
+				if (!this.pieces[i])
+					this.pieces[i] = [];
+				this.pieces[i][j] = k;
+				break;
+			case 3:
+				if (!this.pieces[i])
+					this.pieces[i] = [];
+				if (!this.pieces[i][j])
+					this.pieces[i][j] = [];
+				this.pieces[i][j][k] = l;
+				break;
+			case 4:
+				if (!this.pieces[i])
+					this.pieces[i] = [];
+				if (!this.pieces[i][j])
+					this.pieces[i][j] = [];
+				if (!this.pieces[i][j][k])
+					this.pieces[i][j][k] = [];
+				this.pieces[i][j][k][l] = v;
+				break;
+		}
 		return this;
 	}
 	
 	//下一步
-	addStep(i, j, v){
-		this.steps.push({i, j, v});
-		this.set(i, j, v);
+	addStep(i, j, k, l, v){
+		switch (this.D){
+			case 2:
+				this.steps.push({i, j, v:k});
+				this.set(i, j, k);
+				break;
+			case 3:
+				this.steps.push({i, j, k, v:l});
+				this.set(i, j, k, l);
+				break;
+			case 4:
+				this.steps.push({i, j, k, l, v});
+				this.set(i, j, k, l, v);
+				break;
+		}
 		return this;
 	}
 	
 	//是否获胜
 	isWon(winCallback=()=>{}){
 		const lines = [];
-		for (const [x, col] of Object.entries(this.pieces))
-			for (const [y, pic] of Object.entries(col))
-				if (pic !== 0) //非空
-					for (const [dx, dy] of DIRS){ //各个方向
-						let won = true,
-							i;
-						for (i=1; i<=this.N-1; i++) //包括自己 往下N-1
-							if (this.get(+x + i*dx, +y + i*dy) !== pic){ //该方向不同
-								won = false;
-								break;
+		switch (this.D){
+			case 2:
+				for (const [x, col] of Object.entries(this.pieces))
+					for (const [y, pic] of Object.entries(col))
+						if (pic !== 0) //非空
+							for (const [dx, dy] of TWO_DIRS){ //各个方向
+								let won = true,
+									i;
+								for (i=1; i<=this.N-1; i++) //包括自己 往下N-1
+									if (this.get(+x + i*dx, +y + i*dy) !== pic){ //该方向不同
+										won = false;
+										break;
+									}
+								if (won){
+									if (!this.winner) //第一次
+										winCallback(pic, this.steps.length);
+									this.winner = pic-1;
+									lines.push({
+										start: [+x, +y],
+										end: [+x+(i-1)*dx, +y+(i-1)*dy]
+									});
+								}
 							}
-						if (won){
-							if (!this.winner) //第一次
-								winCallback(pic, this.steps.length);
-							this.winner = pic-1;
-							lines.push({
-								start: [+x, +y],
-								end: [+x+(i-1)*dx, +y+(i-1)*dy]
-							});
-						}
-					}
+				break;
+				
+			case 3:
+				for (const [x, face] of Object.entries(this.pieces))
+					for (const [y, col] of Object.entries(face))
+						for (const [z, pic] of Object.entries(col))
+							if (pic !== 0) //非空
+								for (const [dx, dy, dz] of THREE_DIRS){ //各个方向
+									let won = true,
+										i;
+									for (i=1; i<=this.N-1; i++) //包括自己 往下N-1
+										if (this.get(+x+i*dx, +y+i*dy, +z+i*dz) !== pic){ //该方向不同
+											won = false;
+											break;
+										}
+									if (won){
+										if (!this.winner) //第一次
+											winCallback(pic, this.steps.length);
+										this.winner = pic-1;
+										lines.push({
+											start: [+x, +y, +z],
+											end: [+x+(i-1)*dx, +y+(i-1)*dy, +z+(i-1)*dz]
+										});
+									}
+								}
+				break;
+				
+			case 4:
+				for (const [x, cube] of Object.entries(this.pieces))
+					for (const [y, face] of Object.entries(cube))
+						for (const [z, col] of Object.entries(face))
+							for (const [w, pic] of Object.entries(col))
+								if (pic !== 0) //非空
+									for (const [dx, dy, dz, dw] of THREE_DIRS){ //各个方向
+										let won = true,
+											i;
+										for (i=1; i<=this.N-1; i++) //包括自己 往下N-1
+											if (this.get(+x+i*dx, +y+i*dy, +z+i*dz, +w+i*dw) !== pic){ //该方向不同
+												won = false;
+												break;
+											}
+										if (won){
+											if (!this.winner) //第一次
+												winCallback(pic, this.steps.length);
+											this.winner = pic-1;
+											lines.push({
+												start: [+x, +y, +z, +w],
+												end: [+x+(i-1)*dx, +y+(i-1)*dy, +z+(i-1)*dz, +w+(i-1)*dw]
+											});
+										}
+									}
+				break;
+		}
 		return lines;
 	}
 	
 	//是否下满
 	isFull(){
-		for (const i of this.pieces)
-			for (const j of i)
-				if (!j) return false;
+		switch (this.D){
+			case 2:
+				for (const i of this.pieces)
+					for (const j of i)
+						if (!j) return false;
+				break;
+			
+			case 3:
+				for (const i of this.pieces)
+					for (const j of i)
+						for (const k of j)
+							if (!k) return false;
+				break;
+				
+			case 4:
+				for (const i of this.pieces)
+					for (const j of i)
+						for (const k of j)
+							for (const l of k)
+								if (!l) return false;
+				break;
+		}
 		this.winner = null;
 		return true;
 	}
@@ -94,7 +307,7 @@ class PiecesSystem{
 				/*if ( passed.some((v)=>v[0]==x && v[1]==y) )
 					continue; //相同 跳过*/
 				
-				for (const [dx, dy] of DIRS){ //各个方向
+				for (const [dx, dy] of TWO_DIRS){ //各个方向
 					let num = 0, //连子数
 						width = 1,
 						px, py;
@@ -160,7 +373,7 @@ class PiecesSystem{
 					Math.random() + 1
 				);
 				
-				for (const [dx, dy] of OPP_DIR){ //正方向
+				for (const [dx, dy] of TWO_DIRS_OPP){ //正方向
 					let num = [0, 0],
 						len = [1, 1], //连子数
 						px, py;
@@ -243,15 +456,15 @@ class PiecesSystem{
 let pieces, //棋子系统
 	mistake, //防误触
 	turn = 1, //下棋方 1:黑, 0:白
-	first = {i: null, j: null}; //第一次点击位置
+	first = []; //第一次点击位置
 self.addEventListener("message", function(e){
 	//console.log("worker: ", e.data.type, e.data)
 	switch (e.data.type){
 		// 初始化
 		case "init":
-			const {cols, rows, N, mis} = e.data;
+			const {cols, rows, depth, lengthFour, D, N, mis} = e.data;
 			
-			pieces = new PiecesSystem(cols, rows, N);
+			pieces = new PiecesSystem({columns:cols, rows, depth, lengthFour, D, N});
 			mistake = mis;
 			
 			break;
@@ -259,23 +472,36 @@ self.addEventListener("message", function(e){
 			
 		// 下棋
 		case "play":
-			const {i, j, direct=false} = e.data;
+			const {i, j, k, l, direct=false} = e.data;
+			
+			const pos = [];
+			switch (pieces.D){
+				case 2:
+					pos.push(i, j);
+					break;
+				case 3:
+					pos.push(i, j, k);
+					break;
+				case 4:
+					pos.push(i, j, k, l);
+					break;
+			}
 			
 			if (pieces.winner !== false) //已结束
 				return self.postMessage({type: "play"});
-			if (pieces.get(i, j) !== 0) //非空位
+			if (pieces.get(...pos) !== 0) //非空位
 				return self.postMessage({type: "play"});
 			
 			//下棋
 			const play = () => {
 				if (turn){ //黑
-					pieces.addStep(i, j, 2);
+					pieces.addStep(...pos, 2);
 					self.postMessage({
 						type: "play",
 						action: 2 //下黑棋
 					});
 				}else{ //白
-					pieces.addStep(i, j, 1);
+					pieces.addStep(...pos, 1);
 					self.postMessage({
 						type: "play",
 						action: 1 //下白棋
@@ -315,17 +541,16 @@ self.addEventListener("message", function(e){
 			
 			
 			if (mistake && !direct){ //防误触
-				if (first.i !== null && first.j !== null){ //第二次
+				if ( first.length > 0 ){ //第二次
 					self.postMessage({
 						type: "play",
 						action: -1 //删除标记
 					});
-					if (first.i == i && first.j == j){ //同一位置
-						first.i = first.j = null;
+					if ( first.every((v,i) => v==pos[i]) ){ //同一位置
+						first = [];
 						play();
 					}else{ //不同位置
-						first.i = i,
-						first.j = j;
+						first = pos;
 						self.postMessage({
 							type: "play",
 							action: -2 //新的位置添加标记
@@ -333,8 +558,7 @@ self.addEventListener("message", function(e){
 					}
 					
 				}else{ //第一次
-					first.i = i,
-					first.j = j;
+					first = pos;
 					self.postMessage({
 						type: "play",
 						action: -2 //添加标记

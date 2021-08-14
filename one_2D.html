@@ -53,6 +53,15 @@
 			
 			background-color: #fffae8; /* 背景 */
 		}
+		html.outDown{
+			min-height: 100%;
+			background: #1b2036 url("./img/background.jpg") no-repeat fixed center;
+			background-size: cover;
+			max-width: 100%;
+			margin: auto;
+			
+			overflow-y: hidden;
+		}
 		
 		body{
 			position: absolute;
@@ -62,16 +71,22 @@
 			top: 0;
 			margin: 0;
 			
-			display: flex;
-			flex-direction: column;
-			
 			background-color: #fffae8; /* 背景 */
+			
+			opacity: 0; /* 完全透明 */
+			transition: opacity 1s, top 0.6s; /* 出入动画 */
+		}
+		html.fadeIn > body{
+			opacity: 1; /* 不透明 */
+		}
+		html.outDown > body{
+			top: 100%; /* 下滑 */
+			overflow-y: hidden;
 		}
 		
 		
 		/* header */
 		body > header{
-			flex: none;
 			display: flex;
 			width: 100%;
 			background-color: #aef;
@@ -296,11 +311,11 @@
 let WIDTH;
 function resize(){
 	console.log("resize")
-	$("#board").css("width", "0px")
-		.css("height", "0px");
-	WIDTH = Math.min(innerWidth-20, innerHeight - $("#main > div").height()*2);
+	WIDTH = Math.min(innerWidth-20, innerHeight - $("#main > .side").height()*2);
 	$("#board").css("width", WIDTH + "px")
-		.css("height", WIDTH + "px");
+		.css("height", WIDTH + "px")
+		.attr("width", 2*WIDTH)
+		.attr("height", 2*WIDTH);
 	
 	$("#tools > .scores").attr("width", innerWidth-18);
 }
@@ -308,18 +323,12 @@ resize();
 //$(window).resize(resize);
 </script>
 <script>
-$("body").hide().fadeIn(1000);
+$("html").addClass("fadeIn");
 function go(url){
-	$("html").css("min-height", "100%")
-		.css("background", '#1b2036 url("./img/background.jpg") no-repeat fixed center')
-		.css("background-size", "cover")
-		.css("max-width", "100%")
-		.css("margin", "auto");
-	$("body").animate({
-		top: "100%"
-	}, 600, function(){
+	$("html").addClass("outDown");
+	setTimeout(function(){
 		location.href = url;
-	});
+	}, 600);
 	layer.load(0);
 }
 
@@ -451,8 +460,8 @@ class Board{
 }
 
 const {N=5, cols=19, rows=19, place=0, mistake=true} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}");
-$("#board").attr("height", $("#board").attr("width") *rows/cols)
-	.css("height", WIDTH *rows/cols + "px");
+$("#board").css("height", WIDTH *rows/cols + "px")
+	.attr("height", 2*WIDTH *rows/cols);
 const board = new Board({ //棋盘
 	canvas: $("#board")[0],
 	background: "#fcce73",
@@ -477,12 +486,8 @@ let game = {
 			{total: 300, step: 30} //1: 黑
 		], //剩余时间
 		scores: {
-			now: [ //当前
-				0, 0
-			],
-			goal: [ //目标
-				0, 0
-			],
+			now: [0, 0], //当前
+			goal: [0, 0], //目标
 			t0: +new Date(),
 			k: 0.005
 		}, //分数 白:0 黑:1
@@ -767,7 +772,7 @@ function init(){
 	game.steps = 0;
 	game.winner = false;
 	clearInterval( game.ids[0] );
-	clearInterval( game.ids[1] );
+	clearInterval( game.ids[1] ); //时间暂停
 	game.t0[0] = game.t0[1] = game.ids[0] = game.ids[1] = null;
 	game.time[0].total = 300;
 	game.time[0].step = 30;
@@ -818,11 +823,14 @@ function init(){
 	});
 	
 	//线程
+	if (worker)
+		worker.terminate(); //关闭线程
 	worker = new Worker("./js/worker.js"); //多线程
 	worker.postMessage({
 		type: "init", //初始化
 		cols,
 		rows,
+		D: 2,
 		N,
 		mis: mistake
 	});
@@ -858,15 +866,14 @@ function request(data){
 
 let waiting = false; //等待中
 $("#board").click(function(e){
+	if (!worker) return; //未初始化线程
+	if (game.first === null) return; //未开始
+	if (game.winner !== false) return; //已结束
+	if (waiting) return; //上次未响应
+	
 	const {offsetX: x, offsetY: y} = e;
 	const [i, j] = board.xy2ij(x,y, place);
 	console.log("click", [x, y], [i, j])
-	
-	if (game.winner !== false) return; //已结束
-	
-	if (game.first === null) return; //未开始
-	
-	if (waiting) return; //上次未响应
 	
 	waiting = true; //开始等待
 	
@@ -875,7 +882,7 @@ $("#board").click(function(e){
 		i, j
 	}).then((data)=>{
 		waiting = false;
-		console.log(data.action)
+		console.log("play callback:", data.action, {i,j})
 		switch (data.action){
 			case 2: //下黑棋
 				board.remove(-1)
@@ -961,6 +968,8 @@ $("#toolBtn > .review").click(function(){
 		
 		$("#tools > .scores").slideUp(); //关闭棋局评分
 		game.updateLines(false); //关闭棋局分析
+		$("#tools > .review > .stop").hide();
+		$("#tools > .review > .play").show(); //暂停
 		
 		request({
 			type: "review" //重放
@@ -980,7 +989,7 @@ $("#toolBtn > .review").click(function(){
 					const {i,j,v} = data.steps[++index];
 					board.remove(-1)
 						.add(i, j, place, v==2? "#000": "#fff", v==2? "#fff":"#000")
-						.add(i, j, place, undefined, "#fff", 2, picSize+2);
+						.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
 					return false;
 				},
 				last = ()=>{
@@ -990,7 +999,7 @@ $("#toolBtn > .review").click(function(){
 					board.updateCallback.win = null;
 					board.remove(-1)
 						.remove(-1)
-						.add(i, j, place, undefined, "#fff", 2, picSize+2);
+						.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
 					return false;
 				};
 			
@@ -1026,8 +1035,8 @@ $("#toolBtn > .review").click(function(){
 		$(this).attr("disabled", "disabled");
 		$("#tools > .review").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
 		
-		$("#tools > .review > .stop").show();
-		$("#tools > .review > .play").hide();
+		$("#tools > .review > .stop").hide();
+		$("#tools > .review > .play").show(); //暂停
 		clearInterval(review_id);
 		review_id = null;
 	}

@@ -84,7 +84,17 @@
 			background-size: cover;
 			max-width: 100%;
 			margin: auto;
+			
+			opacity: 0; /* 完全透明 */
+			transition: transform 0.6s, opacity 0.6s; /* 出入动画 */
 		}
+		body.fadeIn{
+			opacity: 1; /* 不透明 */
+		}
+		body.outUp{
+			transform: translateY(-100%); /* 上滑 */
+		}
+		
 		/* h1 */
 		body > h1{
 			margin: 0;
@@ -286,14 +296,28 @@
 				<div class="layui-form-item">
 					<label class="layui-form-label">棋盘行数</label>
 					<div class="layui-input-inline">
-						<input type="number" name="cols" min="3" max="30" value="19" class="layui-input" />
+						<input type="number" name="cols" min="3" max="30" init="19" value="19" class="layui-input" />
 					</div>
 					<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
 				</div>
 				<div class="layui-form-item">
 					<label class="layui-form-label">棋盘列数</label>
 					<div class="layui-input-inline">
-						<input type="number" name="rows" min="3" max="30" value="19" class="layui-input" />
+						<input type="number" name="rows" min="3" max="30" init="19" value="19" class="layui-input" />
+					</div>
+					<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
+				</div>
+				<div class="layui-form-item" style="display: none;">
+					<label class="layui-form-label">棋盘深度</label>
+					<div class="layui-input-inline">
+						<input type="number" name="depth" min="3" max="30" init="10" value="10" class="layui-input" />
+					</div>
+					<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
+				</div>
+				<div class="layui-form-item" style="display: none;">
+					<label class="layui-form-label">4D长度</label>
+					<div class="layui-input-inline">
+						<input type="number" name="lengthFour" min="3" max="30" init="10" value="10" class="layui-input" />
 					</div>
 					<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
 				</div>
@@ -328,20 +352,82 @@ if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test(
 }
 </script>
 <script>
+$("body").addClass("fadeIn");
+function go(url){
+	$("html").css("background", "#fffae8");
+	$("body").addClass("outUp");
+	setTimeout(function(){
+		location.href = url;
+	}, 600);
+	layer.load(0);
+}
+
+
+
+function setD(D){
+	switch (D){
+		case 2:
+			$("#settings > form button.two")
+				.removeClass("layui-btn-primary layui-border-green")
+				.siblings().addClass("layui-btn-primary layui-border-green")
+				.parent().parent().children(".text")
+				.html("2D：回归传统，品味经典游戏");
+			form.cols.init = form.rows.init = 19; //初始值为19
+			$(form.depth).parent().parent().hide("slow");
+			$(form.lengthFour).parent().parent().hide("slow");
+			$(form.place).parent().parent().show("slow");
+			break;
+			
+		case 3:
+			$("#settings > form button.three")
+				.removeClass("layui-btn-primary layui-border-green")
+				.siblings().addClass("layui-btn-primary layui-border-green")
+				.parent().parent().children(".text")
+				.html("3D：创意之作，体味烧脑乐趣");
+			form.cols.init = form.rows.init = form.depth.init = 10; //初始值为10
+			form.cols.value = form.rows.value = form.depth.value = 10; //值为10
+			$(form.depth).parent().parent().show("slow");
+			$(form.lengthFour).parent().parent().hide("slow");
+			$(form.place).parent().parent().hide("slow");
+			break;
+			
+		case 4:
+			$("#settings > form button.four")
+				.removeClass("layui-btn-primary layui-border-green")
+				.siblings().addClass("layui-btn-primary layui-border-green")
+				.parent().parent().children(".text")
+				.html("4D：四维空间，挑战最强大脑");
+			form.cols.init = form.rows.init = form.depth.init = form.lengthFour.init = 10; //初始值为10
+			form.cols.value = form.rows.value = form.depth.value = form.lengthFour.value = 10; //值为10
+			$(form.depth).parent().parent().show("slow");
+			$(form.lengthFour).parent().parent().show("slow");
+			$(form.place).parent().parent().hide("slow");
+			break;
+	}
+}
+
 const setting = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
 	form = $("#settings > form")[0];
 function saveSetting(){ //保存设置
 	localStorage.setItem("五子棋_游戏设置", JSON.stringify(setting));
 }
+setting.D = setting.D || 2;
 setting.N = setting.N || 5;
 setting.cols = setting.cols || 19;
 setting.rows = setting.rows || 19;
+setting.depth = setting.depth || 10;
+setting.lengthFour = setting.lengthFour || 10;
 setting.place = setting.place || 0;
+
+setD(setting.D);
 form.n.value = setting.N;
 form.cols.value = setting.cols;
 form.rows.value = setting.rows;
+form.depth.value = setting.depth;
+form.lengthFour.value = setting.lengthFour;
+
 form.place[+setting.place].checked = true;
-if ( setting.mistake ){ //有设置
+if ( setting.mistake !== undefined ){ //有设置
 	if (+setting.mistake == 0){
 		$("#settings > form input.mistake")[0].checked = false;
 	}else{
@@ -362,54 +448,54 @@ saveSetting(); //保存设置
 $("#settings > form button.two").click(function(){
 	setting.D = 2;
 	saveSetting();
-	$(this).removeClass("layui-btn-primary layui-border-green")
-		.siblings().addClass("layui-btn-primary layui-border-green")
-		.parent().parent().children(".text")
-		.html("2D：回归传统，品味经典游戏");
+	setD(2);
 });
 $("#settings > form button.three").click(function(){
 	setting.D = 3;
 	saveSetting();
-	$(this).removeClass("layui-btn-primary layui-border-green")
-		.siblings().addClass("layui-btn-primary layui-border-green")
-		.parent().parent().children(".text")
-		.html("3D：创意之作，体味烧脑乐趣");
+	setD(3);
 });
 $("#settings > form button.four").click(function(){
 	setting.D = 4;
 	saveSetting();
-	$(this).removeClass("layui-btn-primary layui-border-green")
-		.siblings().addClass("layui-btn-primary layui-border-green")
-		.parent().parent().children(".text")
-		.html("4D：四维空间，挑战最强大脑");
+	setD(4);
 });
 
 //输入改变
 $("#settings > form input[type='number']").change(function(){
+	if (this.value == "")
+		return (this.value = this.init); //初始值
 	this.value = Math.limitRange(+this.value, +this.min, +this.max);
 });
 
 
 
-$("body").hide().fadeIn(1000);
-function go(url){
-	$("html").css("background", "#fffae8");
-	$("body").animate({
-		top: "-100%"
-	}, 600, function(){
-		location.href = url;
-	});
-	layer.load(0);
-}
-
 //双人对战
 $("#two").click(function(){
-	go("two.html");
+	switch (setting.D){
+		case 2:
+			go("two_2D.html");
+			break;
+		case 3:
+			go("two_3D.html");
+			break;
+		case 4:
+			break;
+	}
 });
 
 //人机对战
 $("#one").click(function(){
-	go("one.html");
+	switch (setting.D){
+		case 2:
+			go("one_2D.html");
+			break;
+		case 3:
+			go("onr_3D.html");
+			break;
+		case 4:
+			break;
+	}
 });
 
 //多人联机
@@ -440,6 +526,8 @@ $("#settings button.ok").click(function(){
 	setting.N = +form.n.value;
 	setting.cols = +form.cols.value;
 	setting.rows = +form.rows.value;
+	setting.depth = +form.depth.value;
+	setting.lengthFour = +form.lengthFour.value;
 	setting.place = +form.place[1].checked;
 	setting.mistake = form.mistake.checked;
 	saveSetting();
