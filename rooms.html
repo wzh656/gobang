@@ -682,7 +682,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_roomStart", room)
 		const type = ROOMLIST[ROOM].people[0] == ID;
 		let path;
-		switch (setting.D){
+		switch (ROOMLIST[ROOM].D){
 			case 2:
 				path = "online_2D.html";
 				break;

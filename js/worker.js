@@ -101,18 +101,18 @@ class PiecesSystem{
 			case 3:
 				for (let i=0; i<columns; i++){
 					this.pieces[i] = [];
-					for (let j=0; j<depth; j++)
-						this.pieces[i][j] = new Array(rows).fill(0); //0:空白 1:白 2:黑 undefined:超出范围
+					for (let j=0; j<rows; j++)
+						this.pieces[i][j] = new Array(depth).fill(0); //0:空白 1:白 2:黑 undefined:超出范围
 				}
 				break;
 				
 			case 4:
 				for (let i=0; i<columns; i++){
 					this.pieces[i] = [];
-					for (let j=0; j<depth; j++){
+					for (let j=0; j<rows; j++){
 						this.pieces[i][j] = [];
-						for (let k=0; j<lengthFour; j++)
-							this.pieces[i][j][k] = new Array(rows).fill(0); //0:空白 1:白 2:黑 undefined:超出范围
+						for (let k=0; j<depth; j++)
+							this.pieces[i][j][k] = new Array(lengthFour).fill(0); //0:空白 1:白 2:黑 undefined:超出范围
 					}
 				}
 				break;

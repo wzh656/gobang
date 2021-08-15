@@ -950,13 +950,15 @@ $("#toolBtn > .scores").click(function(){
 //分析
 function analyse(display){
 	if ( display === false || //欲隐藏
-		(display === undefined && board.updateCallback.analyse) //已显示
+		(display === undefined && game.linesDisplay) //已显示
 	){
+		if (game.linesDisplay) //已显示
+			layer.msg("棋局分析已关闭");
 		game.updateLines(false);
-		layer.msg("棋局分析已关闭");
 	}else{
+		if (game.linesDisplay) //已隐藏
+			layer.msg("棋局分析已开启");
 		game.updateLines(true);
-		layer.msg("棋局分析已开启");
 	}
 }
 $("#toolBtn > .analyse").click(function(){
@@ -968,6 +970,7 @@ $("#toolBtn > .analyse").click(function(){
 });
 
 //复盘
+let reviewRestore; //重置函数
 $("#toolBtn > .review").click(function(){
 	if ( $("#tools > .review").css("display") == "none" ){ //需显示
 		$(this).attr("disabled", "disabled");
@@ -981,6 +984,8 @@ $("#toolBtn > .review").click(function(){
 		request({
 			type: "review" //重放
 		}).then((data)=>{
+			const {steps, pieces} = data;
+			
 			const winCallback = board.updateCallback.win;
 			board.updateCallback.win = board.updateCallback.analyse = null;
 			board.clear(); //清空
@@ -988,12 +993,12 @@ $("#toolBtn > .review").click(function(){
 			let index = -1;
 			
 			const next = ()=>{
-					if (index >= data.steps.length-1){
+					if (index >= steps.length-1){
 						board.updateCallback.win = winCallback;
 						board.update();
 						return layer.msg("不能再往后了");
 					}
-					const {i,j,v} = data.steps[++index];
+					const {i,j,v} = steps[++index];
 					board.remove(-1)
 						.add(i, j, place, v==2? "#000": "#fff", v==2? "#fff":"#000")
 						.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
@@ -1002,13 +1007,20 @@ $("#toolBtn > .review").click(function(){
 				last = ()=>{
 					if (index <= 0)
 						return layer.msg("不能再往前了"); 
-					const {i,j,v} = data.steps[--index];
+					const {i,j,v} = steps[--index];
 					board.updateCallback.win = null;
 					board.remove(-1)
 						.remove(-1)
 						.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
 					return false;
 				};
+			reviewRestore = ()=>{
+				board.clear();
+				for (const {i,j,v} of steps)
+					board.add(i, j, place, v==2? "#000": "#fff", v==2? "#fff":"#000")
+				board.updateCallback.win = winCallback;
+				board.update();
+			};
 			
 			next();
 			
@@ -1023,29 +1035,30 @@ $("#toolBtn > .review").click(function(){
 					clearInterval(review_id);
 				
 				review_id = setInterval(()=>{
-					if ( next() !== false ){
-						clearInterval(review_id);
-						$(this).show();
-						$("#tools > .review > .stop").hide();
-					}
+					if (next() === false) return;
+					clearInterval(review_id);
+					review_id = null;
+					$(this).show();
+					$("#tools > .review > .stop").hide();
 				}, 1000);
 			});
 			$("#tools > .review > .stop").click(function(){
-				$(this).hide();
-				$("#tools > .review > .play").show();
 				clearInterval(review_id);
 				review_id = null;
+				$(this).hide();
+				$("#tools > .review > .play").show();
 			});
 		});
 		
 	}else{
-		$(this).attr("disabled", "disabled");
-		$("#tools > .review").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
+		clearInterval(review_id);
+		review_id = null;
+		reviewRestore(); //重置
 		
 		$("#tools > .review > .stop").hide();
 		$("#tools > .review > .play").show();
-		clearInterval(review_id);
-		review_id = null;
+		$(this).attr("disabled", "disabled");
+		$("#tools > .review").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
 	}
 });
 </script>
