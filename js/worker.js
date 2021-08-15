@@ -244,7 +244,7 @@ class PiecesSystem{
 						for (const [z, col] of Object.entries(face))
 							for (const [w, pic] of Object.entries(col))
 								if (pic !== 0) //非空
-									for (const [dx, dy, dz, dw] of THREE_DIRS){ //各个方向
+									for (const [dx, dy, dz, dw] of FOUR_DIRS){ //各个方向
 										let won = true,
 											i;
 										for (i=1; i<=this.N-1; i++) //包括自己 往下N-1
@@ -297,61 +297,194 @@ class PiecesSystem{
 	
 	//分析分数
 	score(){
-		const scores = [0, 0], //1:黑, 0:白
+		const scores = new Array(this.D).fill(0), //1:黑, 0:白
 			lines = [], //连线
 			passed = []; //经过的
-				
-		for (const [x, col] of Object.entries(this.pieces))
-			for (const [y, pic] of Object.entries(col)){
-				if (pic === 0) continue; //无棋子 跳过
-				/*if ( passed.some((v)=>v[0]==x && v[1]==y) )
-					continue; //相同 跳过*/
-				
-				for (const [dx, dy] of TWO_DIRS){ //各个方向
-					let num = 0, //连子数
-						width = 1,
-						px, py;
-					
-					if (this.get(x-dx, y-dy) == 3-pic || //被对方堵住
-						this.get(x-dx, y-dy) == undefined //墙
-					) num--;
-					
-					if ( passed.some((v)=>v[0]==x && v[1]==y) ){ //有相同
-						px = +x + dx,
-						py = +y + dy;
-						while (this.get(px, py) == pic){ //己方
-							width++;
-							
-							px += +dx, py += +dy; //循环
-						}
+		
+		switch (this.D){
+			case 2:
+				for (const [x, col] of Object.entries(this.pieces))
+					for (const [y, pic] of Object.entries(col)){
+						if (pic === 0) continue; //无棋子 跳过
+						/*if ( passed.some((v)=>v[0]==x && v[1]==y) )
+							continue; //相同 跳过*/
 						
-					}else{
-						px = +x + dx,
-						py = +y + dy;
-						while (this.get(px, py) == pic){ //己方
-							num++;
-							width++;
-							passed.push([px, py]); //已经历
+						for (const [dx, dy] of TWO_DIRS){ //各个方向
+							let num = 0, //连子数
+								width = 1,
+								px, py;
 							
-							px += +dx, py += +dy; //循环
+							if ( this.get(x-dx, y-dy) == 3-pic || //被对方堵住
+								this.get(x-dx, y-dy) == undefined //墙
+							) num--;
+							
+							if ( passed.some(v => v[0]==x && v[1]==y) ){ //有相同
+								px = +x + dx,
+								py = +y + dy;
+								while (this.get(px, py) == pic){ //己方
+									width++;
+									
+									px += +dx,
+									py += +dy; //循环
+								}
+								
+							}else{
+								px = +x + dx,
+								py = +y + dy;
+								while (this.get(px, py) == pic){ //己方
+									num++;
+									width++;
+									passed.push([px, py]); //已经历
+									
+									px += +dx,
+									py += +dy; //循环
+								}
+							}
+							
+							if ( this.get(px, py) == 3-pic || //被对方堵住
+								this.get(px, py) == undefined //墙
+							) num--;
+							
+							scores[pic-1] += 10**num;
+							
+							if (width > 1)
+								lines.push({
+									start: [x, y],
+									end: [px-dx, py-dy],
+									width,
+									pic
+								});
 						}
 					}
-					
-					if (this.get(px, py) == 3-pic || //被对方堵住
-						this.get(px, py) == undefined //墙
-					) num--;
-					
-					scores[pic-1] += 10**num;
-					
-					if (width > 1)
-						lines.push({
-							start: [x, y],
-							end: [px-dx, py-dy],
-							width,
-							color: pic==2? "#fff": "#000"
-						});
-				}
-			}
+				break;
+			
+			case 3:
+				for (const [x, face] of Object.entries(this.pieces))
+					for (const [y, col] of Object.entries(face))
+						for (const [z, pic] of Object.entries(col)){
+							if (pic === 0) continue; //无棋子 跳过
+							/*if ( passed.some(v => v[0]==x && v[1]==y && v[2]==z) )
+								continue; //相同 跳过*/
+							
+							for (const [dx, dy, dz] of THREE_DIRS){ //各个方向
+								let num = 0, //连子数
+									width = 1,
+									px, py, pz;
+								
+								if ( this.get(x-dx, y-dy, z-dz) == 3-pic || //被对方堵住
+									this.get(x-dx, y-dy, z-dz) == undefined //墙
+								) num--;
+								
+								if ( passed.some(v => v[0]==x && v[1]==y && v[2]==z) ){ //有相同
+									px = +x + dx,
+									py = +y + dy,
+									pz = +z + dz;
+									while (this.get(px, py, pz) == pic){ //己方
+										width++;
+										
+										px += +dx,
+										py += +dy,
+										pz += +dz; //循环
+									}
+									
+								}else{
+									px = +x + dx,
+									py = +y + dy,
+									pz = +z + dz;
+									while (this.get(px, py, pz) == pic){ //己方
+										num++;
+										width++;
+										passed.push([px, py, pz]); //已经历
+										
+										px += +dx,
+										py += +dy,
+										pz += +dz; //循环
+									}
+								}
+								
+								if ( this.get(px, py, pz) == 3-pic || //被对方堵住
+									this.get(px, py, pz) == undefined //墙
+								) num--;
+								
+								scores[pic-1] += 10**num;
+								
+								if (width > 1)
+									lines.push({
+										start: [x, y, z],
+										end: [px-dx, py-dy, pz-dz],
+										width,
+										pic
+									});
+							}
+						}
+				break;
+				
+			case 4:
+				for (const [x, cube] of Object.entries(this.pieces))
+					for (const [y, face] of Object.entries(cube))
+						for (const [z, col] of Object.entries(face))
+							for (const [w, pic] of Object.entries(col)){
+								if (pic === 0) continue; //无棋子 跳过
+								/*if ( passed.some((v)=>v[0]==x && v[1]==y) )
+									continue; //相同 跳过*/
+								
+								for (const [dx, dy, dz, dw] of FOUR_DIRS){ //各个方向
+									let num = 0, //连子数
+										width = 1,
+										px, py, pz, pw;
+									
+									if ( this.get(x-dx, y-dy, z-dz, w-dw) == 3-pic || //被对方堵住
+										this.get(x-dx, y-dy, z-dz, w-dw) == undefined //墙
+									) num--;
+									
+									if ( passed.some(v => v[0]==x && v[1]==y && v[2]==z && v[3]==w) ){ //有相同
+										px = +x + dx,
+										py = +y + dy,
+										pz = +z + dz,
+										pw = +w + dw;
+										while (this.get(px, py, pz, pw) == pic){ //己方
+											width++;
+											
+											px += +dx,
+											py += +dy,
+											pz += +dz,
+											pw += +dw; //循环
+										}
+										
+									}else{
+										px = +x + dx,
+										py = +y + dy,
+										pz = +z + dz,
+										pw = +w + dw;
+										while (this.get(px, py, pz, pw) == pic){ //己方
+											num++;
+											width++;
+											passed.push([px, py, pz, pw]); //已经历
+											
+											px += +dx,
+											py += +dy,
+											pz += +dz,
+											pw += +dw; //循环
+										}
+									}
+									
+									if ( this.get(px, py, pz, pw) == 3-pic || //被对方堵住
+										this.get(px, py, pz, pw) == undefined //墙
+									) num--;
+									
+									scores[pic-1] += 10**num;
+									
+									if (width > 1)
+										lines.push({
+											start: [x, y, z, w],
+											end: [px-dx, py-dy, pz-dz, pw-dw],
+											width,
+											pic
+										});
+								}
+							}
+				break;
+		}
 		
 		return {scores, lines};
 	}
@@ -359,93 +492,311 @@ class PiecesSystem{
 	//电脑下棋
 	play(side){
 		const max = {
-			pos: new Array(2),
+			pos: new Array(this.D),
 			value: -Infinity
 		};
 		
-		for (const [x, col] of Object.entries(this.pieces))
-			for (const [y, pic] of Object.entries(col)){
-				if (pic !== 0) continue; //有棋子 跳过
+		switch (this.D){
+			case 2:
+				for (const [x, col] of Object.entries(this.pieces))
+					for (const [y, pic] of Object.entries(col)){
+						if (pic !== 0) continue; //有棋子 跳过
+						
+						let score = 1/(
+							(x - (pieces.columns-1)/2) **2 +
+							(y - (pieces.rows-1)/2) **2 +
+							Math.random() + 1
+						);
+						
+						for (const [dx, dy] of TWO_DIRS_OPP){ //正方向
+							let num = [0, 0],
+								len = [0, 0], //连子数（不包括自己）
+								px, py;
+							
+							px = +x + dx,
+							py = +y + dy;
+							while (this.get(px, py) == side){ //己方 攻击
+								num[0]++;
+								len[0]++;
+								
+								px += +dx,
+								py += +dy; //循环
+							}
+							if ( this.get(px, py) == 3-side || //被对方堵住
+								this.get(px, py) == undefined //墙
+							) num[0]--;
+							
+							px = +x + dx,
+							py = +y + dy;
+							while (this.get(px, py) == 3-side){ //对方 防御
+								num[1]++;
+								len[1]++;
+								
+								px += +dx,
+								py += +dy; //循环
+							}
+							if ( this.get(px, py) == 3-side || //被对方堵住
+								this.get(px, py) == undefined //墙
+							) num[1]--;
+							
+							px = +x - dx,
+							py = +y - dy;
+							while (this.get(px, py) == side){ //己方 攻击
+								num[0]++;
+								len[0]++;
+								
+								px -= +dx,
+								py -= +dy; //循环
+							}
+							if ( this.get(px, py) == 3-side || //被对方堵住
+								this.get(px, py) == undefined //墙
+							) num[0]--;
+							
+							px = +x - dx,
+							py = +y - dy;
+							while (this.get(px, py) == 3-side){ //对方 防御
+								num[1]++;
+								len[1]++;
+								
+								px -= +dx,
+								py -= +dy; //循环
+							}
+							if ( this.get(px, py) == 3-side || //被对方堵住
+								this.get(px, py) == undefined //墙
+							) num[1]--;
+							
+							if (len[0] >= this.N){ //可直接获胜
+								score += 10 ** len[0];
+							}else{
+								score += 10 ** num[0];
+							}
+							
+							if (len[1] >= this.N-1){ //可防御对方直接获胜
+								score += 10 ** len[1] * 0.6;
+							}else{
+								score += 10 ** num[1] * 0.6;
+							}
+						}
+						
+						if (score > max.value){
+							max.pos[0] = x,
+							max.pos[1] = y;
+							max.value = score;
+						}
+					}
+				break;
 				
-				let score = 1/(
-					(x - (pieces.columns-1)/2) **2 +
-					(y - (pieces.rows-1)/2) **2 +
-					Math.random() + 1
-				);
+			case 3:
+				for (const [x, face] of Object.entries(this.pieces))
+					for (const [y, col] of Object.entries(face))
+						for (const [z, pic] of Object.entries(col)){
+							if (pic !== 0) continue; //有棋子 跳过
+							
+							let score = 1/(
+								(x - (pieces.columns-1)/2) **2 +
+								(y - (pieces.rows-1)/2) **2 +
+								(z - (pieces.depth-1)/2) **2 +
+								Math.random() + 1
+							);
+							
+							for (const [dx, dy, dz] of THREE_DIRS_OPP){ //正方向
+								let num = [0, 0],
+									len = [0, 0], //连子数（不包括自己）
+									px, py, pz;
+								
+								px = +x + dx,
+								py = +y + dy,
+								pz = +z + dz;
+								while (this.get(px, py, pz) == side){ //己方 攻击
+									num[0]++;
+									len[0]++;
+									
+									px += +dx,
+									py += +dy,
+									pz += +dz; //循环
+								}
+								if ( this.get(px, py, pz) == 3-side || //被对方堵住
+									this.get(px, py, pz) == undefined //墙
+								) num[0]--;
+								
+								px = +x + dx,
+								py = +y + dy,
+								pz = +z + dz;
+								while (this.get(px, py, pz) == 3-side){ //对方 防御
+									num[1]++;
+									len[1]++;
+									
+									px += +dx,
+									py += +dy,
+									pz += +dz; //循环
+								}
+								if ( this.get(px, py, pz) == 3-side || //被对方堵住
+									this.get(px, py, pz) == undefined //墙
+								) num[1]--;
+								
+								px = +x - dx,
+								py = +y - dy,
+								pz = +z - dz;
+								while (this.get(px, py, pz) == side){ //己方 攻击
+									num[0]++;
+									len[0]++;
+									
+									px -= +dx,
+									py -= +dy,
+									pz -= +dz; //循环
+								}
+								if ( this.get(px, py, pz) == 3-side || //被对方堵住
+									this.get(px, py, pz) == undefined //墙
+								) num[0]--;
+								
+								px = +x - dx,
+								py = +y - dy,
+								pz = +z - dz;
+								while (this.get(px, py, pz) == 3-side){ //对方 防御
+									num[1]++;
+									len[1]++;
+									
+									px -= +dx,
+									py -= +dy,
+									pz -= +dz; //循环
+								}
+								if ( this.get(px, py, pz) == 3-side || //被对方堵住
+									this.get(px, py, pz) == undefined //墙
+								) num[1]--;
+								
+								if (len[0] >= this.N){ //可直接获胜
+									score += 10 ** len[0];
+								}else{
+									score += 10 ** num[0];
+								}
+								
+								if (len[1] >= this.N-1){ //可防御对方直接获胜
+									score += 10 ** len[1] * 0.6;
+								}else{
+									score += 10 ** num[1] * 0.6;
+								}
+							}
+							
+							if (score > max.value){
+								max.pos[0] = x,
+								max.pos[1] = y,
+								max.pos[2] = z;
+								max.value = score;
+							}
+						}
+				break;
 				
-				for (const [dx, dy] of TWO_DIRS_OPP){ //正方向
-					let num = [0, 0],
-						len = [1, 1], //连子数
-						px, py;
-					
-					px = +x + dx,
-					py = +y + dy;
-					while (this.get(px, py) == side){ //己方 攻击
-						num[0]++;
-						len[0]++;
-						px += +dx, py += +dy; //循环
-					}
-					if (this.get(px, py) == 3-side || //被对方堵住
-						this.get(px, py) == undefined //墙
-					) num[0]--;
-					
-					px = +x + dx,
-					py = +y + dy;
-					while (this.get(px, py) == 3-side){ //对方 防御
-						num[1]++;
-						len[1]++;
-						px += +dx, py += +dy; //循环
-					}
-					if (this.get(px, py) == 3-side || //被对方堵住
-						this.get(px, py) == undefined //墙
-					) num[1]--;
-					
-					px = +x - dx,
-					py = +y - dy;
-					while (this.get(px, py) == side){ //己方 攻击
-						num[0]++;
-						len[0]++;
-						px -= +dx, py -= +dy; //循环
-					}
-					if (this.get(px, py) == 3-side || //被对方堵住
-						this.get(px, py) == undefined //墙
-					) num[0]--;
-					
-					px = +x - dx,
-					py = +y - dy;
-					while (this.get(px, py) == 3-side){ //对方 防御
-						num[1]++;
-						len[1]++;
-						px -= +dx, py -= +dy; //循环
-					}
-					if (this.get(px, py) == 3-side || //被对方堵住
-						this.get(px, py) == undefined //墙
-					) num[1]--;
-					
-					if (len[0] >= this.N){
-						score += 10 ** (len[0] - 1);
-					}else{
-						score += 10 ** num[0];
-					}
-					if (len[1] >= this.N-1){
-						score += 10 ** (len[1] - 1) * 0.6;
-					}else{
-						score += 10 ** num[1] * 0.6;
-					}
-				}
-				
-				/*self.postMessage({type:"log", x,y,score,init:1/(
-					(x - (pieces.rows-1)/2) **2 +
-					(y - (pieces.columns-1)/2) **2 +
-					Math.random()
-				)})*/
-				
-				if (score > max.value){
-					max.pos[0] = x,
-					max.pos[1] = y;
-					max.value = score;
-				}
-			}
+			case 4:
+				for (const [x, cube] of Object.entries(this.pieces))
+					for (const [y, face] of Object.entries(cube))
+						for (const [z, col] of Object.entries(face))
+							for (const [w, pic] of Object.entries(col)){
+								if (pic !== 0) continue; //有棋子 跳过
+								
+								let score = 1/(
+									(x - (pieces.columns-1)/2) **2 +
+									(y - (pieces.rows-1)/2) **2 +
+									(z - (pieces.depth-1)/2) **2 +
+									(w - (pieces.lengthFour-1)/2) **2 +
+									Math.random() + 1
+								);
+								
+								for (const [dx, dy, dz, dw] of THREE_DIRS_OPP){ //正方向
+									let num = [0, 0],
+										len = [0, 0], //连子数（不包括自己）
+										px, py, pz, pw;
+									
+									px = +x + dx,
+									py = +y + dy,
+									pz = +z + dz,
+									pw = +w + dw;
+									while (this.get(px, py, pz, pw) == side){ //己方 攻击
+										num[0]++;
+										len[0]++;
+										
+										px += +dx,
+										py += +dy,
+										pz += +dz,
+										pw += +dw; //循环
+									}
+									if ( this.get(px, py, pz, pw) == 3-side || //被对方堵住
+										this.get(px, py, pz, pw) == undefined //墙
+									) num[0]--;
+									
+									px = +x + dx,
+									py = +y + dy,
+									pz = +z + dz,
+									pw = +w + dw;
+									while (this.get(px, py, pz, pw) == 3-side){ //对方 防御
+										num[1]++;
+										len[1]++;
+										
+										px += +dx,
+										py += +dy,
+										pz += +dz,
+										pw += +dw; //循环
+									}
+									if ( this.get(px, py, pz, pw) == 3-side || //被对方堵住
+										this.get(px, py, pz, pw) == undefined //墙
+									) num[1]--;
+									
+									px = +x - dx,
+									py = +y - dy,
+									pz = +z - dz,
+									pw = +w - dw;
+									while (this.get(px, py, pz, pw) == side){ //己方 攻击
+										num[0]++;
+										len[0]++;
+										
+										px -= +dx,
+										py -= +dy,
+										pz -= +dz,
+										pw -= +dw; //循环
+									}
+									if ( this.get(px, py, pz, pw) == 3-side || //被对方堵住
+										this.get(px, py, pz, pw) == undefined //墙
+									) num[0]--;
+									
+									px = +x - dx,
+									py = +y - dy,
+									pz = +z - dz,
+									pw = +w - dw;
+									while (this.get(px, py, pz, pw) == 3-side){ //对方 防御
+										num[1]++;
+										len[1]++;
+										
+										px -= +dx,
+										py -= +dy,
+										pz -= +dz,
+										pw -= +dw; //循环
+									}
+									if ( this.get(px, py, pz, pw) == 3-side || //被对方堵住
+										this.get(px, py, pz, pw) == undefined //墙
+									) num[1]--;
+									
+									if (len[0] >= this.N){ //可直接获胜
+										score += 10 ** len[0];
+									}else{
+										score += 10 ** num[0];
+									}
+									
+									if (len[1] >= this.N-1){ //可防御对方直接获胜
+										score += 10 ** len[1] * 0.6;
+									}else{
+										score += 10 ** num[1] * 0.6;
+									}
+								}
+								
+								if (score > max.value){
+									max.pos[0] = x,
+									max.pos[1] = y,
+									max.pos[2] = z,
+									max.pos[3] = w;
+									max.value = score;
+								}
+							}
+				break;
+		}
 		
 		return max;
 	}
@@ -585,7 +936,7 @@ self.addEventListener("message", function(e){
 				pos: max.pos,
 				value: max.value
 			});
-			pieces.addStep(max.pos[0], max.pos[1], side);
+			pieces.addStep(...max.pos, side);
 			turn = 1-turn;
 			
 			//判断获胜
@@ -620,11 +971,21 @@ self.addEventListener("message", function(e){
 			break;
 		
 		
+		//所有棋子
+		case "pieces":
+			self.postMessage({
+				type: "pieces",
+				pieces: pieces.pieces
+			});
+			break;
+		
+		
 		// 重放
 		case "review":
 			self.postMessage({
 				type: "review",
-				steps: pieces.steps
+				steps: pieces.steps,
+				pieces: pieces.pieces
 			});
 			break;
 	}

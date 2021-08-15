@@ -193,6 +193,48 @@
 			height: 100%;
 		}
 		
+		/* 控制 */
+		#layerControl{ /*显示层控制*/
+			position: absolute;
+			left: 1rem;
+			bottom: 8rem;
+			display: flex;
+			flex-direction: column;
+			
+			border: 1px solid #000;
+			border-radius: 0.3rem;
+			font-size: 6em !important;
+		}
+		#layerControl > *{
+			padding: 0.3rem;
+		}
+		#layerControl > *:first-child{
+			border-bottom: 1px solid #000;
+		}
+		#layerControl > *:active{
+			background-color: #eee;
+		}
+		#heightControl{
+			position: absolute;
+			right: 1rem;
+			bottom: 8rem;
+			display: flex;
+			flex-direction: column;
+			
+			border: 1px solid #000;
+			border-radius: 0.3rem;
+			font-size: 6em !important;
+		}
+		#heightControl > *{
+			padding: 0.3rem;
+		}
+		#heightControl > *:first-child{
+			border-bottom: 1px solid #000;
+		}
+		#heightControl > *:active{
+			background-color: #eee;
+		}
+		
 		/* 工具按钮 */
 		#toolBtn{
 			z-index: 1;
@@ -216,6 +258,10 @@
 		}
 		
 		/* 工具 */
+		#tools{
+			z-index: 1;
+		}
+		
 		#tools > .scores{
 			border: 1px solid #ddd;
 		}
@@ -282,7 +328,7 @@
 					<p class="name"></p>
 					<p class="time">
 						局时：<span class="total">10:00</span> &nbsp;
-						步时：<span class="step">30s</span>
+						步时：<span class="step">45s</span>
 					</p>
 				</div>
 			</div>
@@ -293,7 +339,7 @@
 					<p class="name"></p>
 					<p class="time">
 						局时：<span class="total">10:00</span> &nbsp;
-						步时：<span class="step">30s</span>
+						步时：<span class="step">45s</span>
 					</p>
 				</div>
 				<i></i>
@@ -302,6 +348,14 @@
 				<button class="scores">棋局<br>评分</button>
 				<button class="analyse">棋局<br>分析</button>
 				<button class="review" disabled>复盘<br>回放</button>
+			</div>
+			<div id="layerControl">
+				<i class="add layui-icon layui-icon-addition"></i>
+				<i class="sub layui-icon layui-icon-subtraction"></i>
+			</div>
+			<div id="heightControl">
+				<i class="add layui-icon layui-icon-up"></i>
+				<i class="sub layui-icon layui-icon-down"></i>
 			</div>
 			<div id="tools">
 				<canvas class="scores" height="36" style="display: none;"></canvas>
@@ -380,7 +434,7 @@ function go(url){
 
 
 class Board{
-	constructor ({canvas, background, rows, columns, depth, none, mistake, black, white, spacing}){
+	constructor ({canvas, background, rows, columns, depth, none, mistake, black, white, winLines, spacing}){
 		this.canvas = canvas;
 		this.width = canvas.width;
 		this.height = canvas.height;
@@ -399,6 +453,7 @@ class Board{
 		this.mistake = mistake; //防误触配置
 		this.black = black; //黑棋配置
 		this.white = white; //白棋配置
+		this.winLines = winLines; //获胜划线材质
 		
 		this.spacing = spacing; //间隔
 		this.lines = { //划线
@@ -433,11 +488,11 @@ class Board{
 			"Camera",
 			-Math.PI/2, //alpha=-90°
 			Math.PI/4, //beta=45°
-			60, //radius
+			300, //radius
 			BABYLON.Vector3.Zero(), //position
 			this.scene
 		);
-		this.camera.attachControl(this.canvas);
+		this.camera.attachControl(this.canvas, false);
 		this.cameraInitPosition = this.camera.position.clone();
 		
 		//添加光
@@ -458,10 +513,14 @@ class Board{
 		this.templates = {}; //网格模板
 		for (const name of ["none", "mistake", "black", "white"]){
 			const material = new BABYLON.StandardMaterial("material_"+name, this.scene); //空气材质
-			material.diffuseColor = new BABYLON.Color3(...this[name].color[0]); //漫反射颜色
-			material.specularColor = new BABYLON.Color3(...this[name].color[1]); //镜面颜色
-			//material.emissiveColor = new BABYLON.Color3(0, 0, 0); //自发光颜色
-			//material.ambientColor = new BABYLON.Color3(1, 1, 1); //环境光颜色
+			if ( this[name].color[0] )
+				material.diffuseColor = new BABYLON.Color3(...this[name].color[0]); //漫反射颜色
+			if ( this[name].color[1] )
+				material.specularColor = new BABYLON.Color3(...this[name].color[1]); //镜面颜色
+			if ( this[name].color[2] )
+				material.emissiveColor = new BABYLON.Color3(...this[name].color[2]); //自发光颜色
+			if ( this[name].color[3] )
+				material.ambientColor = new BABYLON.Color3(...this[name].color[3]); //环境光颜色
 			material.freeze();
 			this.materials[name] = material;
 			
@@ -484,12 +543,26 @@ class Board{
 			template.freezeWorldMatrix();
 			this.templates[name] = template;
 		}
+		//获胜划线材质
+		const material = new BABYLON.StandardMaterial("material_winLines", this.scene); //空气材质
+		if ( this.winLines.color[0] )
+			material.diffuseColor = new BABYLON.Color3(...this.winLines.color[0]); //漫反射颜色
+		if ( this.winLines.color[1] )
+			material.specularColor = new BABYLON.Color3(...this.winLines.color[1]); //镜面颜色
+		if ( this.winLines.color[2] )
+			material.emissiveColor = new BABYLON.Color3(...this.winLines.color[2]); //自发光颜色
+		if ( this.winLines.color[3] )
+			material.ambientColor = new BABYLON.Color3(...this.winLines.color[3]); //环境光颜色
+		material.freeze();
+		this.materials.winLines = material;
+		
 		
 		//生成所有位置
 		this.pieces = Array.new(null, this.columns, this.rows, this.depth);
 		this.clear();
 		
 		this.scene.blockMaterialDirtyMechanism = true;
+		
 		
 		//渲染循环
 		this.engine.runRenderLoop(()=>{
@@ -519,7 +592,7 @@ class Board{
 			sizeAnimation.setEasingFunction( easingFunction ); //缓动函数
 			
 			//由透明变不透明
-			const alphaAnimation = new BABYLON.Animation(
+			/*const alphaAnimation = new BABYLON.Animation(
 				"animation_alpha", //名称
 				"material.alpha", //属性
 				30, //FPS
@@ -530,7 +603,7 @@ class Board{
 				{ frame: 0, value: 0 },
 				{ frame: 100, value: 1 }
 			]);
-			alphaAnimation.setEasingFunction( easingFunction ); //缓动函数
+			alphaAnimation.setEasingFunction( easingFunction ); //缓动函数*/
 			
 			for (let i=this.columns-1; i>=0; i--)
 				for (let j=this.rows-1; j>=0; j--)
@@ -549,7 +622,7 @@ class Board{
 							{ frame: 100, value: new BABYLON.Vector3(...this.ijk2xyz(i,j,k)) }
 						]);
 						comeInAnimation.setEasingFunction( easingFunction ); //缓动函数
-						mesh.animations = [comeInAnimation, sizeAnimation, alphaAnimation]; //设置到物体
+						mesh.animations = [comeInAnimation, sizeAnimation]; //设置到物体
 						//this.scene.beginAnimation(mesh, 0, 100, false, 1, resolve); //开始动画 不循环
 					}
 			for (let i=this.columns-1; i>=0; i--)
@@ -566,7 +639,7 @@ class Board{
 	ijk2xyz(i, j, k){
 		return [
 			(i - (this.columns-1)/2 ) * this.spacing.x,
-			(-j + (this.rows-1)/2 ) * this.spacing.y,
+			(j - (this.rows-1)/2 ) * this.spacing.y,
 			(k - (this.depth - 1)/2 ) * this.spacing.z
 		];
 	}
@@ -574,7 +647,7 @@ class Board{
 	xyz2ijk(x, y, z){
 		return [
 			Math.round( x/this.spacing.x + (this.columns - 1)/2 ),
-			Math.round( -y/this.spacing.y + (this.rows - 1)/2 ),
+			Math.round( y/this.spacing.y + (this.rows - 1)/2 ),
 			Math.round( z/this.spacing.z + (this.depth - 1)/2 )
 		];
 	}
@@ -590,6 +663,13 @@ class Board{
 		return this;
 	}
 	
+	//隐藏棋子
+	visible(i, j, k, visible){
+		//if (this.pieces[i][j][k])
+			this.pieces[i][j][k].isVisible = visible;
+		return this;
+	}
+	
 	//删除棋子
 	remove(i, j, k){
 		if (this.pieces[i][j][k])
@@ -601,13 +681,14 @@ class Board{
 	//设置棋子
 	set(i, j, k, type){
 		switch (type){
-			case null: //隐藏
+			/*case null: //隐藏
 				if (this.pieces[i][j][k]) //有棋子
 					this.remove(i, j, k);
-				break;
+				break;*/
 				
 			case "none": //空气
 				if (this.pieces[i][j][k]){ //有棋子
+					this.visible(i, j, k, true); //显示
 					if (this.pieces[i][j][k].material == this.materials.none)
 						return; //类型相同不改
 					if (this.pieces[i][j][k].material == this.materials.mistake) //同形状 改材质
@@ -619,6 +700,7 @@ class Board{
 				
 			case "mistake": //防误触
 				if (this.pieces[i][j][k]){ //有棋子
+					this.visible(i, j, k, true); //显示
 					if (this.pieces[i][j][k].material == this.materials.mistake)
 						return; //类型相同不改
 					if (this.pieces[i][j][k].material == this.materials.none) //同形状 改材质
@@ -630,6 +712,7 @@ class Board{
 				
 			case "black": //黑棋
 				if (this.pieces[i][j][k]){ //有棋子
+					this.visible(i, j, k, true); //显示
 					if (this.pieces[i][j][k].material == this.materials.black)
 						return; //类型相同不改
 					if (this.pieces[i][j][k].material == this.materials.white) //同形状 改材质
@@ -641,6 +724,7 @@ class Board{
 				
 			case "white": //白棋
 				if (this.pieces[i][j][k]){ //有棋子
+					this.visible(i, j, k, true); //显示
 					if (this.pieces[i][j][k].material == this.materials.white)
 						return; //类型相同不改
 					if (this.pieces[i][j][k].material == this.materials.black) //同形状 改材质
@@ -657,57 +741,53 @@ class Board{
 	clear(){
 		for (let i=this.columns-1; i>=0; i--)
 			for (let j=this.rows-1; j>=0; j--)
-				for (let k=this.depth-1; k>=0; k--)
-					if (this.surfaceOnly){ //仅显示表面一层
-						if ( i == this.columnRange[0] || i == this.columnRange[1] ||
+				for (let k=this.depth-1; k>=0; k--){
+					this.set(i, j, k, "none");
+					if ( this.surfaceOnly && //仅显示表面一层
+							!( i == this.columnRange[0] || i == this.columnRange[1] ||
 							j == this.rowRange[0] || j == this.rowRange[1] ||
-							k == this.depthRange[0] || k == this.depthRange[1]
-						){ //在加载范围内
-							this.set(i, j, k, "none");
-						}else{
-							this.set(i, j, k, null);
-						}
-						
-					}else{
-						if ( i >= this.columnRange[0] && i <= this.columnRange[1] &&
-							j >= this.rowRange[0] && j <= this.rowRange[1] &&
-							k >= this.depthRange[0] && k <= this.depthRange[1]
-						){ //在加载范围内
-							this.set(i, j, k, "none");
-						}else{
-							this.set(i, j, k, null);
-						}
+							k == this.depthRange[0] || k == this.depthRange[1] ) //不在表面
+					){
+						this.visible(i, j, k, false);
+					}else if ( !( i >= this.columnRange[0] && i <= this.columnRange[1] &&
+						j >= this.rowRange[0] && j <= this.rowRange[1] &&
+						k >= this.depthRange[0] && k <= this.depthRange[1] ) //全部显示 且 不在加载范围内
+					){
+						this.visible(i, j, k, false);
 					}
+				}
 		
 		return this;
 	}
 	
 	
 	//添加划线
-	addLine(from, to, color, width){
-		const line = BABYLON.MeshBuilder.CreateCylinder(
-			"cylinder_line",
-			{
-				height: 5,
-				diameter: width, //直径
-				tessellation: 8, //细分度
-				heightSubdivs: 1 //高度细分度
-			},
-			this.scene
+	addLine(from, to, width=1, material){
+		const [x0, y0, z0] = from,
+			[x1, y1, z1] = to,
+			[dx, dy, dz] = to.map((v,i) => v-from[i]),
+			len = Math.sqrt(dx*dx + dy*dy + dz*dz),
+			line = BABYLON.MeshBuilder.CreateCylinder(
+				"cylinder_line",
+				{
+					height: len,
+					diameter: width, //直径
+					tessellation: 8, //细分度
+					heightSubdivs: 1 //高度细分度
+				},
+				this.scene
+			);
+		line.position = new BABYLON.Vector3(
+			...to.map( (v,i) => (v+from[i])/2 ) //取平均值
 		);
-		from = new BABYLON.Vector3(...from);
-		to = new BABYLON.Vector3(...to);
-		line.position = 
-		/*const lines = BABYLON.MeshBuilder.CreateLines(
-			"lines",
-			{
-				points: positions
-					.map(pos => new BABYLON.Vector3(...pos)),
-				color: new BABYLON.Color3(...color)
-			},
-			this.scene
-		);*/
-		return lines;
+		const symbolX = dx>=0? +1: -1; //dx的符号
+		line.addRotation(0, 0, -Math.PI/2)
+			.addRotation(Math.atan(dz && dz/dx), 0, 0)
+			.addRotation(0, 0, Math.atan(dy / (symbolX * Math.sqrt(dx*dx + dz*dz)) ));
+		if (material)
+			line.material = this.materials[material];
+		console.log(material, width, from, to, line.position, line.rotation)
+		return line;
 	}
 	
 	//删除划线
@@ -718,10 +798,93 @@ class Board{
 	}
 	
 	//清空划线
-	clearLines(){
-		this.removeLines(...this.lines.win, ...this.lines.analyse); //删除所有划线
-		this.lines.win = [];
-		this.lines.analyse = [];
+	clearLines(type){
+		if (type){
+			this.removeLines(...this.lines[type]); //删除所有划线
+			this.lines[type] = [];
+		}else{
+			this.removeLines(...this.lines.win, ...this.lines.analyse); //删除所有划线
+			this.lines.win = [];
+			this.lines.analyse = [];
+		}
+		return this;
+	}
+	
+	//层增大
+	layerAdd(){
+		if (this.columnRange[0] <= 0) return this;
+		if (this.columnRange[1] >= this.columns-1) return this;
+		if (this.rowRange[0] <= 0) return this;
+		if (this.rowRange[1] >= this.rows-1) return this;
+		if (this.depthRange[0] <= 0) return this;
+		if (this.depthRange[1] >= this.depth-1) return this;
+		
+		this.columnRange[0]--;
+		this.columnRange[1]++;
+		this.rowRange[0]--;
+		this.rowRange[1]++;
+		this.depthRange[0]--;
+		this.depthRange[1]++;
+		
+		return this.update();
+	}
+	
+	//层减小
+	layerSub(){
+		if (this.columnRange[0] == this.columnRange[1]) return this;
+		if (this.columnRange[0]+1 == this.columnRange[1]) return this;
+		if (this.rowRange[0] == this.rowRange[1]) return this;
+		if (this.rowRange[0]+1 == this.rowRange[1]) return this;
+		if (this.depthRange[0] == this.depthRange[1]) return this;
+		if (this.depthRange[0]+1 == this.depthRange[1]) return this;
+		
+		this.columnRange[0]++;
+		this.columnRange[1]--;
+		this.rowRange[0]++;
+		this.rowRange[1]--;
+		this.depthRange[0]++;
+		this.depthRange[1]--;
+		
+		return this.update();
+	}
+	
+	//高度增加
+	heightAdd(){
+		if (this.rowRange[1] >= this.rows-1) return this;
+		
+		this.rowRange[1]++;
+		
+		return this.update();
+	}
+	
+	//高度减小
+	heightSub(){
+		if (this.rowRange[1] <= this.rowRange[0]) return this;
+		
+		this.rowRange[1]--;
+		
+		return this.update();
+	}
+	
+	//更新
+	update(){
+		for (let i=this.columns-1; i>=0; i--)
+			for (let j=this.rows-1; j>=0; j--)
+				for (let k=this.depth-1; k>=0; k--)
+					if ( i >= this.columnRange[0] && i <= this.columnRange[1] &&
+						j >= this.rowRange[0] && j <= this.rowRange[1] &&
+						k >= this.depthRange[0] && k <= this.depthRange[1] && //在加载范围内
+						( !this.surfaceOnly || //全部显示
+							i == this.columnRange[0] || i == this.columnRange[1] ||
+							j == this.rowRange[0] || j == this.rowRange[1] ||
+							k == this.depthRange[0] || k == this.depthRange[1] //在表面
+						)
+					){
+						this.visible(i, j, k, true);
+					}else{
+						this.visible(i, j, k, false);
+					}
+		
 		return this;
 	}
 }
@@ -735,34 +898,41 @@ const board = new Board({ //棋盘
 	columns: cols,
 	depth,
 	none: {
-		size: 1.2,
+		size: 6,
 		color: [
 			[0.9, 0.9, 0.9], //漫反射
-			[0.9, 0.9, 0.9] //镜面反射
+			[1, 1, 1] //镜面反射
 		]
 	},
 	mistake: {
-		size: 1.2,
+		size: 6,
 		color: [
 			[0, 0, 1], //漫反射
 			[0.6, 0.6, 1] //镜面反射
 		]
 	},
 	black: {
-		size: 1.6,
+		size: 8,
 		color: [
 			[0, 0, 0], //漫反射
 			[0.8, 0.8, 0.8] //镜面反射
 		]
 	},
 	white: {
-		size: 1.6,
+		size: 8,
 		color: [
 			[1, 1, 1], //漫反射
 			[1, 1, 1] //镜面反射
 		]
 	},
-	spacing: {x: 2, y: 2, z: 2}
+	winLines: {
+		color: [
+			[1, 0, 0], //漫反射
+			[1, 0.8, 0.8], //镜面反射
+			[0.2, 0.2, 0.2] //自发光颜色
+		]
+	},
+	spacing: {x: 10, y: 10, z: 10}
 });
 
 const loadingId = layer.load(2);
@@ -781,9 +951,21 @@ let game = {
 		t0: [null, null], //上次时间
 		ids: [null, null], //计时器id
 		time: [
-			{total: 600, step: 30}, //0: 白
-			{total: 600, step: 30} //1: 黑
+			{total: 600, step: 45}, //0: 白
+			{total: 600, step: 45} //1: 黑
 		], //剩余时间
+		timeWarning: { //时间警告
+			total: {
+				60: ["#f00", 1.2],
+				180: ["#fa0", 1.1],
+				600: ["#000", 1]
+			},
+			step: {
+				10: ["#f00", 1.5],
+				20: ["#fa0", 1.1],
+				45: ["#000", 1]
+			}
+		},
 		scores: {
 			now: [0, 0], //当前
 			goal: [0, 0], //目标
@@ -791,37 +973,71 @@ let game = {
 			k: 0.005
 		}, //分数 白:0 黑:1
 		lines: [], //连线
+		linesDisplay: false, //显示连线
 		
 		//更新时间显示
 		updateTime(turn){
-			let total, step;
+			let total, step,
+				totalElem, stepElem;
 			
 			//黑
-			total = Math.max(~~this.time[1].total, 0);
-			step = Math.max(~~this.time[1].step, 0);
-			$("#main > div.black > div > p.time > span.total").html(
-				~~(total/60) + ":" + total%60
-			).css("color", total<60? "#f00": total<60*3? "#fa0": "#000");
+			total = Math.max(this.time[1].total, 0);
+			step = Math.max(this.time[1].step, 0);
 			
-			$("#main > div.black > div > p.time > span.step").html(
-				step + "s"
-			).css("color", step<10? "#f00": step<20? "#fa0": "#000");
+			totalElem = $("#main > .black > div > .time > .total"),
+			stepElem = totalElem.next(".step");
 			
-			if (step < 10 && step >= 9)
+			totalElem.html(
+				( ~~(total/60) +"").padStart(2,"0") + ":" + ( ~~total%60 +"").padStart(2, "0")
+			);
+			for (const [i,v] of Object.entries(this.timeWarning.total))
+				if (total <= i){
+					totalElem.css("color", v[0])
+						.css("font-size", v[1] + "em");
+					break;
+				}
+			
+			stepElem.html(
+				~~step + "s"
+			);
+			for (const [i,v] of Object.entries(this.timeWarning.step))
+				if (step <= i){
+					stepElem.css("color", v[0])
+						.css("font-size", v[1] + "em");
+					break;
+				}
+			
+			if (~~step < 10 && ~~step >= 9)
 				this.flash(this.turn, "#f00"); //背景闪烁
 			
 			//白
-			total = Math.max(~~this.time[0].total, 0);
-			step = Math.max(~~this.time[0].step, 0);
-			$("#main > div.white > div > p.time > span.total").html(
-				~~(total/60) + ":" + total%60
-			).css("color", total<60? "#f00": total<60*3? "#fa0": "#000");
+			total = Math.max(this.time[0].total, 0);
+			step = Math.max(this.time[0].step, 0);
 			
-			$("#main > div.white > div > p.time > span.step").html(
-				step + "s"
-			).css("color", step<10? "#f00": step<20? "#fa0": "#000");
+			totalElem = $("#main > .white > div > .time > .total"),
+			stepElem = totalElem.next(".step");
 			
-			if (step < 10 && step >= 9)
+			totalElem.html(
+				( ~~(total/60) +"").padStart(2,"0") + ":" + ( ~~total%60 +"").padStart(2, "0")
+			);
+			for (const [i,v] of Object.entries(this.timeWarning.total))
+				if (total <= i){
+					totalElem.css("color", v[0])
+						.css("font-size", v[1] + "em");
+					break;
+				}
+			
+			stepElem.html(
+				~~step + "s"
+			);
+			for (const [i,v] of Object.entries(this.timeWarning.step))
+				if (step <= i){
+					stepElem.css("color", v[0])
+						.css("font-size", v[1] + "em");
+					break;
+				}
+			
+			if (~~step < 10 && ~~step >= 9)
 				this.flash(this.turn, "#f00"); //背景闪烁
 		},
 		
@@ -844,7 +1060,7 @@ let game = {
 			if (this.time[this.turn].total <= 0){ //超出局时
 				this.time[this.turn].step += 5;
 			}else{
-				this.time[this.turn].step = 30; //重置步时
+				this.time[this.turn].step = 45; //重置步时
 				//this.time[this.turn].total += 5; //增加局时
 			}
 			this.updateTime(this.turn);
@@ -943,26 +1159,21 @@ let game = {
 		
 		//更新分析画线
 		updateLines(display=true){
-			if (!display){
-				board.updateCallback.analyse = null;
-				
-			}else{
-				board.updateCallback.analyse = ()=>{
-					const ctx = board.ctx;
-					
-					for (const v of this.lines){
-						if (v.width < 3) //连子<3 避免过密
-							continue;
-						ctx.beginPath();
-						ctx.strokeStyle = v.color;
-						ctx.lineWidth = v.width-3+1;
-						ctx.moveTo(...v.start);
-						ctx.lineTo(...v.end);
-						ctx.stroke();
-					}
-				};
-			}
-			board.update();
+			board.clearLines("analyse");
+			
+			if (display) //需显示
+				for (const v of this.lines)
+					if (v.width >= 3) //连子>=3 避免过密
+						board.lines.analyse.push(
+							board.addLine(
+								v.start,
+								v.end,
+								(v.width-3+1)/2,
+								v.pic==2? "white": "black"
+							)
+						);
+			
+			game.linesDisplay = display;
 		}
 	},
 	worker,
@@ -988,14 +1199,15 @@ let game = {
 				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end, place);
 			});
 			
-			board.removeLines(...board.lines.win);
-			board.lines.win = [];
+			board.clearLines("win");
 			for (const v of lines)
 				board.lines.win.push(
-					board.addLine([
+					board.addLine(
 						v.start,
-						v.end
-					], [1,0,0])
+						v.end,
+						(0.1+N-3+1)/2,
+						"winLines"
+					)
 				);
 			
 			//worker.terminate(); //关闭线程
@@ -1019,14 +1231,14 @@ let game = {
 			
 			const {scores, lines} = data;
 			lines.forEach( v => {
-				[v.start[0], v.start[1]] = board.ij2xy(...v.start, place);
-				[v.end[0], v.end[1]] = board.ij2xy(...v.end, place);
+				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start, place);
+				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end, place);
 			});
 			
 			game.scores.goal = scores;
 			game.lines = lines;
 			
-			if (board.updateCallback.analyse){
+			if (game.linesDisplay){ //已显示
 				game.updateLines(true);
 			}else{
 				game.updateLines(false);
@@ -1057,14 +1269,13 @@ function init(){
 	clearInterval( game.ids[1] ); //时间暂停
 	game.t0[0] = game.t0[1] = game.ids[0] = game.ids[1] = null;
 	game.time[0].total = 600;
-	game.time[0].step = 30;
+	game.time[0].step = 45;
 	game.time[1].total = 600;
-	game.time[1].step = 30;
+	game.time[1].step = 45;
 	game.scores.now[0] = game.scores.now[1] =
 		game.scores.goal[0] = game.scores.goal[1] = 0;
 	game.scores.t0 = +new Date();
 	game.scores.k = 0.005;
-	setInterval(()=>game.updateScores(), 16); //更新分数
 	game.lines = []; //清空分析画线
 	
 	//停止复盘
@@ -1072,6 +1283,8 @@ function init(){
 	review_id = null;
 	
 	//线程
+	if (worker)
+		worker.terminate(); //关闭线程
 	worker = new Worker("./js/worker.js"); //多线程
 	worker.postMessage({
 		type: "init", //初始化
@@ -1172,70 +1385,126 @@ $("#back").click(function(){
 $("#restart").click(init);
 
 
+/* control */
+$("#layerControl > .add").click(function(){
+	board.layerAdd();
+});
+$("#layerControl > .sub").click(function(){
+	board.layerSub();
+});
+$("#heightControl > .add").click(function(){
+	board.heightAdd();
+});
+$("#heightControl > .sub").click(function(){
+	board.heightSub();
+});
+
+
 /* tools */
 //评分
+let scoresUpdateId;
+function scores(display){
+	const btn = $("#toolBtn > .scores"),
+		tool = $("#tools > .scores");
+	if ( display === true || //欲显示
+		(display === undefined && tool.css("display") == "none") //已隐藏
+	){
+		clearInterval( scoresUpdateId ); //停止更新
+		scoresUpdateId = setInterval(()=>game.updateScores(), 30); //更新分数
+		
+		btn.attr("disabled", "disabled");
+		tool.slideDown("slow", ()=>btn.removeAttr("disabled"));
+		
+	}else{
+		clearInterval( scoresUpdateId ); //停止更新
+		scoresUpdateId = null;
+		
+		btn.attr("disabled", "disabled");
+		tool.slideUp("slow", ()=>btn.removeAttr("disabled"));
+	}
+}
 $("#toolBtn > .scores").click(function(){
-	if ($("#tools > .review").css("display") != "none")
-		return layer.msg("复盘时不支持棋局评分");
-	
-	$(this).attr("disabled", "disabled");
-	$("#tools > .scores").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
+	if ( $("#tools > .review").css("display") != "none" ){
+		scores(false);
+		return layer.msg("复盘时暂不支持棋局评分");
+	}
+	scores();
 });
 
 //分析
-$("#toolBtn > .analyse").click(function(){
-	if ($("#tools > .review").css("display") != "none")
-		return layer.msg("复盘时不支持棋局分析");
-	
-	if (board.updateCallback.analyse){ //需隐藏
+function analyse(display){
+	if ( display === false || //欲隐藏
+		(display === undefined && game.linesDisplay) //已显示
+	){
 		game.updateLines(false);
 		layer.msg("棋局分析已关闭");
-	}else{ //需显示
+	}else{
 		game.updateLines(true);
 		layer.msg("棋局分析已开启");
 	}
+}
+$("#toolBtn > .analyse").click(function(){
+	if ($("#tools > .review").css("display") != "none"){
+		analyse(false);
+		return layer.msg("复盘时暂不支持棋局分析");
+	}
+	analyse();
 });
 
 //重放
+let restore; //重置函数
 $("#toolBtn > .review").click(function(){
 	if ( $("#tools > .review").css("display") == "none" ){ //需显示
 		$(this).attr("disabled", "disabled");
 		$("#tools > .review").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
 		
-		$("#tools > .scores").slideUp(); //关闭棋局评分
-		game.updateLines(false); //关闭棋局分析
+		scores(false); //关闭棋局评分
+		analyse(false); //关闭棋局分析
+		$("#tools > .review > .stop").hide();
+		$("#tools > .review > .play").show(); //暂停
 		
 		request({
 			type: "review" //重放
 		}).then((data)=>{
-			const winCallback = board.updateCallback.win;
-			board.updateCallback.win = board.updateCallback.analyse = null;
-			board.clear(); //清空
+			const {steps, pieces} = data,
+				winLines = board.lines.win;
+			winLines.forEach(line => line.isVisible=false); //隐藏获胜划线
+			board.clearLines("analyse"); //删除分析划线
+			board.clear(); //清空棋子
 			
 			let index = -1;
 			
 			const next = ()=>{
-					if (index >= data.steps.length-1){
-						board.updateCallback.win = winCallback;
-						board.update();
+					if (index >= steps.length-1){
+						winLines.forEach(line => line.isVisible=true); //显示获胜划线
 						return layer.msg("不能再往后了");
 					}
-					const {i,j,v} = data.steps[++index];
-					board.remove(-1)
-						.add(i, j, place, v==2? "#000": "#fff", v==2? "#fff":"#000")
-						.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
+					const {i,j,v} = steps[++index];
 					return false;
 				},
 				last = ()=>{
 					if (index <= 0)
 						return layer.msg("不能再往前了"); 
-					const {i,j,v} = data.steps[--index];
-					board.updateCallback.win = null;
-					board.remove(-1)
-						.remove(-1)
-						.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
+					const {i,j,v} = steps[--index];
+					winLines.forEach(line => line.isVisible=false); //隐藏获胜划线
 					return false;
 				};
+			restore = ()=>{
+				for (let i=this.columns-1; i>=0; i--)
+					for (let j=this.rows-1; j>=0; j--)
+						for (let k=this.depth-1; k>=0; k--)
+							switch (pieces[i][j][k]){
+								case 0:
+									board.set(i, j, k, "none");
+									break;
+								case 1:
+									board.set(i, j, k, "white");
+									break;
+								case 2:
+									board.set(i, j, k, "black");
+									break;
+							}
+			};
 			
 			next();
 			
@@ -1250,29 +1519,32 @@ $("#toolBtn > .review").click(function(){
 					clearInterval(review_id);
 				
 				review_id = setInterval(()=>{
-					if ( next() !== false ){
-						clearInterval(review_id);
-						$(this).show();
-						$("#tools > .review > .stop").hide();
-					}
+					if (next() === false) return;
+					clearInterval(review_id);
+					review_id = null;
+					restore(); //重置
+					$(this).show();
+					$("#tools > .review > .stop").hide();
 				}, 1000);
 			});
 			$("#tools > .review > .stop").click(function(){
-				$(this).hide();
-				$("#tools > .review > .play").show();
 				clearInterval(review_id);
 				review_id = null;
+				restore(); //重置
+				$(this).hide();
+				$("#tools > .review > .play").show();
 			});
 		});
 		
 	}else{
-		$(this).attr("disabled", "disabled");
-		$("#tools > .review").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
-		
-		$("#tools > .review > .stop").show();
-		$("#tools > .review > .play").hide();
 		clearInterval(review_id);
 		review_id = null;
+		restore(); //重置
+		$(this).hide();
+		$("#tools > .review > .play").show();
+		
+		$(this).attr("disabled", "disabled");
+		$("#tools > .review").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
 	}
 });
 </script>

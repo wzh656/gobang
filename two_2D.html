@@ -483,6 +483,18 @@ let game = {
 			{total: 300, step: 30}, //0: 白
 			{total: 300, step: 30} //1: 黑
 		], //剩余时间
+		timeWarning: { //时间警告
+			total: {
+				60: ["#f00", 1.2],
+				180: ["#fa0", 1.1],
+				600: ["#000", 1]
+			},
+			step: {
+				10: ["#f00", 1.5],
+				20: ["#fa0", 1.1],
+				45: ["#000", 1]
+			}
+		},
 		scores: {
 			now: [0, 0], //当前
 			goal: [0, 0], //目标
@@ -493,34 +505,67 @@ let game = {
 		
 		//更新时间显示
 		updateTime(turn){
-			let total, step;
+			let total, step,
+				totalElem, stepElem;
 			
 			//黑
-			total = Math.max(~~this.time[1].total, 0);
-			step = Math.max(~~this.time[1].step, 0);
-			$("#main > div.black > div > p.time > span.total").html(
-				~~(total/60) + ":" + total%60
-			).css("color", total<60? "#f00": total<60*3? "#fa0": "#000");
+			total = Math.max(this.time[1].total, 0);
+			step = Math.max(this.time[1].step, 0);
 			
-			$("#main > div.black > div > p.time > span.step").html(
-				step + "s"
-			).css("color", step<10? "#f00": step<20? "#fa0": "#000");
+			totalElem = $("#main > .black > div > .time > .total"),
+			stepElem = totalElem.next(".step");
 			
-			if (step < 10 && step >= 9)
+			totalElem.html(
+				( ~~(total/60) +"").padStart(2,"0") + ":" + ( ~~total%60 +"").padStart(2, "0")
+			);
+			for (const [i,v] of Object.entries(this.timeWarning.total))
+				if (total <= i){
+					totalElem.css("color", v[0])
+						.css("font-size", v[1] + "em");
+					break;
+				}
+			
+			stepElem.html(
+				~~step + "s"
+			);
+			for (const [i,v] of Object.entries(this.timeWarning.step))
+				if (step <= i){
+					stepElem.css("color", v[0])
+						.css("font-size", v[1] + "em");
+					break;
+				}
+			
+			if (~~step < 10 && ~~step >= 9)
 				this.flash(this.turn, "#f00"); //背景闪烁
 			
 			//白
-			total = Math.max(~~this.time[0].total, 0);
-			step = Math.max(~~this.time[0].step, 0);
-			$("#main > div.white > div > p.time > span.total").html(
-				~~(total/60) + ":" + total%60
-			).css("color", total<60? "#f00": total<60*3? "#fa0": "#000");
+			total = Math.max(this.time[0].total, 0);
+			step = Math.max(this.time[0].step, 0);
 			
-			$("#main > div.white > div > p.time > span.step").html(
-				step + "s"
-			).css("color", step<10? "#f00": step<20? "#fa0": "#000");
+			totalElem = $("#main > .white > div > .time > .total"),
+			stepElem = totalElem.next(".step");
 			
-			if (step < 10 && step >= 9)
+			totalElem.html(
+				( ~~(total/60) +"").padStart(2,"0") + ":" + ( ~~total%60 +"").padStart(2, "0")
+			);
+			for (const [i,v] of Object.entries(this.timeWarning.total))
+				if (total <= i){
+					totalElem.css("color", v[0])
+						.css("font-size", v[1] + "em");
+					break;
+				}
+			
+			stepElem.html(
+				~~step + "s"
+			);
+			for (const [i,v] of Object.entries(this.timeWarning.step))
+				if (step <= i){
+					stepElem.css("color", v[0])
+						.css("font-size", v[1] + "em");
+					break;
+				}
+			
+			if (~~step < 10 && ~~step >= 9)
 				this.flash(this.turn, "#f00"); //背景闪烁
 		},
 		
@@ -653,7 +698,7 @@ let game = {
 						if (v.width < 3) //连子<3 避免过密
 							continue;
 						ctx.beginPath();
-						ctx.strokeStyle = v.color;
+						ctx.strokeStyle = v.pic==2? "#fff": "#000";
 						ctx.lineWidth = v.width-3+1;
 						ctx.moveTo(...v.start);
 						ctx.lineTo(...v.end);
@@ -873,26 +918,53 @@ $("#restart").click(init);
 
 /* tools */
 //评分
+let scoresUpdateId;
+function scores(display){
+	const btn = $("#toolBtn > .scores"),
+		tool = $("#tools > .scores");
+	if ( display === true || //欲显示
+		(display === undefined && tool.css("display") == "none") //已隐藏
+	){
+		clearInterval( scoresUpdateId ); //停止更新
+		scoresUpdateId = setInterval(()=>game.updateScores(), 30); //更新分数
+		
+		btn.attr("disabled", "disabled");
+		tool.slideDown("slow", ()=>btn.removeAttr("disabled"));
+		
+	}else{
+		clearInterval( scoresUpdateId ); //停止更新
+		scoresUpdateId = null;
+		
+		btn.attr("disabled", "disabled");
+		tool.slideUp("slow", ()=>btn.removeAttr("disabled"));
+	}
+}
 $("#toolBtn > .scores").click(function(){
-	if ($("#tools > .review").css("display") != "none")
-		return layer.msg("复盘时不支持棋局评分");
-	
-	$(this).attr("disabled", "disabled");
-	$("#tools > .scores").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
+	if ( $("#tools > .review").css("display") != "none" ){
+		scores(false);
+		return layer.msg("复盘时暂不支持棋局评分");
+	}
+	scores();
 });
 
 //分析
-$("#toolBtn > .analyse").click(function(){
-	if ($("#tools > .review").css("display") != "none")
-		return layer.msg("复盘时不支持棋局分析");
-	
-	if (board.updateCallback.analyse){ //需隐藏
+function analyse(display){
+	if ( display === false || //欲隐藏
+		(display === undefined && board.updateCallback.analyse) //已显示
+	){
 		game.updateLines(false);
 		layer.msg("棋局分析已关闭");
-	}else{ //需显示
+	}else{
 		game.updateLines(true);
 		layer.msg("棋局分析已开启");
 	}
+}
+$("#toolBtn > .analyse").click(function(){
+	if ($("#tools > .review").css("display") != "none"){
+		analyse(false);
+		return layer.msg("复盘时暂不支持棋局分析");
+	}
+	analyse();
 });
 
 //复盘
@@ -901,8 +973,8 @@ $("#toolBtn > .review").click(function(){
 		$(this).attr("disabled", "disabled");
 		$("#tools > .review").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
 		
-		$("#tools > .scores").slideUp(); //关闭棋局评分
-		game.updateLines(false); //关闭棋局分析
+		scores(false); //关闭棋局评分
+		analyse(false); //关闭棋局分析
 		$("#tools > .review > .stop").hide();
 		$("#tools > .review > .play").show(); //暂停
 		
