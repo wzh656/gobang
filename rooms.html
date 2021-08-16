@@ -290,6 +290,11 @@
 		<script src="./layui/layui.js"></script>
 		<link rel="stylesheet" href="./layui/css/layui.css">
 		
+		<!-- PianoMusic Bgm -->
+		<script src="./js/acoustic_grand_piano-ogg.js"></script>
+		<script src="./js/music.js"></script>
+		<script src="./js/bgm.js"></script>
+		
 		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
 		<script>
@@ -380,6 +385,16 @@ function go(url){
 	}, 600);
 	layer.load(0);
 }
+
+
+$("button, input[type='button'], header > i, #rooms > li").click(function(){
+	playEffect(); //播放音效
+});
+setTimeout(function(){
+	$("input[type='radio'], input[type='checkbox']").next().click(function(){
+		playEffect(); //播放音效
+	});
+}, 100);
 
 
 

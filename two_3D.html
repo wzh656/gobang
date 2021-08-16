@@ -303,6 +303,11 @@
 		<script src="./layui/layui.js"></script>
 		<link rel="stylesheet" href="./layui/css/layui.css">
 		
+		<!-- PianoMusic Bgm -->
+		<script src="./js/acoustic_grand_piano-ogg.js"></script>
+		<script src="./js/music.js"></script>
+		<script src="./js/bgm.js"></script>
+		
 		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
 		<script>
@@ -432,6 +437,11 @@ function go(url){
 	}, 600);
 	layer.load(0);
 }
+
+
+$("button, input[type='button'], svg, header > i, #layerControl *, #heightControl *").click(function(){
+	playEffect(); //播放音效
+});
 
 
 
@@ -748,20 +758,8 @@ class Board{
 			for (let j=this.rows-1; j>=0; j--)
 				for (let k=this.depth-1; k>=0; k--){
 					this.set(i, j, k, "none");
-					if ( this.surfaceOnly && //仅显示表面一层
-							!( i == this.columnRange[0] || i == this.columnRange[1] ||
-							j == this.rowRange[0] || j == this.rowRange[1] ||
-							k == this.depthRange[0] || k == this.depthRange[1] ) //不在表面
-					){
-						this.visible(i, j, k, false);
-					}else if ( !( i >= this.columnRange[0] && i <= this.columnRange[1] &&
-						j >= this.rowRange[0] && j <= this.rowRange[1] &&
-						k >= this.depthRange[0] && k <= this.depthRange[1] ) //全部显示 且 不在加载范围内
-					){
-						this.visible(i, j, k, false);
-					}
+					this.visible(i, j, k, this.canVisible(i, j, k));
 				}
-		
 		return this;
 	}
 	
@@ -867,18 +865,14 @@ class Board{
 	//高度增加
 	heightAdd(){
 		if (this.rowRange[1] >= this.rows-1) return this;
-		
 		this.rowRange[1]++;
-		
 		return this.update();
 	}
 	
 	//高度减小
 	heightSub(){
 		if (this.rowRange[1] <= this.rowRange[0]) return this;
-		
 		this.rowRange[1]--;
-		
 		return this.update();
 	}
 	
@@ -904,9 +898,13 @@ class Board{
 	update(){
 		for (let i=this.columns-1; i>=0; i--)
 			for (let j=this.rows-1; j>=0; j--)
-				for (let k=this.depth-1; k>=0; k--)
-					this.visible(i, j, k, this.canVisible(i, j, k));
-		
+				for (let k=this.depth-1; k>=0; k--){
+					if (this.pieces[i][j][k].material == this.materials.none){ //空气 试图隐藏
+						this.visible(i, j, k, this.canVisible(i, j, k));
+					}else{ //棋子 显示
+						this.visible(i, j, k, true);
+					}
+				}
 		return this;
 	}
 }
@@ -1327,7 +1325,9 @@ function init(){
 		console.error(`${e.message}\n\tat ${e.filename}:${e.lineno}`)
 	};
 	
-	//禁用按钮
+	//关闭工具
+	scores(false);
+	analyse(false);
 	$("#toolBtn > .review").attr("disabled", "disabled");
 	$("#tools > .review").slideUp("fast");
 }
@@ -1359,6 +1359,8 @@ $("#board").click(function(e){
 	const pos = pickResult.pickedMesh.position,
 		[i, j, k] = board.xyz2ijk(pos.x, pos.y, pos.z);
 	console.log("click", pickResult, pos, [i, j, k])
+	
+	playEffect(); //播放音效
 	
 	waiting = true; //开始等待
 	
@@ -1543,15 +1545,13 @@ $("#toolBtn > .review").click(function(){
 							switch (pieces[i][j][k]){
 								case 0:
 									board.set(i, j, k, "none");
-									board.visible(i, j, k, board.canVisible(i, j, k));
+									board.visible(i, j, k, board.canVisible(i, j, k)); //试图隐藏
 									break;
 								case 1:
 									board.set(i, j, k, "white");
-									board.visible(i, j, k, board.canVisible(i, j, k));
 									break;
 								case 2:
 									board.set(i, j, k, "black");
-									board.visible(i, j, k, board.canVisible(i, j, k));
 									break;
 							}
 						}
