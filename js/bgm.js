@@ -80,6 +80,9 @@ MUSICS.stars = `
 `.trim().split("\n").map(v => v.trim()).join("\n");
 let {bgm, playEffect} = (function(){
 	const setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}");
+	setting_music.bgm = setting_music.bgm || "piano";
+	setting_music.effect = setting_music.effect || "stars";
+	
 	let bgm;
 	if (setting_music.bgm == "piano"){ //deskgood作曲钢琴曲
 		bgm = new Music(MUSICS.piano, 6, 72).play();
