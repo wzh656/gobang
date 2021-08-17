@@ -307,14 +307,14 @@
 						<div class="layui-form-item">
 							<label class="layui-form-label">棋盘行数</label>
 							<div class="layui-input-inline">
-								<input type="number" name="cols" min="3" max="30" init="19" value="19" class="layui-input" />
+								<input type="number" name="rows" min="3" max="30" init="19" value="19" class="layui-input" />
 							</div>
 							<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
 						</div>
 						<div class="layui-form-item">
 							<label class="layui-form-label">棋盘列数</label>
 							<div class="layui-input-inline">
-								<input type="number" name="rows" min="3" max="30" init="19" value="19" class="layui-input" />
+								<input type="number" name="cols" min="3" max="30" init="19" value="19" class="layui-input" />
 							</div>
 							<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
 						</div>
@@ -523,6 +523,7 @@ function readSetting(){ //加载设置
 		$(form_music.bgm_custom).parent().parent().show();
 	}else{
 		form_music.bgm.value = setting_music.bgm;
+		$(form_music.bgm_custom).parent().parent().hide();
 	}
 	if (["none", "stars"].indexOf(setting_music.effect) == -1){
 		form_music.effect.value = "custom";
@@ -530,6 +531,7 @@ function readSetting(){ //加载设置
 		$(form_music.effect_custom).parent().parent().show();
 	}else{
 		form_music.effect.value = setting_music.effect;
+		$(form_music.effect_custom).parent().parent().hide();
 	}
 	
 	layui.use("form", function(){
@@ -631,7 +633,7 @@ $("#one").click(function(){
 			go("one_2D.html");
 			break;
 		case 3:
-			go("onr_3D.html");
+			go("one_3D.html");
 			break;
 		case 4:
 			break;

@@ -949,7 +949,7 @@ $("#board").click(function(e){
 					.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
 				game.set(0);
 				game.steps++;
-				if (game.first && !game.winner) //自己先手 下完 未结束
+				if (game.first && !game.winner) //自己先手 且 未结束
 					request({
 						type: "computer",
 						side: 1 //电脑白棋
@@ -963,8 +963,7 @@ $("#board").click(function(e){
 					.add(i, j, place, undefined, "#fff", 2, board.picSize+2);
 				game.set(1);
 				game.steps++;
-				
-				if (!game.first && !game.winner) //自己后手 下完 未结束
+				if (!game.first && !game.winner) //自己后手 且 未结束
 					request({
 						type: "computer",
 						side: 2 //电脑黑棋

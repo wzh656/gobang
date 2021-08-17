@@ -469,8 +469,9 @@ class Board{
 		
 		this.spacing = spacing; //间隔
 		this.lines = { //划线
-			win: [],
-			analyse: []
+			win: [], //获胜
+			analyse: [], //分析
+			circle: [] //圆圈标记
 		};
 	}
 	
@@ -572,7 +573,7 @@ class Board{
 		
 		//生成所有位置
 		this.pieces = Array.new(null, this.columns, this.rows, this.depth);
-		this.clear();
+		//this.clear();
 		
 		this.scene.blockMaterialDirtyMechanism = true;
 		
@@ -792,6 +793,87 @@ class Board{
 		return line;
 	}
 	
+	//添加圆圈标记
+	moveCircle(position, radius, color, delta=30){
+		const pos = new BABYLON.Vector3(...position);
+		console.log("moveCircle", pos, this.lines.circle.length)
+		if (this.lines.circle.length > 0){ //已有
+			this.lines.circle.forEach(line => line.position=pos);
+			
+		}else{ //未创建
+			if (color)
+				color = new BABYLON.Color4(...color, 0.6); //透明度0.6
+			const paths = Array.new(()=>[], 9),
+				colors = color? []: null;
+			for (let theta=0; theta<=360; theta+=delta){
+				//x
+				paths[0].push( new BABYLON.Vector3(
+					radius * Math.sin(-Math.PI/6), // -30°
+					radius * Math.cos(-Math.PI/6) * Math.cos(theta/180*Math.PI),
+					radius * Math.cos(-Math.PI/6) * Math.sin(theta/180*Math.PI)
+				) );
+				paths[1].push( new BABYLON.Vector3(
+					0, // 0°
+					radius * Math.cos(theta/180*Math.PI),
+					radius * Math.sin(theta/180*Math.PI)
+				) );
+				paths[2].push( new BABYLON.Vector3(
+					radius * Math.sin(Math.PI/6), // 30°
+					radius * Math.cos(Math.PI/6) * Math.cos(theta/180*Math.PI),
+					radius * Math.cos(Math.PI/6) * Math.sin(theta/180*Math.PI)
+				) );
+				
+				//y
+				paths[3].push( new BABYLON.Vector3(
+					radius * Math.cos(-Math.PI/6) * Math.cos(theta/180*Math.PI),
+					radius * Math.sin(-Math.PI/6), // -30°
+					radius * Math.cos(-Math.PI/6) * Math.sin(theta/180*Math.PI)
+				) );
+				paths[4].push( new BABYLON.Vector3(
+					radius * Math.cos(theta/180*Math.PI),
+					0, // 0°
+					radius * Math.sin(theta/180*Math.PI)
+				) );
+				paths[5].push( new BABYLON.Vector3(
+					radius * Math.cos(Math.PI/6) * Math.cos(theta/180*Math.PI),
+					radius * Math.sin(Math.PI/6), // 30°
+					radius * Math.cos(Math.PI/6) * Math.sin(theta/180*Math.PI)
+				) );
+				
+				//z
+				paths[6].push( new BABYLON.Vector3(
+					radius * Math.cos(-Math.PI/6) * Math.cos(theta/180*Math.PI),
+					radius * Math.cos(-Math.PI/6) * Math.sin(theta/180*Math.PI),
+					radius * Math.sin(-Math.PI/6) // -30°
+				) );
+				paths[7].push( new BABYLON.Vector3(
+					radius * Math.cos(theta/180*Math.PI),
+					radius * Math.sin(theta/180*Math.PI),
+					0 // 0°
+				) );
+				paths[8].push( new BABYLON.Vector3(
+					radius * Math.cos(Math.PI/6) * Math.cos(theta/180*Math.PI),
+					radius * Math.cos(Math.PI/6) * Math.sin(theta/180*Math.PI),
+					radius * Math.sin(Math.PI/6) // 30°
+				) );
+				
+				if (color)
+					colors.push(color);
+			}
+			
+			const lines = [];
+			for (const path of paths){
+				const line = BABYLON.MeshBuilder.CreateLines("lines", {points: path, colors}, this.scene);
+				line.position = pos;
+				lines.push(line);
+			}
+			
+			this.lines.circle.push(...lines);
+		}
+		
+		return this;
+	}
+	
 	//隐藏划线
 	visibleLines(visible, type){
 		if (type){
@@ -816,9 +898,10 @@ class Board{
 			this.removeLines(...this.lines[type]); //删除所有划线
 			this.lines[type] = [];
 		}else{
-			this.removeLines(...this.lines.win, ...this.lines.analyse); //删除所有划线
+			this.removeLines(...this.lines.win, ...this.lines.analyse, ...this.lines.circle); //删除所有划线
 			this.lines.win = [];
 			this.lines.analyse = [];
+			this.lines.circle = [];
 		}
 		return this;
 	}
@@ -1373,12 +1456,14 @@ $("#board").click(function(e){
 		switch (data.action){
 			case 2: //下黑棋
 				board.set(i, j, k, "black");
+				board.moveCircle([pos.x, pos.y, pos.z], 5, [0,1,0]);
 				game.set(0);
 				game.steps++;
 				break;
 				
 			case 1: //下白棋
 				board.set(i, j, k, "white");
+				board.moveCircle([pos.x, pos.y, pos.z], 5, [0,1,0]);
 				game.set(1);
 				game.steps++;
 				break;
@@ -1506,18 +1591,15 @@ $("#toolBtn > .review").click(function(){
 			board.clearLines("analyse"); //删除分析划线
 			board.clear(); //清空棋子
 			
-			let index = 0;
+			let index = -1;
 			
 			const next = ()=>{
-					if (index >= steps.length){
+					if (index >= steps.length-1){
 						board.visibleLines(true, "win"); //显示获胜划线
 						return layer.msg("不能再往后了");
 					}
-					const {i, j, k, v} = steps[index++];
+					const {i, j, k, v} = steps[++index];
 					switch (v){
-						case 0:
-							board.set(i, j, k, "none");
-							break;
 						case 1:
 							board.set(i, j, k, "white");
 							break;
@@ -1525,15 +1607,18 @@ $("#toolBtn > .review").click(function(){
 							board.set(i, j, k, "black");
 							break;
 					}
+					board.moveCircle(board.ijk2xyz(i, j, k), 5, [0,1,0]);
 					return false;
 				},
 				last = ()=>{
-					if (index-1 <= 0)
+					if (index <= 0)
 						return layer.msg("不能再往前了");
 					
-					const {i, j, k, v} = steps[--index];
+					let {i, j, k, v} = steps[index--];
 					board.set(i, j, k, "none");
 					board.visible(i, j, k, board.canVisible(i, j, k));
+					
+					board.moveCircle(board.ijk2xyz(steps[index].i, steps[index].j, steps[index].k), 5, [0,1,0]);
 					
 					board.visibleLines(false, "win"); //隐藏获胜划线
 					return false;

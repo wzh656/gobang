@@ -579,8 +579,8 @@ class PiecesSystem{
 						}
 						
 						if (score > max.value){
-							max.pos[0] = x,
-							max.pos[1] = y;
+							max.pos[0] = +x,
+							max.pos[1] = +y;
 							max.value = score;
 						}
 					}
@@ -678,9 +678,9 @@ class PiecesSystem{
 							}
 							
 							if (score > max.value){
-								max.pos[0] = x,
-								max.pos[1] = y,
-								max.pos[2] = z;
+								max.pos[0] = +x,
+								max.pos[1] = +y,
+								max.pos[2] = +z;
 								max.value = score;
 							}
 						}
@@ -788,10 +788,10 @@ class PiecesSystem{
 								}
 								
 								if (score > max.value){
-									max.pos[0] = x,
-									max.pos[1] = y,
-									max.pos[2] = z,
-									max.pos[3] = w;
+									max.pos[0] = +x,
+									max.pos[1] = +y,
+									max.pos[2] = +z,
+									max.pos[3] = +w;
 									max.value = score;
 								}
 							}
