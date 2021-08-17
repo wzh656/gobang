@@ -10,7 +10,6 @@ class PianoMusic{
 	
 	play(sound, time=1, volume=1){
 		return new Promise((resolve, reject)=>{
-			console.log(sound, time, volume)
 			if (sound && sound != "0"){
 				const audio = this.audios[this.index];
 				audio.volume = volume;

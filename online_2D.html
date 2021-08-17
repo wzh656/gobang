@@ -547,7 +547,8 @@ let game = {
 			t0: +new Date(),
 			k: 0.005
 		}, //分数 白:0 黑:1
-		lines: [], //连线
+		lines: [], //分析连线
+		linesDisplay: false, //显示连线
 		
 		//更新时间显示
 		updateTime(turn){
@@ -657,7 +658,7 @@ let game = {
 					if (this.turn != this.first) return; //不是自己超时 可能网卡
 					if (game.winner !== false) return; //游戏已结束
 					send("gobang_game_timeout", ROOM, oldID); //自己超时 发送timeout
-					game.over(this.turn != this.first, this.turn==1?"黑方超时":"白方超时");
+					game.over(this.turn!=this.first, this.turn==1?"黑方超时":"白方超时");
 				}
 				
 			}, 200);
@@ -740,7 +741,7 @@ let game = {
 			}else{
 				game.winner = this.first;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
-					{title: "平局"}
+					{title: "游戏结束"}
 				);
 				$("#state").html( text );
 				
@@ -835,6 +836,8 @@ let game = {
 				};
 			}
 			board.update();
+			
+			game.linesDisplay = display;
 		}
 	},
 	
@@ -845,7 +848,7 @@ let game = {
 			const {winner, steps} = data;
 			
 			if (game.winner !== false) return; //游戏已结束
-			game.over(winner == game.first+1, winner==2?"黑方胜":"白方胜");
+			game.over(winner-1==game.first, winner==2?"黑方胜":"白方胜");
 		},
 		
 		//获胜画线
@@ -902,6 +905,7 @@ let game = {
 			}
 		}
 	},
+	scores_id = null, //分数更新id
 	review_id = null; //复盘id
 
 
@@ -933,9 +937,15 @@ function init(){
 	game.lines = []; //清空分析画线
 	//game.set(1); //黑棋先下
 	
-	//停止复盘
-	clearInterval(review_id);
+	//关闭工具
+	scores(false);
+	analyse(false);
+	clearInterval(review_id); //停止复盘
 	review_id = null;
+	$("#tools > .review > .stop").hide();
+	$("#tools > .review > .play").show();
+	$("#toolBtn > .review").attr("disabled", "disabled");
+	$("#tools > .review").slideUp("fast");
 	
 	//线程
 	if (worker)
@@ -958,12 +968,6 @@ function init(){
 	worker.onerror = function(e){
 		console.error(`${e.message}\n\tat ${e.filename}:${e.lineno}`)
 	};
-	
-	//关闭工具
-	scores(false);
-	analyse(false);
-	$("#toolBtn > .review").attr("disabled", "disabled");
-	$("#tools > .review").slideUp("fast");
 }
 //setTimeout(init, 1000); //等待淡入动画结束
 
@@ -1354,22 +1358,21 @@ $("#toolBtn > .drawMatch").click(function(){
 });
 
 //评分
-let scoresUpdateId;
 function scores(display){
 	const btn = $("#toolBtn > .scores"),
 		tool = $("#tools > .scores");
 	if ( display === true || //欲显示
 		(display === undefined && tool.css("display") == "none") //已隐藏
 	){
-		clearInterval( scoresUpdateId ); //停止更新
-		scoresUpdateId = setInterval(()=>game.updateScores(), 30); //更新分数
+		clearInterval( scores_id ); //停止更新
+		scores_id = setInterval(()=>game.updateScores(), 30); //更新分数
 		
 		btn.attr("disabled", "disabled");
 		tool.slideDown("slow", ()=>btn.removeAttr("disabled"));
 		
 	}else{
-		clearInterval( scoresUpdateId ); //停止更新
-		scoresUpdateId = null;
+		clearInterval( scores_id ); //停止更新
+		scores_id = null;
 		
 		btn.attr("disabled", "disabled");
 		tool.slideUp("slow", ()=>btn.removeAttr("disabled"));

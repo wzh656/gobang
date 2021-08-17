@@ -55,7 +55,7 @@
 		}
 		html.outDown{
 			min-height: 100%;
-			background: #1b2036 url("./img/background.jpg") no-repeat fixed center;
+			background: #fffae8 url("./img/background.jpg") no-repeat fixed center;
 			background-size: cover;
 			max-width: 100%;
 			margin: auto;
@@ -513,7 +513,8 @@ let game = {
 			t0: +new Date(),
 			k: 0.005
 		}, //分数 白:0 黑:1
-		lines: [], //连线
+		lines: [], //分析连线
+		linesDisplay: false, //显示连线
 		
 		//更新时间显示
 		updateTime(turn){
@@ -618,17 +619,37 @@ let game = {
 				this.updateTime(this.turn);
 				
 				if (this.time[this.turn].step <= 0){ //超出步时
-					this.winner = 1-this.turn;
-					clearInterval( this.ids[this.turn] );
-					$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
-					//worker.terminate(); //关闭线程
-					const t = (new Date() - game.startTime) / 1000;
-					layer.alert(`${this.turn==1? "黑方": "白方"}超时<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
-						{title: "游戏结束！"}
-					);
+					if (game.winner !== false) return; //游戏已结束
+					game.over(this.turn!=this.first, this.turn==1?"黑方超时":"白方超时");
 				}
 				
 			}, 200);
+		},
+		
+		//游戏结束
+		over(win, text){
+			console.log("game over", win, text)
+			
+			const t = (new Date() - this.startTime) / 1000;
+			clearInterval( this.ids[this.turn] );
+			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
+			
+			if (win === true){
+				game.winner = this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "胜利！", icon: 6}
+				);
+			}else if (win === false){
+				game.winner = 1-this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "你失败了！", icon: 5}
+				);
+			}else{
+				game.winner = this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "游戏结束"}
+				);
+			}
 		},
 		
 		//更新分数
@@ -719,6 +740,8 @@ let game = {
 				};
 			}
 			board.update();
+			
+			game.linesDisplay = display;
 		}
 	},
 	worker,
@@ -742,13 +765,9 @@ let game = {
 		//获胜
 		won(data){
 			const {winner, steps} = data;
-			game.winner = winner;
-			clearInterval( game.ids[game.turn] ); //停止计时 不关闭线程
-			$("#toolBtn > button.review").removeAttr("disabled"); //解除禁用
-			const t = (new Date() - game.startTime) / 1000;
-			layer.alert(`${winner==2? "黑方": "白方"}胜<br>历时${~~(t/60)}分${~~t%60}秒<br>${steps}步（${steps/2}回合）`,
-				{title: "游戏结束！"}
-			);
+			
+			if (game.winner !== false) return; //游戏已结束
+			game.over(winner-1==game.first, winner==2?"黑方胜":"白方胜");
 		},
 		
 		//获胜画线
@@ -778,14 +797,10 @@ let game = {
 		
 		//平局
 		gameOver(){
-			game.winner = null;
-			clearInterval( game.ids[game.turn] ); //停止计时
-			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 			//worker.terminate(); //关闭线程
-			const t = (new Date() - game.startTime) / 1000;
-			layer.alert(`平局<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
-				{title: "游戏结束！"}
-			);
+			
+			if (game.winner !== false) return; //游戏已结束
+			game.over(null, "平局");
 		},
 		
 		//分析
@@ -808,6 +823,7 @@ let game = {
 			}
 		}
 	},
+	scores_id = null, //分数更新id
 	review_id = null; //复盘id
 
 
@@ -840,9 +856,15 @@ function init(){
 	setInterval(()=>game.updateScores(), 16); //更新分数
 	game.lines = []; //清空分析画线
 	
-	//停止复盘
-	clearInterval(review_id);
+	//关闭工具
+	scores(false);
+	analyse(false);
+	clearInterval(review_id); //停止复盘
 	review_id = null;
+	$("#tools > .review > .stop").hide();
+	$("#tools > .review > .play").show();
+	$("#toolBtn > .review").attr("disabled", "disabled");
+	$("#tools > .review").slideUp("fast");
 	
 	//选择先行
 	const finish_choose = ()=>{
@@ -898,12 +920,6 @@ function init(){
 	worker.onerror = function(e){
 		console.error(`${e.message}\n\tat ${e.filename}:${e.lineno}`)
 	};
-	
-	//关闭工具
-	scores(false);
-	analyse(false);
-	$("#toolBtn > .review").attr("disabled", "disabled");
-	$("#tools > .review").slideUp("fast");
 }
 init();
 
@@ -996,22 +1012,21 @@ $("#restart").click(init);
 
 /* tools */
 //评分
-let scoresUpdateId;
 function scores(display){
 	const btn = $("#toolBtn > .scores"),
 		tool = $("#tools > .scores");
 	if ( display === true || //欲显示
 		(display === undefined && tool.css("display") == "none") //已隐藏
 	){
-		clearInterval( scoresUpdateId ); //停止更新
-		scoresUpdateId = setInterval(()=>game.updateScores(), 30); //更新分数
+		clearInterval( scores_id ); //停止更新
+		scores_id = setInterval(()=>game.updateScores(), 30); //更新分数
 		
 		btn.attr("disabled", "disabled");
 		tool.slideDown("slow", ()=>btn.removeAttr("disabled"));
 		
 	}else{
-		clearInterval( scoresUpdateId ); //停止更新
-		scoresUpdateId = null;
+		clearInterval( scores_id ); //停止更新
+		scores_id = null;
 		
 		btn.attr("disabled", "disabled");
 		tool.slideUp("slow", ()=>btn.removeAttr("disabled"));

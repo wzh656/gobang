@@ -55,7 +55,7 @@
 		}
 		html.outDown{
 			min-height: 100%;
-			background: #1b2036 url("./img/background.jpg") no-repeat fixed center;
+			background: #fffae8 url("./img/background.jpg") no-repeat fixed center;
 			background-size: cover;
 			max-width: 100%;
 			margin: auto;
@@ -66,7 +66,7 @@
 		body{
 			position: absolute;
 			width: 100%;
-			height: 100%;
+			/*height: 100%;*/
 			left: 0;
 			top: 0;
 			margin: 0;
@@ -185,29 +185,35 @@
 		
 		/* 棋盘 */
 		#board{
-			position: absolute;
+			position: fixed;
 			display: block;
 			left: 0;
 			top: 0;
 			width: 100%;
 			height: 100%;
 		}
+		html.outDown #board{
+			position: absolute;
+		}
+		#main > .fill{
+			flex: none;
+		}
 		
 		/* 控制 */
 		#layerControl{ /*显示层控制*/
 			position: absolute;
 			left: 1rem;
-			bottom: 8rem;
+			top: calc(100vh - 8rem - 1.2em * 2 - 3px);
 			z-index: 2;
 			display: flex;
 			flex-direction: column;
 			
 			border: 1px solid #000;
 			border-radius: 0.3rem;
-			font-size: 6em !important;
 		}
 		#layerControl > *{
 			padding: 0.3rem;
+			font-size: 1.2em;
 		}
 		#layerControl > *:first-child{
 			border-bottom: 1px solid #000;
@@ -218,17 +224,17 @@
 		#heightControl{
 			position: absolute;
 			right: 1rem;
-			bottom: 8rem;
+			top: calc(100vh - 8rem - 1.2em * 2 - 3px);
 			z-index: 2;
 			display: flex;
 			flex-direction: column;
 			
 			border: 1px solid #000;
 			border-radius: 0.3rem;
-			font-size: 6em !important;
 		}
 		#heightControl > *{
 			padding: 0.3rem;
+			font-size: 1.2em;
 		}
 		#heightControl > *:first-child{
 			border-bottom: 1px solid #000;
@@ -294,6 +300,7 @@
 		
 		<!-- babylon.js -->
 		<script src="./js/babylon.min.js"></script>
+		<script src="./js/babylonjs.materials.min.js"></script>
 		<!-- stats.js -->
 		<script src="./js/stats.min.js"></script>
 		
@@ -407,17 +414,13 @@ Array.new = function(value, len, ...num){
 };
 </script>
 <script>
-let WIDTH;
 function resize(){
 	console.log("resize")
-	$("#board").attr("width", innerWidth)
-		.attr("height", innerHeight);
-	if (board.engine)
-		board.engine.resize(); //更新大小
 	
-	const width = innerWidth-20,
+	const width = innerWidth-16,
 		height = innerHeight
 			-$("#header").height()
+			-8*2 //#main margin
 			-$("#main > .side").height()*2
 			-$("#toolBtn").height();
 	$("#main > .fill").css("width", width + "px")
@@ -426,7 +429,13 @@ function resize(){
 	$("#tools > .scores").attr("width", innerWidth-18);
 }
 resize();
-$(window).resize(resize);
+$(window).resize(function(){
+	$("#board").attr("width", innerWidth)
+		.attr("height", innerHeight);
+	
+	if (board.engine)
+		board.engine.resize(); //更新大小
+});
 </script>
 <script>
 $("html").addClass("fadeIn");
@@ -581,6 +590,7 @@ class Board{
 		const skyMaterial = new BABYLON.SkyMaterial("skyMaterial", this.scene);
 		skyMaterial.backFaceCulling = false;
 		skybox.material = skyMaterial;
+		skybox.isPickable = false; //禁止点击
 		this.skybox = skybox;
 		
 		//太阳倾斜角
@@ -623,6 +633,17 @@ class Board{
 		]);
 		skybox.animations = [skyInclinationAnimation, skyTurbidityAnimation, skyLuminanceAnimation];
 		this.scene.beginAnimation(skybox, 0, 30*60, true);
+		
+		setInterval(function(){
+			const x = (skyMaterial.inclination + 1) % 2,
+				y1 = 256/(1+Math.E**( -4*Math.E*(x-0.5) )),
+				y2 = 256/(1+Math.E**( 4*Math.E*(x-1.5) )),
+				min = ~~(256 - Math.min(y1, y2)),
+				color = `rgb(${min},${min},${min})`;
+			$("#main").css("color", color);
+			$("#layerControl, #heightControl, #layerControl > *, #heightControl > *")
+				.css("border-color", color);
+		}, 1000);
 		
 		
 		//优化阻止dirty
@@ -949,9 +970,10 @@ class Board{
 			this.removeLines(...this.lines[type]); //删除所有划线
 			this.lines[type] = [];
 		}else{
-			this.removeLines(...this.lines.win, ...this.lines.analyse); //删除所有划线
+			this.removeLines(...this.lines.win, ...this.lines.analyse, ...this.lines.circle); //删除所有划线
 			this.lines.win = [];
 			this.lines.analyse = [];
+			this.lines.circle = [];
 		}
 		return this;
 	}
@@ -1111,12 +1133,12 @@ let game = {
 			total: {
 				60: ["#f00", 1.2],
 				180: ["#fa0", 1.1],
-				600: ["#000", 1]
+				600: ["inherit", 1]
 			},
 			step: {
 				10: ["#f00", 1.5],
 				20: ["#fa0", 1.1],
-				45: ["#000", 1]
+				45: ["inherit", 1]
 			}
 		},
 		scores: {
@@ -1125,7 +1147,7 @@ let game = {
 			t0: +new Date(),
 			k: 0.005
 		}, //分数 白:0 黑:1
-		lines: [], //连线
+		lines: [], //分析连线
 		linesDisplay: false, //显示连线
 		
 		//更新时间显示
@@ -1231,17 +1253,37 @@ let game = {
 				this.updateTime(this.turn);
 				
 				if (this.time[this.turn].step <= 0){ //超出步时
-					this.winner = 1-this.turn;
-					clearInterval( this.ids[this.turn] );
-					$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
-					//worker.terminate(); //关闭线程
-					const t = (new Date() - game.startTime) / 1000;
-					layer.alert(`${this.turn==1? "黑方": "白方"}超时<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
-						{title: "游戏结束！"}
-					);
+					if (game.winner !== false) return; //游戏已结束
+					game.over(this.turn!=this.first, this.turn==1?"黑方超时":"白方超时");
 				}
 				
 			}, 200);
+		},
+		
+		//游戏结束
+		over(win, text){
+			console.log("game over", win, text)
+			
+			const t = (new Date() - this.startTime) / 1000;
+			clearInterval( this.ids[this.turn] );
+			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
+			
+			if (win === true){
+				game.winner = this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "胜利！", icon: 6}
+				);
+			}else if (win === false){
+				game.winner = 1-this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "你失败了！", icon: 5}
+				);
+			}else{
+				game.winner = this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "游戏结束"}
+				);
+			}
 		},
 		
 		//更新分数
@@ -1348,13 +1390,9 @@ let game = {
 		//获胜
 		won(data){
 			const {winner, steps} = data;
-			game.winner = winner;
-			clearInterval( game.ids[game.turn] ); //停止计时 不关闭线程
-			$("#toolBtn > button.review").removeAttr("disabled"); //解除禁用
-			const t = (new Date() - game.startTime) / 1000;
-			layer.alert(`${winner==2? "黑方": "白方"}胜<br>历时${~~(t/60)}分${~~t%60}秒<br>${steps}步（${steps/2}回合）`,
-				{title: "游戏结束！"}
-			);
+			
+			if (game.winner !== false) return; //游戏已结束
+			game.over(winner-1==game.first, winner==2?"黑方胜":"白方胜");
 		},
 		
 		//获胜画线
@@ -1382,14 +1420,10 @@ let game = {
 		
 		//平局
 		gameOver(){
-			game.winner = null;
-			clearInterval( game.ids[game.turn] ); //停止计时
-			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 			//worker.terminate(); //关闭线程
-			const t = (new Date() - game.startTime) / 1000;
-			layer.alert(`平局<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
-				{title: "游戏结束！"}
-			);
+			
+			if (game.winner !== false) return; //游戏已结束
+			game.over(null, "平局");
 		},
 		
 		//分析
@@ -1412,6 +1446,7 @@ let game = {
 			}
 		}
 	},
+	scores_id = null, //分数更新id
 	review_id = null; //复盘id
 
 
@@ -1421,7 +1456,7 @@ function init(){
 	//棋盘
 	board.clearLines(); //删除所有划线
 	waiting = true; //禁止点击
-	board.clear().intoAnimation().then(()=>{
+	board.clear().clearLines().intoAnimation().then(()=>{
 		game.startTime = +new Date();
 		//game.set(1); //黑棋先下
 		waiting = false; //允许点击
@@ -1445,9 +1480,15 @@ function init(){
 	game.scores.k = 0.005;
 	game.lines = []; //清空分析画线
 	
-	//停止复盘
-	clearInterval(review_id);
+	//关闭工具
+	scores(false);
+	analyse(false);
+	clearInterval(review_id); //停止复盘
 	review_id = null;
+	$("#tools > .review > .stop").hide();
+	$("#tools > .review > .play").show();
+	$("#toolBtn > .review").attr("disabled", "disabled");
+	$("#tools > .review").slideUp("fast");
 	
 	//选择先行
 	const finish_choose = ()=>{
@@ -1504,12 +1545,6 @@ function init(){
 	worker.onerror = function(e){
 		console.error(`${e.message}\n\tat ${e.filename}:${e.lineno}`)
 	};
-	
-	//关闭工具
-	scores(false);
-	analyse(false);
-	$("#toolBtn > .review").attr("disabled", "disabled");
-	$("#tools > .review").slideUp("fast");
 }
 //setTimeout(init, 1000); //等待淡入动画结束
 
@@ -1627,22 +1662,21 @@ $("#heightControl > .sub").click(function(){
 
 /* tools */
 //评分
-let scoresUpdateId;
 function scores(display){
 	const btn = $("#toolBtn > .scores"),
 		tool = $("#tools > .scores");
 	if ( display === true || //欲显示
 		(display === undefined && tool.css("display") == "none") //已隐藏
 	){
-		clearInterval( scoresUpdateId ); //停止更新
-		scoresUpdateId = setInterval(()=>game.updateScores(), 30); //更新分数
+		clearInterval( scores_id ); //停止更新
+		scores_id = setInterval(()=>game.updateScores(), 30); //更新分数
 		
 		btn.attr("disabled", "disabled");
 		tool.slideDown("slow", ()=>btn.removeAttr("disabled"));
 		
 	}else{
-		clearInterval( scoresUpdateId ); //停止更新
-		scoresUpdateId = null;
+		clearInterval( scores_id ); //停止更新
+		scores_id = null;
 		
 		btn.attr("disabled", "disabled");
 		tool.slideUp("slow", ()=>btn.removeAttr("disabled"));
