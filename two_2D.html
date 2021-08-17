@@ -970,7 +970,7 @@ function analyse(display){
 			layer.msg("棋局分析已关闭");
 		game.updateLines(false);
 	}else{
-		if (game.linesDisplay) //已隐藏
+		if (!game.linesDisplay) //已隐藏
 			layer.msg("棋局分析已开启");
 		game.updateLines(true);
 	}

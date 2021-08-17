@@ -294,6 +294,8 @@
 		
 		<!-- babylon.js -->
 		<script src="./js/babylon.min.js"></script>
+		<script src="./js/babylonjs.proceduralTextures.min.js"></script>
+		<script src="./js/babylonjs.materials.min.js"></script>
 		<!-- stats.js -->
 		<script src="./js/stats.min.js"></script>
 		
@@ -575,8 +577,58 @@ class Board{
 		this.pieces = Array.new(null, this.columns, this.rows, this.depth);
 		//this.clear();
 		
-		this.scene.blockMaterialDirtyMechanism = true;
 		
+		//天空盒
+		const skybox = BABYLON.Mesh.CreateBox("skyBox", 1000, this.scene);
+		const skyMaterial = new BABYLON.SkyMaterial("skyMaterial", this.scene);
+		skyMaterial.backFaceCulling = false;
+		skybox.material = skyMaterial;
+		this.skybox = skybox;
+		
+		//太阳倾斜角
+		const skyInclinationAnimation = new BABYLON.Animation(
+			"animation_sky_inclination",
+			"material.inclination",
+			30,
+			BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+			BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
+		);
+		skyInclinationAnimation.setKeys([
+			{frame: 0, value: -0.5},
+			{frame: 30*60, value: 0.5}
+		]);
+		//太阳浑浊度
+		const skyTurbidityAnimation = new BABYLON.Animation(
+			"animation_sky_turbidity",
+			"material.turbidity",
+			30,
+			BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+			BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
+		);
+		skyTurbidityAnimation.setKeys([
+			{frame: 0, value: 2},
+			{frame: 30*30, value: 5},
+			{frame: 30*60, value: 2}
+		]);
+		//天空亮度
+		const skyLuminanceAnimation = new BABYLON.Animation(
+			"animation_sky_luminance",
+			"material.luminance",
+			30,
+			BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+			BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
+		);
+		skyLuminanceAnimation.setKeys([
+			{frame: 0, value: 1},
+			{frame: 30*30, value: 0.5},
+			{frame: 30*60, value: 1}
+		]);
+		skybox.animations = [skyInclinationAnimation, skyTurbidityAnimation, skyLuminanceAnimation];
+		this.scene.beginAnimation(skybox, 0, 30*60, true);
+		
+		
+		//优化阻止dirty
+		this.scene.blockMaterialDirtyMechanism = true;
 		
 		//渲染循环
 		this.engine.runRenderLoop(()=>{
@@ -1558,7 +1610,7 @@ function analyse(display){
 			layer.msg("棋局分析已关闭");
 		game.updateLines(false);
 	}else{
-		if (game.linesDisplay) //已隐藏
+		if (!game.linesDisplay) //已隐藏
 			layer.msg("棋局分析已开启");
 		game.updateLines(true);
 	}
