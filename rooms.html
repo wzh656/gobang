@@ -330,14 +330,6 @@
 			<label>游戏设置（仅房主可修改）</label>
 			<form class="layui-form" onsubmit="return false;">
 				<div class="layui-form-item">
-					<label class="layui-form-label">先手/后手</label>
-					<div class="layui-input-inline layui-btn-group">
-						<button class="random layui-btn layui-btn-normal">随机</button>
-						<button class="first layui-btn layui-btn-primary layui-border-green">先手</button>
-						<button class="last layui-btn layui-btn-primary layui-border-green">后手</button>
-					</div>
-				</div>
-				<div class="layui-form-item">
 					<label class="layui-form-label">维数</label>
 					<div class="layui-input-inline layui-btn-group">
 						<button class="two layui-btn">2D</button>
@@ -347,27 +339,45 @@
 				</div>
 				<div class="layui-form-item">
 					<label class="layui-form-label">连子数</label>
-					<div class="layui-input-block">
+					<div class="layui-input-inline">
 						<input type="number" name="n" min="3" max="10" value="5" class="layui-input" />
 					</div>
 				</div>
 				<div class="layui-form-item">
 					<label class="layui-form-label">棋盘行数</label>
-					<div class="layui-input-block">
-						<input type="number" name="cols" min="3" max="30" value="19" class="layui-input" />
+					<div class="layui-input-inline">
+						<input type="number" name="rows" min="3" max="30" init="19" value="19" class="layui-input" />
 					</div>
 				</div>
 				<div class="layui-form-item">
 					<label class="layui-form-label">棋盘列数</label>
-					<div class="layui-input-block">
-						<input type="number" name="rows" min="3" max="30" value="19" class="layui-input" />
+					<div class="layui-input-inline">
+						<input type="number" name="cols" min="3" max="30" init="19" value="19" class="layui-input" />
+					</div>
+				</div>
+				<div class="layui-form-item" style="display: none;">
+					<label class="layui-form-label">棋盘深度</label>
+					<div class="layui-input-inline">
+						<input type="number" name="depth" min="3" max="30" init="10" value="10" class="layui-input" />
+					</div>
+				</div>
+				<div class="layui-form-item" style="display: none;">
+					<label class="layui-form-label">四维长度</label>
+					<div class="layui-input-inline">
+						<input type="number" name="lengthFour" min="3" max="30" init="10" value="10" class="layui-input" />
 					</div>
 				</div>
 				<div class="layui-form-item">
 					<label class="layui-form-label">下棋位置</label>
-					<div class="layui-input-block">
+					<div class="layui-input-inline">
 						<input type="radio" name="place" title="格点" checked />
 						<input type="radio" name="place" title="格内" />
+					</div>
+				</div>
+				<div class="layui-form-item">
+					<label class="layui-form-label">防误触摸式</label>
+					<div class="layui-input-inline">
+						<input type="checkbox" name="mistake" class="mistake" lay-skin="switch" lay-text="开启|关闭" />
 					</div>
 				</div>
 			</form>
@@ -397,6 +407,7 @@ setTimeout(function(){
 }, 100);
 
 
+const form = $("#room > form")[0];
 
 //切换先手
 function setFirst(first){
@@ -714,8 +725,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 			"&type=" + +type +
 			"&first=" + JSON.stringify( ROOMLIST[ROOM].first ) +
 			"&N=" + ROOMLIST[ROOM].N +
-			"&cols=" + ROOMLIST[ROOM].cols +
-			"&rows=" + ROOMLIST[ROOM].rows +
+			"&size=" + JSON.stringify( ROOMLIST[ROOM].size ) +
 			"&place=" + ROOMLIST[ROOM].place
 		);
 	});
@@ -1048,7 +1058,12 @@ $("#room > form input[name='n']").change(function(){
 //棋盘大小
 $("#room > form input[name='cols'], #room > form input[name='rows']").change(function(){
 	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
-	send("gobang_setSize", ROOM, +$("#room > form input[name='cols']").val(), +$("#room > form input[name='rows']").val());
+	send("gobang_setSize", ROOM, {
+		cols: +$("#room > form input[name='cols']").val(),
+		rows: +$("#room > form input[name='rows']").val(),
+		depth: +$("#room > form input[name='depth']").val(),
+		lengthFour: +$("#room > form input[name='lengthFour']").val()
+	});
 });
 
 //下棋位置

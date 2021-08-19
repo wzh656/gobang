@@ -42,14 +42,14 @@ class Music{
 		this.audioNum = audioNum; //声道数量
 		this.speed = speed; //速度
 		this.sounds = []; //真正的谱子（音符）
-		this.score = `const p=new PianoMusic(${audioNum},${speed});function s(){`; //谱子 编译为 js
+		this.js = `const p=new PianoMusic(${audioNum},${speed});function s(){`; //谱子 编译为 js
 		
 		let first = true;
 		for (const line of score.trim().split("\n")){
 			const [sound, time, volume=1, ...others] = line.trim().split(" ");
 			if ( others.length == 0 &&
 				!isNaN(+time) &&
-				!isNaN(+volume) &&
+				//!isNaN(+volume) &&
 				( sound == "0" ||
 					( sound.length == 2 &&
 						"CDEFGAB".indexOf( sound[0] ) != -1 &&
@@ -58,25 +58,25 @@ class Music{
 			){
 				this.sounds.push([sound, time, volume]);
 				if (first){
-					this.score += `p.play("${sound}",${time},${volume})`;
+					this.js += `p.play("${sound}",${time},${volume})`;
 					first = false;
 				}else{
-					this.score += `.then(()=>p.play("${sound}",${time},${volume}))`;
+					this.js += `.then(()=>p.play("${sound}",${time},${volume}))`;
 				}
 			}else if (sound == "拍速" && !isNaN(+time)){
 				this.speed = time;
-				this.score += `p.setSpeed(${time});`;
+				this.js += `p.setSpeed(${time});`;
 			}else if (line.trim() == "循环"){
-				this.score += ".then(s)";
+				this.js += ".then(s)";
 			}else{
-				this.score += line.trim();
+				this.js += line.trim();
 			}
 		}
-		this.score += "}s();p";
+		this.js += "}s();p";
 	}
 	
 	play(){
-		this.pianoMusic = eval(this.score);
+		this.pianoMusic = eval(this.js);
 		return this;
 	}
 	

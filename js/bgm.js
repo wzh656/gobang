@@ -6,21 +6,31 @@ MUSICS.piano = `
 	* 演奏：wzh&代码
 	*/
 	拍速 72
-	B6 0.5 0.5
-	C7 0.5 0.5
-	D7 1 0.5
-	E7 1 0.5
-	C7 0.5 0.5
-	D7 0.5 0.5
-	G7 2 0.5
+	MUSICS._piano = MUSICS._piano || {};
+	MUSICS._piano.volume = MUSICS._piano.volume || 0;
+	MUSICS._piano.volumeDir = MUSICS._piano.volumeDir || +0.1;
+	MUSICS._piano.volume += MUSICS._piano.volumeDir;
+	if (MUSICS._piano.volume >= 0.5){
+		MUSICS._piano.volumeDir = -0.1;
+	}else if (MUSICS._piano.volume <= 0.1){
+		MUSICS._piano.volumeDir = +0.1;
+	}
+	const volume = MUSICS._piano.volume;
+	B6 0.5 volume
+	C7 0.5 volume
+	D7 1 volume
+	E7 1 volume
+	C7 0.5 volume
+	D7 0.5 volume
+	G7 2 volume
 	
-	B6 0.5 0.5
-	C7 0.5 0.5
-	D7 1 0.5
-	E7 1 0.5
-	E7 1 0.5
-	A6 1 0.5
-	G6 2 0.5
+	B6 0.5 volume
+	C7 0.5 volume
+	D7 1 volume
+	E7 1 volume
+	E7 1 volume
+	A6 1 volume
+	F6 2 volume
 	循环
 `.trim().split("\n").map(v => v.trim()).join("\n");
 MUSICS.stars = `

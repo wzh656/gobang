@@ -809,7 +809,6 @@ function init(){
 	
 	//游戏
 	game.steps = 0;
-	game.startTime = +new Date();
 	game.turn = 1;
 	game.winner = false;
 	clearInterval( game.ids[0] );
@@ -826,6 +825,7 @@ function init(){
 	setInterval(()=>game.updateScores(), 16); //更新分数
 	game.lines = []; //清空分析画线
 	game.set(1); //黑棋先下
+	game.startTime = +new Date(); //开始计时
 	
 	//关闭工具
 	scores(false);

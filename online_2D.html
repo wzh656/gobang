@@ -491,8 +491,7 @@ class Board{
 }
 
 const N = +location.getQueryString("N"),
-	cols = +location.getQueryString("cols"),
-	rows = +location.getQueryString("rows"),
+	{cols, rows} = JSON.parse(location.getQueryString("size")),
 	place = +location.getQueryString("place"),
 	{mistake=true} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}");
 $("#board").css("height", WIDTH *rows/cols + "px")
@@ -505,6 +504,7 @@ const board = new Board({ //棋盘
 	picSize: $("#board").attr("width")/(cols + place) *0.9
 }).add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10) //多加一个以备删除
 	.add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10);
+
 
 let socket, //socket.io
 	send, //send
@@ -675,7 +675,7 @@ let game = {
 				i, j, direct
 			}).then((data)=>{
 				waiting = false;
-				console.log("play callback:", data.action, {i,j})
+				console.log("play callback:", data.action, {i, j})
 				switch (data.action){
 					case 2: //下黑棋
 						board.remove(-1)
@@ -685,9 +685,10 @@ let game = {
 						game.steps++;
 						send("gobang_game_play", {
 							room: ROOM,
-							i, j,
+							pos: {i, j},
 							side: 2, //黑棋
-							time: +new Date()
+							time: +new Date(),
+							totalTime: this.time[this.first].total
 						});
 						break;
 						
@@ -699,9 +700,10 @@ let game = {
 						game.steps++;
 						send("gobang_game_play", {
 							room: ROOM,
-							i, j,
+							pos: {i, j},
 							side: 1, //白棋
-							time: +new Date()
+							time: +new Date(),
+							totalTime: this.time[this.first].total
 						});
 						break;
 						
@@ -918,7 +920,6 @@ function init(){
 		.add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10);
 	
 	//游戏
-	game.startTime = +new Date();
 	game.steps = 0;
 	game.turn = 1;
 	game.winner = false;
@@ -936,6 +937,7 @@ function init(){
 	setInterval(()=>game.updateScores(), 16); //更新分数
 	game.lines = []; //清空分析画线
 	//game.set(1); //黑棋先下
+	//game.startTime = +new Date(); //开始计时
 	
 	//关闭工具
 	scores(false);
@@ -1078,6 +1080,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		}
 		init();
 		game.set(1); //黑棋先下
+		game.startTime = +new Date(); //开始计时
 	});
 	
 	//对方离开
@@ -1094,15 +1097,15 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//下棋
 	socket.on("gobang_game_play", function(data={}){
 		console.log("↓ gobang_game_play", data)
-		const {i, j, side, time} = data;
+		const {pos, side, time, totalTime} = data;
 		
 		const delay = (new Date()-time)/1000; //延时
-		game.time[game.turn].total += delay;
+		game.time[game.turn].total = totalTime; //局时
 		game.time[game.turn].step += delay;
 		
 		$("#state").html("下棋延时：" + delay*1000 + "ms")
 		if (side != game.first+1)
-			game.play(i, j, true); //直接下
+			game.play(pos.i, pos.j, true); //直接下
 	});
 	
 	//超时

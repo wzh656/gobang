@@ -297,7 +297,7 @@ class PiecesSystem{
 	
 	//分析分数
 	score(){
-		const scores = new Array(this.D).fill(0), //1:黑, 0:白
+		const scores = new Array(2).fill(0), //1:黑, 0:白
 			lines = [], //连线
 			passed = []; //经过的
 		

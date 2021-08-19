@@ -839,7 +839,6 @@ function init(){
 	//游戏
 	game.turn = 1;
 	game.first = null;
-	game.startTime = +new Date();
 	game.steps = 0;
 	game.winner = false;
 	clearInterval( game.ids[0] );
@@ -882,6 +881,7 @@ function init(){
 			});
 		}
 		game.set(1); //黑棋先下
+		game.startTime = +new Date(); //开始计时
 	};
 	layer.confirm("请选择先手/后手", {
 		btn: ["随机", "先手", "后手"],
