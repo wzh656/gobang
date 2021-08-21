@@ -1534,8 +1534,8 @@ let game = {
 			const {lines} = data;
 			
 			lines.forEach( v => {
-				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start, place);
-				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end, place);
+				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start);
+				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end);
 			});
 			
 			board.clearLines("win");
@@ -1566,8 +1566,8 @@ let game = {
 			
 			const {scores, lines} = data;
 			lines.forEach( v => {
-				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start, place);
-				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end, place);
+				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start);
+				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end);
 			});
 			
 			game.scores.goal = scores;

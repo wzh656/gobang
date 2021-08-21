@@ -54,12 +54,7 @@
 			background-color: #fffae8; /* 背景 */
 		}
 		html.outDown{
-			min-height: 100%;
-			background: #fffae8 url("./img/background.jpg") no-repeat fixed center;
-			background-size: cover;
-			max-width: 100%;
-			margin: auto;
-			
+			background-color: #fffae8;
 			overflow-y: hidden;
 		}
 		
@@ -124,6 +119,7 @@
 		
 		/* state */
 		#state{
+			z-index: 1;
 			flex: none;
 			margin: 0;
 			padding: 0;
@@ -347,6 +343,8 @@
 		<script src="./js/music.js"></script>
 		<script src="./js/bgm.js"></script>
 		
+		<script src="https://wzh.glitch.me/socket.io/socket.io.js"></script> <!-- socket -->
+		
 		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
 		
 	</head>
@@ -389,6 +387,8 @@
 				<i></i>
 			</div>
 			<div id="toolBtn">
+				<button class="giveUp">认输</button>
+				<button class="drawMatch">求和</button>
 				<button class="scores">棋局<br>评分</button>
 				<button class="analyse">棋局<br>分析</button>
 				<button class="review" disabled>复盘<br>回放</button>
@@ -443,6 +443,7 @@ function resize(){
 		height = innerHeight
 			-$("#header").height()
 			-8*2 //#main margin
+			-$("#state").height()
 			-$("#main > .side").height()*2
 			-$("#toolBtn").height();
 	$("#main > .fill").css("width", width + "px")
@@ -1434,14 +1435,15 @@ let game = {
 		},
 		
 		//下棋
-		play(i, j, k, direct=false){
-			console.log("play", i, j, k, direct)
+		play(i, j, k, mistake){
+			console.log("play", i, j, k, mistake)
 			if (waiting) return; //上次未响应
 			waiting = true; //开始等待
 			
 			request({
 				type: "play", //下棋
-				i, j, k, direct
+				i, j, k,
+				direct: mistake===false? true: false
 			}).then((data)=>{
 				waiting = false;
 				console.log("play callback:", data.action, {i, j, k})
@@ -1456,7 +1458,7 @@ let game = {
 							pos: {i, j, k},
 							side: 2, //黑棋
 							time: +new Date(),
-							totalTime: this.time[this.first].total
+							totalTime: this.time[+this.first].total
 						});
 						break;
 						
@@ -1469,13 +1471,14 @@ let game = {
 							room: ROOM,
 							pos: {i, j, k},
 							side: 1, //白棋
-							time: +new Date()
+							time: +new Date(),
+							totalTime: this.time[+this.first].total
 						});
 						break;
 						
 					case -2: //添加标记
-						pickResult.pickedMesh.material = board.materials.mistake;
-						lastMistake = pickResult.pickedMesh;
+						mistake.material = board.materials.mistake;
+						lastMistake = mistake;
 						/*lastMistake.splice(0, 3);
 						lastMistake.push(i, j, k);
 						board.set(i, j, k, "mistake");*/
@@ -1622,8 +1625,8 @@ let game = {
 			const {lines} = data;
 			
 			lines.forEach( v => {
-				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start, place);
-				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end, place);
+				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start);
+				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end);
 			});
 			
 			board.clearLines("win");
@@ -1654,8 +1657,8 @@ let game = {
 			
 			const {scores, lines} = data;
 			lines.forEach( v => {
-				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start, place);
-				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end, place);
+				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start);
+				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end);
 			});
 			
 			game.scores.goal = scores;
@@ -1869,7 +1872,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		
 		$("#state").html("下棋延时：" + delay*1000 + "ms")
 		if (side != game.first+1)
-			game.play(pos.i, pos.j, true); //直接下
+			game.play(pos.i, pos.j, pos.k, false); //直接下 跳过防误触
 	});
 	
 	//超时
@@ -2065,9 +2068,9 @@ function request(data){
 }
 
 
-let lastMistake = null; //上次防误触物体
 $("#board").click(function(e){
 	if (!worker) return; //未初始化线程
+	if (game.first != game.turn) return; //未轮到自己
 	if (game.winner !== false) return; //已结束
 	if (waiting) return; //上次未响应
 	
@@ -2082,7 +2085,7 @@ $("#board").click(function(e){
 	
 	playEffect(); //播放音效
 	
-	game.play(i, j, k);
+	game.play(i, j, k, pickResult.pickedMesh);
 });
 
 
@@ -2090,11 +2093,19 @@ $("#board").click(function(e){
 /* header */
 //返回
 $("#back").click(function(){
-	go("index.html");
+	go("rooms.html");
 });
 
 //重来
-$("#restart").click(init);
+$("#restart").click(function(){
+	if (game.winner === false) //游戏未结束
+		return layer.msg("游戏未结束，无法请求再来一局，可以先求和/认输");
+	layer.confirm("确定请求再来一局吗？", function(index){
+		layer.close(index);
+		send("gobang_game_replay", ROOM, oldID);
+		layer.msg("请求再来一局中……");
+	});
+});
 
 
 /* control */
@@ -2113,6 +2124,28 @@ $("#heightControl > .sub").click(function(){
 
 
 /* tools */
+//认输
+$("#toolBtn > .giveUp").click(function(){
+	if (game.winner !== false) //游戏已结束
+		return layer.msg("游戏已结束，无法认输");
+	layer.confirm("真的要认输吗？", function(index){
+		layer.close(index);
+		send("gobang_game_giveUp", ROOM, oldID);
+		game.over(false, "你认输了，游戏结束");
+	});
+});
+
+//求和
+$("#toolBtn > .drawMatch").click(function(){
+	if (game.winner !== false) //游戏已结束
+		return layer.msg("游戏已结束，无法求和");
+	layer.confirm("确定请求求和吗？", function(index){
+		layer.close(index);
+		send("gobang_game_drawMatch", ROOM, oldID);
+		layer.msg("请求求和中……");
+	})
+});
+
 //评分
 function scores(display){
 	const btn = $("#toolBtn > .scores"),

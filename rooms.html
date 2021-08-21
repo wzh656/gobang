@@ -330,6 +330,14 @@
 			<label>游戏设置（仅房主可修改）</label>
 			<form class="layui-form" onsubmit="return false;">
 				<div class="layui-form-item">
+					<label class="layui-form-label">先手</label>
+					<div class="layui-input-inline layui-btn-group">
+						<button class="random layui-btn layui-btn-primary">随机</button>
+						<button class="first layui-btn layui-btn-primary layui-border-green">先手</button>
+						<button class="last layui-btn layui-btn-primary layui-border-green">后手</button>
+					</div>
+				</div>
+				<div class="layui-form-item">
 					<label class="layui-form-label">维数</label>
 					<div class="layui-input-inline layui-btn-group">
 						<button class="two layui-btn">2D</button>
@@ -374,14 +382,9 @@
 						<input type="radio" name="place" title="格内" />
 					</div>
 				</div>
-				<div class="layui-form-item">
-					<label class="layui-form-label">防误触摸式</label>
-					<div class="layui-input-inline">
-						<input type="checkbox" name="mistake" class="mistake" lay-skin="switch" lay-text="开启|关闭" />
-					</div>
-				</div>
 			</form>
 			<div class="fill"></div>
+			<button class="join layui-btn layui-btn-normal layui-btn-radius" style="display: none;">加入游戏</button>
 			<button class="start layui-btn layui-btn-normal layui-btn-radius layui-btn-disabled" style="display: none;">开始游戏</button>
 		</section>
 
@@ -407,7 +410,7 @@ setTimeout(function(){
 }, 100);
 
 
-const form = $("#room > form")[0];
+const form = $("#room > form")[0]; //表单元素
 
 //切换先手
 function setFirst(first){
@@ -450,37 +453,41 @@ function setFirst(first){
 function setD(D){
 	switch (D){
 		case 2:
-			$("#room > form .two")
+			$(form).find(".two")
 				.removeClass("layui-btn-primary layui-border-green")
-			$("#room > form .three")
-				.addClass("layui-btn-primary layui-border-green");
-			$("#room > form .four")
-				.addClass("layui-btn-primary layui-border-green");
+				.siblings().addClass("layui-btn-primary layui-border-green");
+			form.cols.init = form.rows.init = 19; //初始值为19
+			$(form.depth).parent().parent().hide("slow");
+			$(form.lengthFour).parent().parent().hide("slow");
+			$(form.place).parent().parent().show("slow");
 			break;
 		
 		case 3:
-			$("#room > form .two")
-				.addClass("layui-btn-primary layui-border-green");
-			$("#room > form .three")
-				.removeClass("layui-btn-primary layui-border-green");
-			$("#room > form .four")
-				.addClass("layui-btn-primary layui-border-green");
+			$(form).find(".three")
+				.removeClass("layui-btn-primary layui-border-green")
+				.siblings().addClass("layui-btn-primary layui-border-green");
+			form.cols.init = form.rows.init = form.depth.init = 10; //初始值为10
+			$(form.depth).parent().parent().show("slow");
+			$(form.lengthFour).parent().parent().hide("slow");
+			$(form.place).parent().parent().hide("slow");
 			break;
 		
 		case 4:
-			$("#room > form .two")
-				.addClass("layui-btn-primary layui-border-green");
-			$("#room > form .three")
-				.addClass("layui-btn-primary layui-border-green");
-			$("#room > form .four")
-				.removeClass("layui-btn-primary layui-border-green");
+			$(form).find(".four")
+				.removeClass("layui-btn-primary layui-border-green")
+				.siblings().addClass("layui-btn-primary layui-border-green");
+			form.cols.init = form.rows.init = form.depth.init = form.lengthFour.init = 10; //初始值为10
+			$(form.depth).parent().parent().show("slow");
+			$(form.lengthFour).parent().parent().show("slow");
+			$(form.place).parent().parent().hide("slow");
 			break;
 	}
 }
 
 //更新房间设置
 function updateRoomSetting(settings={}){
-	const {name, first, D, N, cols, rows, place, owner} = settings;
+	const {name, first, D, N, size, place, people, owner} = settings;
+	console.log("updateRoomSetting", settings)
 	if (name !== undefined)
 		$("#room > header > h2").html( name );
 	if (first !== undefined)
@@ -488,30 +495,95 @@ function updateRoomSetting(settings={}){
 	if (D !== undefined)
 		setD( D ); //维度
 	if (N !== undefined)
-		$("#room > form input[name='n']").val( Math.limitRange(N, 3, 10) ); //连子数
-	if (cols !== undefined)
-		$("#room > form input[name='cols']").val( Math.limitRange(cols, 3, 30) );
-	if (rows !== undefined)
-		$("#room > form input[name='rows']").val( Math.limitRange(rows, 3, 30) ); //棋盘大小
+		$(form).find("input[name='n']").val( Math.limitRange(N, 3, 10) ); //连子数
+	if (size !== undefined){
+		if (size.cols !== undefined)
+			$(form).find("input[name='cols']").val( Math.limitRange(size.cols, 3, 30) );
+		if (size.rows !== undefined)
+			$(form).find("input[name='rows']").val( Math.limitRange(size.rows, 3, 30) );
+		if (size.depth !== undefined)
+			$(form).find("input[name='depth']").val( Math.limitRange(size.depth, 3, 30) ); //棋盘大小
+		if (size.lengthFour !== undefined)
+			$(form).find("input[name='lengthFour']").val( Math.limitRange(size.lengthFour, 3, 30) ); //棋盘大小
+	}
 	if (place !== undefined){ //下棋位置
-		const input = $("#room > form input[name='place']:eq("+place+")");
-		if (input.attr("disabled")){
-			input.removeAttr("disabled")
-				.next().click()
-				.prev().attr("disabled", "disabled");
-		}else{
-			input.next().click();
+		const input = $(form).find("input[name='place']:eq("+place+")");
+		input[0].checked = true;
+		layui.use("form", function(){
+			const form = layui.form;
+			form.render(); //重绘
+		});
+	}
+	if (people !== undefined){
+		$("#room > ul").empty(); //清空
+		
+		if (Object.keys(people).length == 0)
+			return $("#room > ul").html("房间没有成员？这一定是bug");
+		
+		for (const [i,v] of Object.entries(people))
+			$("#room > ul").append(
+				$("<li></li>").html((i==0? "房主：": i==1? "成员：": "") + (v||"（无）") + (v==ID? "（我）": ""))
+			);
+		
+		if (people[1] && people[0]){ //可以开始游戏
+			$("#room > button.start")
+				.removeAttr("disabled")
+				.removeClass("layui-btn-disabled");
+		}else{ //不可开始游戏
+			$("#room > button.start")
+				.attr("disabled", "disabled")
+				.addClass("layui-btn-disabled");
+		}
+		
+		if ( people.slice(0,2).indexOf(ID) != -1 ){ //不可加入游戏
+			$("#room > button.join")
+				.attr("disabled", "disabled")
+				.addClass("layui-btn-disabled");
+		}else{ //可加入游戏
+			$("#room > button.join")
+				.removeAttr("disabled")
+				.removeClass("layui-btn-disabled");
 		}
 	}
 	if (owner !== undefined){
-		if (owner){
-			$("#room button, #room input").removeAttr("disabled"); //房主才可以更改设置
-			$("#room > .start").show(); //房主才可以开始游戏
-		}else{
-			$("#room button, #room input").attr("disabled", "disabled"); //非房主不能更改设置
-			$("#room > .start").hide(); //非房主不能开始游戏
+		switch (owner){
+			case true: //房主
+				$("#room button, #room input").removeAttr("disabled"); //房主才可以更改设置
+				$("#room > .start").show(); //房主才可以开始游戏
+				$("#room > .join").hide();
+				break;
+			case false: //成员
+				$("#room button, #room input").attr("disabled", "disabled"); //非房主不能更改设置
+				$("#room > .start").hide(); //非房主不能开始游戏
+				$("#room > .join").hide();
+				break;
+			case null: //游客
+				$("#room button, #room input").attr("disabled", "disabled"); //非房主不能更改设置
+				$("#room > .start").hide(); //非房主不能开始游戏
+				$("#room > .join").show();
+				break;
 		}
 	}
+}
+
+//进入房间动画
+function roomIntoAnimation(){
+	console.log("roomIntoAnimation")
+	if ($("#room").css("display") != "none") return; //已显示
+	$("#room").show().css("left", "100%")
+		.animate({
+			left: "0%"
+		}, "slow");
+}
+
+//离开房间动画
+function roomOutAnimation(){
+	console.log("roomOutAnimation")
+	if ($("#room").css("display") == "none") return; //已隐藏
+	$("#room").css("left", "0%")
+		.animate({
+			left: "100%"
+		}, "slow", ()=>$("#room").hide());
 }
 
 
@@ -519,7 +591,7 @@ function updateRoomSetting(settings={}){
 let socket, //socket.io
 	send, //send
 	ID, //分配的ID
-	ROOMLIST = [], //房间列表
+	ROOMLIST = {}, //房间列表
 	ROOM = null, //加入的房间
 	startRoomLoader; //开始游戏等待
 if (typeof io == "undefined"){ //未加载socket.io.js
@@ -539,10 +611,10 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 			.removeClass().addClass("state connecting");
 	});
 	socket.on("connect", function(data){
+		ROOM = null;
+		roomOutAnimation();
 		send("type", "gobang"); //type
 		send("gobang_roomList"); //房间列表
-		if (ROOM)
-			send("gobang_roomPeople", ROOM); //房间人员
 		$(".state").html("服务器连接成功")
 			.removeClass().addClass("state success");
 		layer.msg("服务器连接成功", {icon:1});
@@ -553,6 +625,8 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		layer.msg("服务器连接失败", {icon:2});
 	});
 	socket.on("disconnect", function(data){
+		ROOM = null;
+		roomOutAnimation();
 		$(".state").html("与服务器连接断开")
 			.removeClass().addClass("state failed");
 		layer.msg("与服务器连接断开", {icon:2});
@@ -562,10 +636,10 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 			.removeClass().addClass("state connecting");
 	});
 	socket.on("reconnect", function(data){
+		ROOM = null;
+		roomOutAnimation();
 		send("type", "gobang"); //type
 		send("gobang_roomList"); //房间列表
-		if (ROOM)
-			send("gobang_roomPeople", ROOM); //房间人员
 		$(".state").html("服务器重连成功")
 			.removeClass().addClass("state success");
 		layer.msg("服务器重连成功", {icon:1});
@@ -595,19 +669,17 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_roomList", list)
 		$("#rooms").empty(); //清空
 		
-		ROOMLIST = list;
-		if ( !(ROOM in ROOMLIST) ){
-			ROOM = null;
-			$("#room").css("left", "0%")
-				.animate({
-					left: "100%"
-				}, "slow", ()=>$("#room").hide());
-		}
-		
 		if (Object.keys(list).length == 0)
 			return $("#rooms").html("暂无房间，快去创建一个吧");
 		
-		for (const [name,v] of Object.entries(list))
+		for (const name of Object.keys(ROOMLIST))
+			if (!(name in list)) //房间不存在 删除
+				delete ROOMLIST[name];
+		
+		for (const [name,v] of Object.entries(list)){
+			ROOMLIST[name] = ROOMLIST[name] || {};
+			for (const [attr, value] of Object.entries(v))
+				ROOMLIST[name][attr] = value; //更新数据
 			$("#rooms").append(
 				$("<li></li>")
 					.append(
@@ -617,23 +689,25 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 						$("<p></p>").html("房主：" + v.people[0])
 					)
 					.append(
-						$("<p></p>").html("人数：" + v.people.length)
+						$("<p></p>").html("人数：" + v.people.filter(v => v).length)
 					)
 					.append(
 						$("<p></p>").html("状态：" + (v.state? "已开始游戏": "等待开始游戏"))
 					)
-					.append(
-						$("<p></p>").html("先手：" + (v.first===true? "房主先手": v.first===false? "房主后手": "随机"))
-					)
-					.append(
-						$("<p></p>").html(`模式：${v.D}D ${v.N}子棋 ${v.cols}*${v.rows} ${v.place? "格内": "格点"}落子`)
-					)
-					.addClass((v.people.length>=2 || v.state)? "unable": "able")
-					.click( ()=>joinRoom(name) )
+					.addClass(v.state? "unable": "able")
+					.click( ()=>intoRoom(name) )
 			);
+		}
+		
+		if (ROOM in ROOMLIST){
+			updateRoomSetting(ROOMLIST[ROOM]);
+		}else{
+			ROOM = null;
+			roomOutAnimation();
+		}
 	});
 	
-	//房间成员
+	/*//房间成员
 	socket.on("gobang_roomPeople", function(list){
 		console.log("↓ gobang_roomPeople", list)
 		
@@ -654,17 +728,21 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		}else{ //不可开始游戏
 			$("#room > button.start").addClass("layui-btn-disabled");
 		}
-	});
+	});*/
 	
 	//房间关闭
 	socket.on("gobang_closeRoom", function(room){
 		console.log("↓ gobang_closeRoom", room)
 		layer.msg(`“${room}”房间已关闭`);
 		ROOM = null;
-		$("#room").css("left", "0%")
-			.animate({
-				left: "100%"
-			}, "slow", ()=>$("#room").hide());
+		roomOutAnimation();
+	});
+	
+	//房间设置
+	socket.on("gobang_roomSettings", function(settings){
+		console.log("↓ gobang_roomSettings", settings)
+		ROOMLIST[ROOM] = settings;
+		updateRoomSetting(settings);
 	});
 	
 	//设置先手
@@ -689,11 +767,14 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	});
 	
 	//设置棋盘大小
-	socket.on("gobang_setSize", function(cols, rows){
-		console.log("↓ gobang_setSize", cols, rows)
-		ROOMLIST[ROOM].cols = cols,
-		ROOMLIST[ROOM].rows = rows;
-		updateRoomSetting({cols, rows});
+	socket.on("gobang_setSize", function(size){
+		console.log("↓ gobang_setSize", size)
+		const {cols, rows, depth, lengthFour} = size;
+		ROOMLIST[ROOM].size.cols = cols,
+		ROOMLIST[ROOM].size.rows = rows,
+		ROOMLIST[ROOM].size.depth = depth,
+		ROOMLIST[ROOM].size.lengthFour = lengthFour;
+		updateRoomSetting({size});
 	});
 	
 	//设置下棋位置
@@ -701,6 +782,30 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_setPlace", place)
 		ROOMLIST[ROOM].place = place;
 		updateRoomSetting({place});
+	});
+	
+	//进入房间
+	socket.on("gobang_intoRoom", function(id){
+		console.log("↓ gobang_intoRoom", id)
+		
+	});
+	
+	//加入游戏
+	socket.on("gobang_joinRoom", function(id){
+		console.log("↓ gobang_joinRoom", id)
+		
+	});
+	
+	//退出房间
+	socket.on("gobang_exitRoom", function(id){
+		console.log("↓ gobang_exitRoom", id)
+		
+	});
+	
+	//聊天
+	socket.on("gobang_chat", function(id, msg){
+		console.log("↓ gobang_chat", id, msg)
+		
 	});
 	
 	//开始游戏
@@ -730,27 +835,13 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		);
 	});
 	
-	/*//退出房间
-	socket.on("gobang_exitRoom", function(){
-		console.log("↓ gobang_exitRoom")
-		layer.msg(`已退出“${ROOM}”房间`);
-		ROOM = null;
-		$("#room").css("left", "0%")
-			.animate({
-				left: "100%"
-			}, "slow", ()=>$("#room").hide());
-	});*/
-	
 	
 	//newRoom失败 有同名房间
 	socket.on("gobang_newRoom_failed", function(room){
 		console.log("↓ gobang_newRoom_failed", room)
 		layer.msg("创建房间失败，已有同名房间", {icon: 5});
 		ROOM = null;
-		$("#room").css("left", "0%")
-			.animate({
-				left: "100%"
-			}, "slow", ()=>$("#room").hide());
+		roomOutAnimation();
 	});
 	
 	//closeRoom失败 房间关闭
@@ -758,10 +849,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_closeRoom_failed", room)
 		layer.msg("关闭房间失败，房间已被关闭", {icon: 5});
 		ROOM = null;
-		$("#room").css("left", "0%")
-			.animate({
-				left: "100%"
-			}, "slow", ()=>$("#room").hide());
+		roomOutAnimation();
 	});
 	
 	//exitRoom失败 房间关闭
@@ -769,32 +857,31 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_exitRoom_failed", room)
 		layer.msg("退出房间失败，房间已被关闭", {icon: 5});
 		ROOM = null;
-		$("#room").css("left", "0%")
-			.animate({
-				left: "100%"
-			}, "slow", ()=>$("#room").hide());
+		roomOutAnimation();
 	});
 	
-	//roomPeople失败 房间关闭
-	socket.on("gobang_roomPeople_failed", function(room){
-		console.log("↓ gobang_roomPeople_failed", room)
-		layer.msg("获取房间成员失败，房间已被关闭", {icon: 5});
+	//roomSettings失败 房间关闭
+	socket.on("gobang_roomSettings_failed", function(room){
+		console.log("↓ gobang_roomSettings_failed", room)
+		layer.msg("获取房间设置失败，房间已被关闭", {icon: 5});
 		ROOM = null;
-		$("#room").css("left", "0%")
-			.animate({
-				left: "100%"
-			}, "slow", ()=>$("#room").hide());
+		roomOutAnimation();
+	});
+	
+	//intoRoom失败
+	socket.on("gobang_intoRoom_failed", function(room){
+		console.log("↓ gobang_intoRoom_failed", room)
+		layer.msg("进入房间失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		roomOutAnimation();
 	});
 	
 	//joinRoom失败
 	socket.on("gobang_joinRoom_failed", function(room){
 		console.log("↓ gobang_joinRoom_failed", room)
-		layer.msg("加入房间失败，房间已满或已被关闭", {icon: 5});
-		ROOM = null;
-		$("#room").css("left", "0%")
-			.animate({
-				left: "100%"
-			}, "slow", ()=>$("#room").hide());
+		layer.msg("加入房间失败，已有人加入游戏或房间已被关闭", {icon: 5});
+		/*ROOM = null;
+		roomOutAnimation();*/
 	});
 	
 	//setFirst失败
@@ -802,10 +889,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_setFirst_failed", room)
 		layer.msg("设置先手失败，房间已被关闭", {icon: 5});
 		ROOM = null;
-		$("#room").css("left", "0%")
-			.animate({
-				left: "100%"
-			}, "slow", ()=>$("#room").hide());
+		roomOutAnimation();
 	});
 	
 	//setD失败
@@ -813,10 +897,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_setD_failed", room)
 		layer.msg("设置维数失败，房间已被关闭", {icon: 5});
 		ROOM = null;
-		$("#room").css("left", "0%")
-			.animate({
-				left: "100%"
-			}, "slow", ()=>$("#room").hide());
+		roomOutAnimation();
 	});
 	
 	//setN失败
@@ -824,10 +905,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_setN_failed", room)
 		layer.msg("设置连子数失败，房间已被关闭", {icon: 5});
 		ROOM = null;
-		$("#room").css("left", "0%")
-			.animate({
-				left: "100%"
-			}, "slow", ()=>$("#room").hide());
+		roomOutAnimation();
 	});
 	
 	//setSize失败
@@ -835,10 +913,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_setSize_failed", room)
 		layer.msg("设置棋盘大小失败，房间已被关闭", {icon: 5});
 		ROOM = null;
-		$("#room").css("left", "0%")
-			.animate({
-				left: "100%"
-			}, "slow", ()=>$("#room").hide());
+		roomOutAnimation();
 	});
 	
 	//setPlace失败
@@ -846,10 +921,15 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_setPlace_failed", room)
 		layer.msg("设置下棋位置失败，房间已被关闭", {icon: 5});
 		ROOM = null;
-		$("#room").css("left", "0%")
-			.animate({
-				left: "100%"
-			}, "slow", ()=>$("#room").hide());
+		roomOutAnimation();
+	});
+	
+	//chat失败
+	socket.on("gobang_chat_failed", function(room){
+		console.log("↓ gobang_chat_failed", room)
+		layer.msg("发送消息失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		roomOutAnimation();
 	});
 	
 	//roomStart失败
@@ -899,73 +979,89 @@ $("body > header > .new").click(function(){
 		const setting = JSON.parse( localStorage.getItem("五子棋_游戏设置") || "{}" );
 		updateRoomSetting(setting);
 		
-		console.log(setting)
+		console.log("setting", setting)
 		if (setting.D)
 			send("gobang_setD", ROOM, setting.D);
 		if (setting.N)
 			send("gobang_setN", ROOM, setting.N);
 		if (setting.cols && setting.rows)
-			send("gobang_setSize", ROOM, setting.cols, setting.rows);
+			send("gobang_setSize", ROOM, {
+				cols: setting.cols,
+				rows: setting.rows,
+				depth: setting.depth,
+				lengthFour: setting.lengthFour
+			});
 		if (setting.place)
 			send("gobang_setPlace", ROOM, setting.place);
 		
 		//进入动画
-		$("#room").show().css("left", "100%")
-			.animate({
-				left: "0%"
-			}, "slow");
+		roomIntoAnimation();
 	});
 });
 
-/* 加入房间 */
-function joinRoom(name){
+/* 进入房间 */
+function intoRoom(name){
 	if (socket.disconnected) //未连接
 		return layer.msg("请等待连接到服务器", {icon: 5});
 	
-	if (name == ROOM){ //回到本房间
-		$("#room").show().css("left", "100%")
-			.animate({
-				left: "0%"
-			}, "slow");
-		
-	}else if (ROOMLIST[name].people.indexOf(ID) != -1){ //本在房间内
+	roomIntoAnimation();
+	
+	//初始化设置
+	if (ROOMLIST[name].people.indexOf(ID) != -1){ //本在房间内
 		ROOM = name;
-		$("#room").show().css("left", "100%")
-			.animate({
-				left: "0%"
-			}, "slow");
+		updateRoomSetting({
+			name,
+			people: ROOMLIST[name].people,
+			owner: ROOMLIST[name].people[0] == ID
+		});
 		
-	}else{ //加入新房间
-		
-		if (ROOM)
-			return layer.msg(`您已加入房间“${ROOM}”，请先退出房间再创建`, {icon: 5});
-		
-		if ( ROOMLIST[name].people.length >= 2 ||
-			ROOMLIST[name].state != false
-		) return layer.msg("当前房间已满员或已开始游戏", {icon: 5});
-		
-		send("gobang_joinRoom", name);
+	}else{ //新房间
 		ROOM = name;
-		
-		//初始化设置
-		updateRoomSetting({name, owner: false});
+		send("gobang_intoRoom", name);
+		console.log(ROOMLIST[name].people)
 		$("#player").empty().html("加载中……");
-		updateRoomSetting( ROOMLIST[ROOM] );
-		
-		//进入动画
-		$("#room").show().css("left", "100%")
-			.animate({
-				left: "0%"
-			}, "slow");
+		updateRoomSetting({
+			name,
+			people: ROOMLIST[name].people,
+			owner: null
+		});
 	}
 }
 
+/* 加入房间 */
+$("#room > .join").click(function(){
+	if (ROOMLIST[ROOM].people.slice(0,2).indexOf(ID) != -1){ //房主或成员
+		$(this).hide();
+		layer.msg("你已加入了本房间");
+		
+	}else{ //加入游戏
+		for (const [name, room] of Object.entries(ROOMLIST))
+			if (room.people.slice(0,2).indexOf(ID) != -1)
+				return layer.msg(`您已加入房间“${name}”，请先退出房间再加入`, {icon: 5});
+		
+		if (ROOMLIST[ROOM].state != false)
+			return layer.msg("当前房间已开始游戏", {icon: 5});
+		
+		send("gobang_joinRoom", ROOM);
+		
+		//初始化设置
+		updateRoomSetting({
+			name: ROOM,
+			people: ROOMLIST[ROOM].people,
+			owner: false
+		});
+	}
+});
+
 /* 返回 */
 $("#room > header >  .back").click(function(){
-	$("#room").css("left", "0%")
-		.animate({
-			left: "100%"
-		}, "slow", ()=>$("#room").hide());
+	if ( ROOMLIST[ROOM].people[0] != ID &&
+		ROOMLIST[ROOM].people[1] != ID
+	){ //不是房主和成员 退出房间
+		send("gobang_exitRoom", ROOM);
+		ROOM = null;
+	}
+	roomOutAnimation();
 });
 
 /* 解散房间 */
@@ -977,34 +1073,27 @@ $("#room > header >  .exit").click(function(){
 		}, function(index){
 			layer.close(index);
 			
-			if (socket.disconnected) //未连接
-				return layer.msg("请等待连接到服务器", {icon: 5});
-			
 			send("gobang_closeRoom", ROOM);
 			ROOM = null;
-			$("#room").css("left", "0%")
-				.animate({
-					left: "100%"
-				}, "slow", ()=>$("#room").hide());
+			roomOutAnimation();
 		});
 		
-	}else{ //自己为成员
+	}else if (ROOMLIST[ROOM].people[1] == ID){ //自己为成员
 		layer.confirm(`真的要退出房间“${ROOM}”吗？`, {
 			icon:3,
 			title:"是否退出房间"
 		}, function(index){
 			layer.close(index);
 			
-			if (socket.disconnected) //未连接
-				return layer.msg("请等待连接到服务器", {icon: 5});
-			
 			send("gobang_exitRoom", ROOM);
 			ROOM = null;
-			$("#room").css("left", "0%")
-				.animate({
-					left: "100%"
-				}, "slow", ()=>$("#room").hide());
+			roomOutAnimation();
 		});
+		
+	}else{ //自己为游客
+		send("gobang_exitRoom", ROOM);
+		ROOM = null;
+		roomOutAnimation();
 	}
 });
 
@@ -1014,16 +1103,19 @@ $("#room > header >  .exit").click(function(){
 $("#room > form .random").click(function(){
 	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
 	send("gobang_setFirst", ROOM, null);
+	ROOMLIST[ROOM].first = null;
 	setFirst(null);
 });
 $("#room > form .first").click(function(){
 	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
 	send("gobang_setFirst", ROOM, true);
+	ROOMLIST[ROOM].first = true;
 	setFirst(true);
 });
 $("#room > form .last").click(function(){
 	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
 	send("gobang_setFirst", ROOM, false);
+	ROOMLIST[ROOM].first = false;
 	setFirst(false);
 });
 
@@ -1031,21 +1123,26 @@ $("#room > form .last").click(function(){
 $("#room > form .two").click(function(){
 	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
 	send("gobang_setD", ROOM, 2);
+	ROOMLIST[ROOM].D = 2;
 	setD(2);
 });
 $("#room > form .three").click(function(){
 	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
 	send("gobang_setD", ROOM, 3);
+	ROOMLIST[ROOM].D = 3;
 	setD(3);
 });
 $("#room > form .four").click(function(){
 	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
 	send("gobang_setD", ROOM, 4);
+	ROOMLIST[ROOM].D = 4;
 	setD(4);
 });
 
 //输入改变
 $("#room > form input[type='number']").change(function(){
+	if (this.value == "")
+		return (this.value = this.init); //初始值
 	this.value = Math.limitRange(+this.value, +this.min, +this.max);
 });
 
@@ -1073,7 +1170,7 @@ $("#room > form input[name='place']").parent().click(function(){
 });
 
 
-/* 开始游戏 */
+//开始游戏
 $("#room > .start").click(function(){
 	if (ROOMLIST[ROOM].people.length < 2)
 		return layer.msg("人数不足，无法开始游戏", {icon: 5});

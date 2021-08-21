@@ -688,7 +688,7 @@ let game = {
 							pos: {i, j},
 							side: 2, //黑棋
 							time: +new Date(),
-							totalTime: this.time[this.first].total
+							totalTime: this.time[+this.first].total
 						});
 						break;
 						
@@ -703,7 +703,7 @@ let game = {
 							pos: {i, j},
 							side: 1, //白棋
 							time: +new Date(),
-							totalTime: this.time[this.first].total
+							totalTime: this.time[+this.first].total
 						});
 						break;
 						
