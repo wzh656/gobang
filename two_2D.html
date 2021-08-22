@@ -628,7 +628,7 @@ let game = {
 		over(winner, text){
 			console.log("game over", winner, text)
 			
-			game.winner = winner;
+			this.winner = +winner;
 			clearInterval( this.ids[this.turn] );
 			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 			

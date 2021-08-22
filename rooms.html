@@ -265,10 +265,40 @@
 			font-size: 1.1em;
 		}
 		
-		/* fill */
-		#room > .fill{
-			height: 100%;
+		/* info */
+		#info{
+			display: flex;
+			flex-direction: column;
+			margin: 8px;
 		}
+		#info > .output{
+			height: 160px;
+			overflow-y: auto;
+		}
+		#info > .output > p{
+			margin: 0;
+			font-size: 0.9em;
+		}
+		#info > .input{
+			display: flex;
+			margin-top: 0.5rem;
+		}
+		#info > .input > input{
+			width: 100%;
+			margin-right: 0.2rem;
+		}
+		#info > .input > input:focus{
+			border: 1px solid rgb(210, 210, 210);
+		}
+		#info > .input > button{
+			flex: none;
+			margin-left: 0.2rem;
+		}
+		
+		/* fill */
+		/*#room > .fill{
+			height: 100%;
+		}*/
 		
 		/* buttons */
 		#room > button{
@@ -328,11 +358,11 @@
 			<label>房间成员</label>
 			<ul id="players">加载中……</ul>
 			<label>游戏设置（仅房主可修改）</label>
-			<form class="layui-form" onsubmit="return false;">
+			<form class="setting layui-form" onsubmit="return false;">
 				<div class="layui-form-item">
 					<label class="layui-form-label">先手</label>
 					<div class="layui-input-inline layui-btn-group">
-						<button class="random layui-btn layui-btn-primary">随机</button>
+						<button class="random layui-btn layui-btn-normal">随机</button>
 						<button class="first layui-btn layui-btn-primary layui-border-green">先手</button>
 						<button class="last layui-btn layui-btn-primary layui-border-green">后手</button>
 					</div>
@@ -372,7 +402,7 @@
 				<div class="layui-form-item" style="display: none;">
 					<label class="layui-form-label">四维长度</label>
 					<div class="layui-input-inline">
-						<input type="number" name="lengthFour" min="3" max="30" init="10" value="10" class="layui-input" />
+						<input type="number" name="width" min="3" max="30" init="10" value="10" class="layui-input" />
 					</div>
 				</div>
 				<div class="layui-form-item">
@@ -383,7 +413,14 @@
 					</div>
 				</div>
 			</form>
-			<div class="fill"></div>
+			<label>信息聊天区</label>
+			<form id="info" onsubmit="return chat();">
+				<div class="output layui-textarea" disabled></div>
+				<div class="input">
+					<input placeholder="要发送的消息" class="layui-input" />
+					<button class="layui-btn layui-btn-primary layui-border-blue">发送</button>
+				</div>
+			</form>
 			<button class="join layui-btn layui-btn-normal layui-btn-radius" style="display: none;">加入游戏</button>
 			<button class="start layui-btn layui-btn-normal layui-btn-radius layui-btn-disabled" style="display: none;">开始游戏</button>
 		</section>
@@ -458,7 +495,7 @@ function setD(D){
 				.siblings().addClass("layui-btn-primary layui-border-green");
 			form.cols.init = form.rows.init = 19; //初始值为19
 			$(form.depth).parent().parent().hide("slow");
-			$(form.lengthFour).parent().parent().hide("slow");
+			$(form.width).parent().parent().hide("slow");
 			$(form.place).parent().parent().show("slow");
 			break;
 		
@@ -468,7 +505,7 @@ function setD(D){
 				.siblings().addClass("layui-btn-primary layui-border-green");
 			form.cols.init = form.rows.init = form.depth.init = 10; //初始值为10
 			$(form.depth).parent().parent().show("slow");
-			$(form.lengthFour).parent().parent().hide("slow");
+			$(form.width).parent().parent().hide("slow");
 			$(form.place).parent().parent().hide("slow");
 			break;
 		
@@ -476,9 +513,9 @@ function setD(D){
 			$(form).find(".four")
 				.removeClass("layui-btn-primary layui-border-green")
 				.siblings().addClass("layui-btn-primary layui-border-green");
-			form.cols.init = form.rows.init = form.depth.init = form.lengthFour.init = 10; //初始值为10
+			form.cols.init = form.rows.init = form.depth.init = form.width.init = 10; //初始值为10
 			$(form.depth).parent().parent().show("slow");
-			$(form.lengthFour).parent().parent().show("slow");
+			$(form.width).parent().parent().show("slow");
 			$(form.place).parent().parent().hide("slow");
 			break;
 	}
@@ -503,8 +540,8 @@ function updateRoomSetting(settings={}){
 			$(form).find("input[name='rows']").val( Math.limitRange(size.rows, 3, 30) );
 		if (size.depth !== undefined)
 			$(form).find("input[name='depth']").val( Math.limitRange(size.depth, 3, 30) ); //棋盘大小
-		if (size.lengthFour !== undefined)
-			$(form).find("input[name='lengthFour']").val( Math.limitRange(size.lengthFour, 3, 30) ); //棋盘大小
+		if (size.width !== undefined)
+			$(form).find("input[name='width']").val( Math.limitRange(size.width, 3, 30) ); //棋盘大小
 	}
 	if (place !== undefined){ //下棋位置
 		const input = $(form).find("input[name='place']:eq("+place+")");
@@ -548,17 +585,17 @@ function updateRoomSetting(settings={}){
 	if (owner !== undefined){
 		switch (owner){
 			case true: //房主
-				$("#room button, #room input").removeAttr("disabled"); //房主才可以更改设置
+				$("#room > form.setting button, #room > form.setting input, #room > button").removeAttr("disabled"); //房主才可以更改设置
 				$("#room > .start").show(); //房主才可以开始游戏
 				$("#room > .join").hide();
 				break;
 			case false: //成员
-				$("#room button, #room input").attr("disabled", "disabled"); //非房主不能更改设置
+				$("#room > form.setting button, #room > form.setting input, #room > button").attr("disabled", "disabled"); //非房主不能更改设置
 				$("#room > .start").hide(); //非房主不能开始游戏
 				$("#room > .join").hide();
 				break;
 			case null: //游客
-				$("#room button, #room input").attr("disabled", "disabled"); //非房主不能更改设置
+				$("#room > form.setting button, #room > form.setting input, #room > button").attr("disabled", "disabled"); //非房主不能更改设置
 				$("#room > .start").hide(); //非房主不能开始游戏
 				$("#room > .join").show();
 				break;
@@ -769,11 +806,11 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//设置棋盘大小
 	socket.on("gobang_setSize", function(size){
 		console.log("↓ gobang_setSize", size)
-		const {cols, rows, depth, lengthFour} = size;
+		const {cols, rows, depth, width} = size;
 		ROOMLIST[ROOM].size.cols = cols,
 		ROOMLIST[ROOM].size.rows = rows,
 		ROOMLIST[ROOM].size.depth = depth,
-		ROOMLIST[ROOM].size.lengthFour = lengthFour;
+		ROOMLIST[ROOM].size.width = width;
 		updateRoomSetting({size});
 	});
 	
@@ -788,24 +825,39 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_intoRoom", function(id){
 		console.log("↓ gobang_intoRoom", id)
 		
+		$("#info > .output").append(
+			$("<p></p>").html(`“${id}”进入了房间`)
+				.css("text-align", "center")
+		);
 	});
 	
 	//加入游戏
 	socket.on("gobang_joinRoom", function(id){
 		console.log("↓ gobang_joinRoom", id)
 		
+		$("#info > .output").append(
+			$("<p></p>").html(`“${id}”加入了游戏`)
+				.css("text-align", "center")
+		);
 	});
 	
 	//退出房间
 	socket.on("gobang_exitRoom", function(id){
 		console.log("↓ gobang_exitRoom", id)
 		
+		$("#info > .output").append(
+			$("<p></p>").html(`“${id}”退出了房间`)
+				.css("text-align", "center")
+		);
 	});
 	
 	//聊天
 	socket.on("gobang_chat", function(id, msg){
 		console.log("↓ gobang_chat", id, msg)
 		
+		$("#info > .output").append(
+			$("<p></p>").html(`${id}：${msg}`)
+		);
 	});
 	
 	//开始游戏
@@ -939,6 +991,14 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		layer.msg("开始游戏失败，房间已被关闭或人数不足", {icon: 5});
 	});
 	
+	//chat失败
+	socket.on("gobang_chat_failed", function(room){
+		console.log("↓ gobang_chat_failed", room)
+		layer.msg("发送聊天失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		roomOutAnimation();
+	});
+	
 }
 
 
@@ -989,7 +1049,7 @@ $("body > header > .new").click(function(){
 				cols: setting.cols,
 				rows: setting.rows,
 				depth: setting.depth,
-				lengthFour: setting.lengthFour
+				width: setting.width
 			});
 		if (setting.place)
 			send("gobang_setPlace", ROOM, setting.place);
@@ -1052,6 +1112,14 @@ $("#room > .join").click(function(){
 		});
 	}
 });
+
+/* 发送消息 */
+$("#info > .input > button").click(chat);
+function chat(){
+	send("gobang_chat", ROOM, $("#info > .input > input").val());
+	$("#info > .input > input").val(""); //清空输入
+	return false;
+}
 
 /* 返回 */
 $("#room > header >  .back").click(function(){
@@ -1159,7 +1227,7 @@ $("#room > form input[name='cols'], #room > form input[name='rows']").change(fun
 		cols: +$("#room > form input[name='cols']").val(),
 		rows: +$("#room > form input[name='rows']").val(),
 		depth: +$("#room > form input[name='depth']").val(),
-		lengthFour: +$("#room > form input[name='lengthFour']").val()
+		width: +$("#room > form input[name='width']").val()
 	});
 });
 

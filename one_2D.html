@@ -635,17 +635,17 @@ let game = {
 			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 			
 			if (win === true){
-				game.winner = this.first;
+				this.winner = +this.first;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "胜利！", icon: 6}
 				);
 			}else if (win === false){
-				game.winner = 1-this.first;
+				this.winner = 1-this.first;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "你失败了！", icon: 5}
 				);
 			}else{
-				game.winner = this.first;
+				this.winner = null;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "游戏结束"}
 				);

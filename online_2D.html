@@ -240,6 +240,36 @@
 			background-color: #ccc;
 			border: 3px inset #ddd;
 		}
+		
+		/* info */
+		#info{
+			display: flex;
+			flex-direction: column;
+			margin: 8px;
+		}
+		#info > .output{
+			height: 160px;
+			overflow-y: auto;
+		}
+		#info > .output > p{
+			margin: 0;
+			font-size: 0.9em;
+		}
+		#info > .input{
+			display: flex;
+			margin-top: 0.5rem;
+		}
+		#info > .input > input{
+			width: 100%;
+			margin-right: 0.2rem;
+		}
+		#info > .input > input:focus{
+			border: 1px solid rgb(210, 210, 210);
+		}
+		#info > .input > button{
+			flex: none;
+			margin-left: 0.2rem;
+		}
 		</style>
 		
 		<!-- jquery -->
@@ -331,6 +361,13 @@
 					</svg>
 				</div>
 			</div>
+			<form id="info" onsubmit="return chat();">
+				<div class="output layui-textarea" disabled></div>
+				<div class="input">
+					<input placeholder="要发送的消息" class="layui-input" />
+					<button class="send layui-btn layui-btn-primary layui-border-blue">发送</button>
+				</div>
+			</form>
 		</section>
 		
 <script>
@@ -667,8 +704,6 @@ let game = {
 		//下棋
 		play(i, j, direct=false){
 			console.log("play", i, j, direct)
-			if (waiting) return; //上次未响应
-			waiting = true; //开始等待
 			
 			request({
 				type: "play", //下棋
@@ -727,25 +762,28 @@ let game = {
 			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 			
 			if (win === true){
-				game.winner = this.first;
+				this.winner = +this.first;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "胜利！", icon: 6}
 				);
-				$("#state").html( text );
+				$("#state").html("胜利！");
+				output(`胜利：${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`, true);
 				
 			}else if (win === false){
-				game.winner = 1-this.first;
+				this.winner = 1-this.first;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "你失败了！", icon: 5}
 				);
-				$("#state").html( text );
+				$("#state").html("你失败了！");
+				output(`你失败了：${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`, true);
 				
 			}else{
-				game.winner = this.first;
+				this.winner = null;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "游戏结束"}
 				);
-				$("#state").html( text );
+				$("#state").html("游戏结束");
+				output(`游戏结束：${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`, true);
 				
 			}
 		},
@@ -1053,6 +1091,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		ID = data;
 		$("#main > div.self > div > p.name").html(oldID);
 		$("#state").html("等待对方加入中……");
+		output("id分配成功，等待对方加入中……", true);
 	});
 	
 	//准备好了
@@ -1069,6 +1108,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 			$("#main > div.opposite > div > p.name").html( "："+data.oldID[+TYPE] );
 			layer.msg("你执黑棋，对方执白棋");
 			$("#state").html("游戏开始，你执黑棋，对方执白棋");
+			output("游戏开始，你执黑棋，对方执白棋", true);
 			
 		}else{
 			$("#main > div.self").removeClass("black").addClass("white");
@@ -1077,6 +1117,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 			$("#main > div.opposite > div > p.name").html( "："+data.oldID[+TYPE] );
 			layer.msg("你执白棋，对方执黑棋");
 			$("#state").html("游戏开始，你执白棋，对方执黑棋");
+			output("游戏开始，你执白棋，对方执黑棋", true);
 		}
 		init();
 		game.set(1); //黑棋先下
@@ -1087,8 +1128,10 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_leave", function(old_id){
 		console.log("↓ gobang_game_leave", old_id)
 		
-		if (old_id != oldID)
-			$("#state").html( `对方“${old_id}”退出了房间` );
+		if (old_id != oldID){
+			$("#state").html(`对方“${old_id}”退出了房间`);
+			output(`对方“${old_id}”退出了房间`, true);
+		}
 		
 		if (game.winner !== false) return; //游戏已结束
 		game.over(true, `对方“${old_id}”退出了房间，游戏结束！`);
@@ -1135,11 +1178,13 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 			btn1: function(index){
 				layer.close(index);
 				send("gobang_game_drawMatch_agree", ROOM, oldID);
+				output("你同意了对方的求和请求", true);
 				game.over(null, "求和成功，游戏结束");
 			},
 			btn2: function(index){
 				layer.close(index);
 				send("gobang_game_drawMatch_disagree", ROOM, oldID);
+				output("你拒绝了对方的求和请求", true);
 			}
 		});
 	});
@@ -1148,6 +1193,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_drawMatch_agree", function(old_id){
 		console.log("↓ gobang_game_drawMatch_agree", old_id)
 		
+		output("对方同意了你的求和请求", true);
 		game.over(null, "求和成功，游戏结束");
 	});
 	
@@ -1156,6 +1202,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_game_drawMatch_disagree", old_id)
 		
 		layer.msg("对方拒绝了你的求和请求");
+		output("对方拒绝了你的求和请求", true);
 	});
 	
 	//再来一局
@@ -1175,10 +1222,12 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 					type: TYPE,
 					first: FIRST
 				}); //加入游戏房间
+				output("你同意了对方的再来一局请求", true);
 			},
 			btn2: function(index){
 				layer.close(index);
 				send("gobang_game_replay_disagree", ROOM, oldID);
+				output("你拒绝了对方的再来一局请求", true);
 			}
 		});
 	});
@@ -1188,6 +1237,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_game_replay_agree", old_id)
 		
 		layer.msg("对方同意了你再来一局的请求");
+		output("对方同意了你再来一局的请求", true);
 		init();
 		send("gobang_game_room", {
 			oldID,
@@ -1202,6 +1252,20 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_game_replay_disagree", old_id)
 		
 		layer.msg("对方拒绝了你再来一局的请求");
+		output("对方拒绝了你再来一局的请求", true);
+	});
+	
+	//聊天
+	socket.on("gobang_game_chat", function(old_id, msg){
+		console.log("↓ gobang_game_chat", old_id, msg)
+		
+		output(`${old_id}：${msg}`);
+		
+		if (old_id == oldID){ //自己发送
+			layer.tips(msg, $("#main > .self > i")[0], {tips: 1}); //上方
+		}else{ //对方发送
+			layer.tips(msg, $("#main > .opposite > i")[0], {tips: 1}); //上方
+		}
 	});
 	
 	
@@ -1209,6 +1273,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_play_failed", function(){
 		console.log("↓ gobang_game_play_failed", room)
 		layer.msg("下棋失败，房间已被关闭", {icon: 5});
+		output("下棋失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -1218,6 +1283,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_timeout_failed", function(){
 		console.log("↓ gobang_game_timeout_failed", room)
 		layer.msg("发送超时失败，房间已被关闭", {icon: 5});
+		output("发送超时失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败（超时）
@@ -1227,6 +1293,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_giveUp_failed", function(){
 		console.log("↓ gobang_game_giveUp_failed", room)
 		layer.msg("发送认输失败，房间已被关闭", {icon: 5});
+		output("发送认输失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败（认输）
@@ -1236,6 +1303,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_drawMatch_failed", function(){
 		console.log("↓ gobang_game_drawMatch_failed", room)
 		layer.msg("发送求和失败，房间已被关闭", {icon: 5});
+		output("发送求和失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -1245,6 +1313,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_drawMatch_agree_failed", function(){
 		console.log("↓ gobang_game_drawMatch_agree_failed", room)
 		layer.msg("同意求和失败，房间已被关闭", {icon: 5});
+		output("同意求和失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -1254,6 +1323,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_drawMatch_disagree_failed", function(){
 		console.log("↓ gobang_game_drawMatch_disagree_failed", room)
 		layer.msg("拒绝求和失败，房间已被关闭", {icon: 5});
+		output("拒绝求和失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -1263,6 +1333,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_replay_failed", function(){
 		console.log("↓ gobang_game_replay_failed", room)
 		layer.msg("发送求和失败，房间已被关闭", {icon: 5});
+		output("发送求和失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -1272,6 +1343,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_replay_agree_failed", function(){
 		console.log("↓ gobang_game_replay_agree_failed", room)
 		layer.msg("同意再来一局失败，房间已被关闭", {icon: 5});
+		output("同意再来一局失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -1281,10 +1353,19 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_replay_disagree_failed", function(){
 		console.log("↓ gobang_game_replay_disagree_failed", room)
 		layer.msg("拒绝再来一局失败，房间已被关闭", {icon: 5});
+		output("拒绝再来一局失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
 	});
+	
+	//chat失败
+	socket.on("gobang_chat_failed", function(room){
+		console.log("↓ gobang_chat_failed", room)
+		layer.msg("发送聊天失败，房间已被关闭", {icon: 5});
+		output("发送聊天失败，房间已被关闭");
+	});
+	
 }
 
 
@@ -1314,6 +1395,7 @@ $("#board").click(function(e){
 	const [i, j] = board.xy2ij(x,y, place);
 	console.log("click", [x, y], [i, j])
 	
+	waiting = true;
 	game.play(i, j);
 });
 
@@ -1333,6 +1415,7 @@ $("#restart").click(function(){
 		layer.close(index);
 		send("gobang_game_replay", ROOM, oldID);
 		layer.msg("请求再来一局中……");
+		output("你发送了再来一局请求", true);
 	});
 });
 
@@ -1357,6 +1440,7 @@ $("#toolBtn > .drawMatch").click(function(){
 		layer.close(index);
 		send("gobang_game_drawMatch", ROOM, oldID);
 		layer.msg("请求求和中……");
+		output("你发送了求和请求", true);
 	})
 });
 
@@ -1503,6 +1587,21 @@ $("#toolBtn > .review").click(function(){
 		$("#tools > .review").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
 	}
 });
+
+
+/* 发送消息 */
+$("#info > .input > button").click(chat);
+function chat(){
+	send("gobang_game_chat", ROOM, oldID, $("#info > .input > input").val());
+	$("#info > .input > input").val(""); //清空输入
+	return false;
+}
+function output(text, center=false){
+	$("#info > .output").append(
+		$("<p></p>").html( text )
+			.css("text-align", center? "center": "")
+	);
+}
 </script>
 		
 	</body>

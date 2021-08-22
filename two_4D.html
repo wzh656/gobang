@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
-		<title>双人对战 | 3D五子棋</title>
+		<title>双人对战 | 4D五子棋</title>
 		
 		<!--icon-->
 		<link href="./img/icon.png" rel="icon" type="image/x-icon"/>
@@ -203,8 +203,8 @@
 		#layerControl{ /*显示层控制*/
 			position: absolute;
 			left: 1rem;
-			top: calc(100vh - 12rem);
-			z-index: 2;
+			top: calc(100vh - 10rem);
+			z-index: 1;
 			display: flex;
 			flex-direction: column;
 			
@@ -225,8 +225,8 @@
 		#heightControl{
 			position: absolute;
 			right: 1rem;
-			top: calc(100vh - 12rem);
-			z-index: 2;
+			top: calc(100vh - 10rem);
+			z-index: 1;
 			display: flex;
 			flex-direction: column;
 			
@@ -244,6 +244,85 @@
 		#heightControl > *:active{
 			background-color: #eee;
 		}
+		
+		/* 4D坐标轴 */
+		#axis{
+			position: absolute;
+			height: 50vh;
+			top: calc(100vh - 10rem - 1.2em * 2 - 50vh);
+			z-index: 1;
+		}
+		
+		#axis > .scale{
+			position: absolute;
+			height: 100%;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-around;
+			margin: 0;
+			padding: 0;
+		}
+		#axis > .scale > li{
+			display: inline-block;
+			margin: 0;
+			padding: 0;
+			height: 6px;
+			width: 20px;
+			border-radius: 999vw;
+			background-color: white;
+			transition: width 0.6s, background-color 0.6s;
+		}
+		#axis > .scale > li.win{
+			background-color: #f00;
+			width: 30px;
+		}
+		#axis > .scale > li.play{
+			background-color: #0f0;
+			width: 30px;
+		}
+		#axis > .scale > li.in{
+			background-color: #00f;
+			width: 36px;
+		}
+		
+		#axis > .arrows{
+			position: absolute;
+			width: 6px;
+			height: 100%;
+		}
+		#axis > .arrows > em{
+			display: block;
+			width: 100%;
+			height: 100%;
+			border-radius: 999vw;
+			background-color: #fff;
+		}
+		#axis > .arrows > i:first-of-type{
+			position: absolute;
+			display: block;
+			width: 100%;
+			height: 15px;
+			border-radius: 999vw;
+			background-color: #fff;
+			transform-origin: center top;
+			transform: rotate(150deg);
+		}
+		#axis > .arrows > i:last-of-type{
+			position: absolute;
+			display: block;
+			width: 100%;
+			height: 15px;
+			border-radius: 999vw;
+			background-color: #fff;
+			transform-origin: center top;
+			transform: rotate(-150deg);
+		}
+		#axis > .arrows > span{
+			font-size: 1.2em;
+			font-weight: bold;
+			color: #fff;
+		}
+		
 		
 		/* 工具按钮 */
 		#toolBtn{
@@ -333,7 +412,7 @@
 	<body>
 		<header id="header">
 			<i id="back" class="layui-icon layui-icon-return"></i>
-			<h1>双人对战 3D</h1>
+			<h1>双人对战 4D</h1>
 			<i id="restart" class="layui-icon layui-icon-refresh"></i>
 		</header>
 		
@@ -350,6 +429,15 @@
 			</div>
 			<canvas id="board"></canvas>
 			<div class="fill"></div>
+			<div id="axis">
+				<ul class="scale"></ul>
+				<div class="arrows">
+					<em></em>
+					<i></i>
+					<i></i>
+					<span>W</span>
+				</div>
+			</div>
 			<div id="layerControl">
 				<i class="add layui-icon layui-icon-addition"></i>
 				<i class="sub layui-icon layui-icon-subtraction"></i>
@@ -457,7 +545,7 @@ $("button, input[type='button'], svg, header > i, #layerControl *, #heightContro
 
 
 class Board{
-	constructor ({canvas, background, rows, columns, depth, none, mistake, black, white, winLines, spacing}){
+	constructor ({canvas, background, rows, columns, depth, width, none, mistake, black, white, winLines, spacing}){
 		this.canvas = canvas;
 		this.width = canvas.width;
 		this.height = canvas.height;
@@ -466,10 +554,12 @@ class Board{
 		this.columns = columns;
 		this.rows = rows;
 		this.depth = depth;
+		this.width = width;
 		
 		this.columnRange = [0, columns-1]; //列范围
 		this.rowRange = ~~((rows-1)/2); //行
 		this.depthRange = [0, depth-1]; //深度范围
+		this.widthRange = ~~((width-1)/2); //四维长度
 		
 		this.none = none; //空气配置
 		this.mistake = mistake; //防误触配置
@@ -589,7 +679,7 @@ class Board{
 		
 		//生成所有占位符和棋子
 		this.places = Array.new(null, this.columns, this.depth);
-		this.pieces = Array.new(null, this.columns, this.rows, this.depth);
+		this.pieces = Array.new(null, this.columns, this.rows, this.depth, this.width);
 		//this.clear();
 		
 		
@@ -668,7 +758,7 @@ class Board{
 				const line = BABYLON.MeshBuilder.CreateLines("lines", {points: path, colors}, this.scene);
 				line.isPickable = false; //禁止点击
 				this.lines.border.push(line);
-				this.sizeInAnimation(line, 100);
+				//this.sizeInAnimation(line, 100);
 			}
 		}
 		
@@ -810,30 +900,34 @@ class Board{
 			]);
 			alphaAnimation.setEasingFunction( this.easingFunction ); //缓动函数*/
 			
+			for (const line of this.lines.border)
+				this.sizeInAnimation(line, 100); //由小到大动画
+			
 			for (let i=this.columns-1; i>=0; i--)
 				for (let j=this.rows-1; j>=0; j--)
-					for (let k=this.depth-1; k>=0; k--){
-						const mesh = this.pieces[i][j][k];
-						if (!mesh) continue; //无棋子
-						if (!OR(mesh.goalVisible, mesh.isVisible)) continue; //已隐藏
-						
-						//位置进入动画
-						BABYLON.Animation.CreateAndStartAnimation(
-							"animation_comeIn", //名称
-							mesh, //物体
-							"position", //属性
-							30, //fps
-							100, //frames
-							new BABYLON.Vector3(0, 0, 0), //from
-							new BABYLON.Vector3(...this.ijk2xyz(i, j, k)), //to
-							BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT, //mode
-							this.easingFunction, //缓动函数
-							resolve
-						);
-						
-						//由小到大动画
-						this.sizeInAnimation(mesh, 100);
-					}
+					for (let k=this.depth-1; k>=0; k--)
+						for (let l=this.width-1; l>=0; l--){
+							const mesh = this.pieces[i][j][k][l];
+							if (!mesh) continue; //无棋子
+							if (!OR(mesh.goalVisible, mesh.isVisible)) continue; //已隐藏
+							
+							//位置进入动画
+							BABYLON.Animation.CreateAndStartAnimation(
+								"animation_comeIn", //名称
+								mesh, //物体
+								"position", //属性
+								30, //fps
+								100, //frames
+								new BABYLON.Vector3(0, 0, 0), //from
+								new BABYLON.Vector3(...this.ijk2xyz(i, j, k)), //to
+								BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT, //mode
+								this.easingFunction, //缓动函数
+								resolve
+							);
+							
+							//由小到大动画
+							this.sizeInAnimation(mesh, 100);
+						}
 		});
 	}
 	
@@ -859,31 +953,31 @@ class Board{
 	
 	/* 棋子 */
 	//添加棋子
-	add(i, j, k, type){
-		const piece = this.templates[type].clone(`pieces(${i},${j},${k})`);
+	add(i, j, k, l, type){
+		const piece = this.templates[type].clone(`pieces(${i},${j},${k},${l})`);
 		piece.isVisible = true; //显示
 		piece.position.set( ...this.ijk2xyz(i, j, k) );
 		piece.freezeWorldMatrix();
-		piece.cullingStrategy = BABYLON.AbstractMesh.CULLINGSTRATEGY_BOUNDINGSPHERE_ONLY; //网格剔除策略：边界球
-		this.pieces[i][j][k] = piece;
+		//piece.cullingStrategy = BABYLON.AbstractMesh.CULLINGSTRATEGY_BOUNDINGSPHERE_ONLY; //网格剔除策略：边界球
+		this.pieces[i][j][k][l] = piece;
 		if (type == "none" || type == "mistake")
 			this.places[i][k] = piece;
 		return this;
 	}
 	
 	//隐藏棋子
-	visible(i, j, k, visible){
-		const mesh = this.pieces[i][j][k];
+	visible(i, j, k, l, visible){
+		const mesh = this.pieces[i][j][k][l];
 		mesh.isVisible = visible;
 		mesh.goalVisible = visible;
 		return this;
 	}
 	
 	//删除棋子
-	remove(i, j, k){
-		if (this.pieces[i][j][k])
-			this.pieces[i][j][k].dispose();
-		this.pieces[i][j][k] = null;
+	remove(i, j, k, l){
+		if (this.pieces[i][j][k][l])
+			this.pieces[i][j][k][l].dispose();
+		this.pieces[i][j][k][l] = null;
 		return this;
 	}
 	
@@ -896,32 +990,32 @@ class Board{
 	}
 	
 	//设置棋子
-	set(i, j, k, type){
-		const mesh = this.pieces[i][j][k];
+	set(i, j, k, l, type){
+		const mesh = this.pieces[i][j][k][l];
 		switch (type){
 			/*case null: //隐藏
 				if (mesh) //有棋子
-					this.remove(i, j, k);
+					this.remove(i, j, k, l);
 				break;*/
 				
 			case "none": //占位符
 				if (mesh){ //有棋子
-					//this.visible(i, j, k, true); //显示
+					//this.visible(i, j, k, l, true); //显示
 					if (mesh.material == this.materials.none)
 						return; //类型相同不改
 					if (mesh.material == this.materials.mistake) //同形状 改材质
 						return (mesh.material = this.materials.none);
-					this.pieces[i][j][k] = null; //取消引用
+					this.pieces[i][j][k][l] = null; //取消引用
 					this.sizeOutAnimation(mesh, 20)
 						.then(()=>{
 							if (!mesh.goalVisible) //仍要隐藏
 								mesh.dispose();
 						}); //否则删除原有棋子
-					//this.remove(i, j, k);
+					//this.remove(i, j, k, l);
 				}
-				if (this.inRange(i, j, k)){
-					this.add(i, j, k, "none"); //添加棋子
-					this.sizeInAnimation(this.pieces[i][j][k], 20);
+				if (this.inRange(i, j, k, l)){
+					this.add(i, j, k, l, "none"); //添加棋子
+					this.sizeInAnimation(this.pieces[i][j][k][l], 20);
 				}
 				break;
 				
@@ -931,34 +1025,34 @@ class Board{
 				
 			case "black": //黑棋
 				if (mesh){ //有棋子
-					//this.visible(i, j, k, true); //显示
+					//this.visible(i, j, k, l, true); //显示
 					if (mesh.material == this.materials.black)
-						return this.visible(i, j, k, true); //类型相同不改
+						return this.visible(i, j, k, l, true); //类型相同不改
 					if (mesh.material == this.materials.white) //同形状 改材质
 						return (mesh.material = this.materials.black);
 					if (mesh.material == this.materials.mistake)
 						mesh.material = this.materials.none; //关闭防误触
 					this.sizeOutAnimation(mesh, 20); //隐藏占位符
-					//this.visible(i, j, k, false); //隐藏占位符
+					//this.visible(i, j, k, l, false); //隐藏占位符
 				}
-				this.add(i, j, k, "black"); //添加棋子
-				this.sizeInAnimation(this.pieces[i][j][k]); //显示
+				this.add(i, j, k, l, "black"); //添加棋子
+				this.sizeInAnimation(this.pieces[i][j][k][l]); //显示
 				break;
 				
 			case "white": //白棋
 				if (mesh){ //有棋子
-					//this.visible(i, j, k, true); //显示
+					//this.visible(i, j, k, l, true); //显示
 					if (mesh.material == this.materials.white)
-						return this.visible(i, j, k, true); //类型相同不改
+						return this.visible(i, j, k, l, true); //类型相同不改
 					if (mesh.material == this.materials.black) //同形状 改材质
 						return (mesh.material = this.materials.white);
 					if (mesh.material == this.materials.mistake)
 						mesh.material = this.materials.none; //关闭防误触
 					this.sizeOutAnimation(mesh, 20); //隐藏占位符
-					//this.visible(i, j, k, false); //隐藏占位符
+					//this.visible(i, j, k, l, false); //隐藏占位符
 				}
-				this.add(i, j, k, "white"); //添加棋子
-				this.sizeInAnimation(this.pieces[i][j][k]); //显示
+				this.add(i, j, k, l, "white"); //添加棋子
+				this.sizeInAnimation(this.pieces[i][j][k][l]); //显示
 				break;
 				
 		}
@@ -969,7 +1063,8 @@ class Board{
 		for (let i=this.columns-1; i>=0; i--)
 			for (let j=this.rows-1; j>=0; j--)
 				for (let k=this.depth-1; k>=0; k--)
-					this.set(i, j, k, "none");
+					for (let l=this.width-1; l>=0; l--)
+						this.set(i, j, k, l, "none");
 		return this;
 	}
 	
@@ -1005,13 +1100,23 @@ class Board{
 	}
 	
 	//添加或移动圆圈标记
-	moveCircle([i, j, k], radius, color, delta=30){
+	moveCircle([i, j, k, l], radius, color, delta=30){
 		const pos = new BABYLON.Vector3(...this.ijk2xyz(i, j, k));
-		console.log("moveCircle", pos, this.lines.circle.length)
+		console.log("moveCircle", [i, j, k, l], pos)
+		
+		const e = $("#axis > .scale > li");
+		for (let index=0; index<e.length; index++)
+			$(e[index]).removeClass("play").addClass(index==l? "play": "");
+		
+		this.lines.circle.pos = [i, j, k, l]; //存储位置
 		if (this.lines.circle.length > 0){ //已有
 			for (const line of this.lines.circle){
 				line.position = pos;
-				this.sizeInAnimation(line, 20);
+				if (l == this.widthRange){ //在同一三维层
+					this.sizeInAnimation(line, 20);
+				}else{
+					line.goalVisible = line.isVisible = false;
+				}
 				/*BABYLON.Animation.CreateAndStartAnimation(
 					"animation_", //名称
 					line, //物体
@@ -1093,7 +1198,11 @@ class Board{
 				line.position = pos;
 				line.isPickable = false; //禁止点击
 				lines.push(line);
-				this.sizeInAnimation(line);
+				if (l == this.widthRange){ //在同一三维层
+					this.sizeInAnimation(line);
+				}else{
+					line.goalVisible = line.isVisible = false;
+				}
 			}
 			
 			this.lines.circle.push(...lines);
@@ -1182,11 +1291,29 @@ class Board{
 		return this.updateHeight(this.rowRange+1);
 	}
 	
+	//四维厚度增加
+	widthAdd(){
+		if (this.widthRange >= this.width-1) return this;
+		this.widthRange++;
+		
+		return this.updateWidth(this.widthRange-1);
+	}
+	
+	//四维厚度减小
+	widthSub(){
+		if (this.widthRange <= 0) return this;
+		
+		this.widthRange--;
+		
+		return this.updateWidth(this.widthRange+1);
+	}
+	
 	
 	/* 占位符更新 */
 	//可显示（在范围内）
-	inRange(i, j, k){
+	inRange(i, j, k, l){
 		if ( j == this.rowRange &&
+			l == this.widthRange &&
 			i >= this.columnRange[0] && i <= this.columnRange[1] &&
 			k >= this.depthRange[0] && k <= this.depthRange[1]
 		) return true; //在加载范围内
@@ -1203,8 +1330,8 @@ class Board{
 							k >= this.depthRange[0] && k <= this.depthRange[1] &&
 							( i == this.columnRange[0] || i == this.columnRange[1] ||
 								k == this.depthRange[0] || k == this.depthRange[1] ) &&
-							( !this.pieces[i][this.rowRange][k] ||
-								this.isBlock(this.pieces[i][this.rowRange][k]) )
+							( !this.pieces[i][this.rowRange][k][this.widthRange] ||
+								this.isBlock(this.pieces[i][this.rowRange][k][this.widthRange]) )
 						){ //在范围内 且 无棋子
 							const mesh = this.places[i][k];
 							//mesh.material = this.materials.none; //取消防误触
@@ -1264,26 +1391,67 @@ class Board{
 				);
 				
 				//隐藏与显示动画
-				if (this.inRange(i, this.rowRange, k)) //在范围内
-					if (OR(mesh.goalVisible, mesh.isVisible) && this.pieces[i][this.rowRange][k]){ //已显示 且 有棋子
+				if (this.inRange(i, this.rowRange, k, this.widthRange)) //在范围内
+					if (OR(mesh.goalVisible, mesh.isVisible) && this.pieces[i][this.rowRange][k][this.widthRange]){ //已显示 且 有棋子
 						this.sizeOutAnimation(mesh, 20); //隐藏
-					}else if (!OR(mesh.goalVisible, mesh.isVisible) && !this.pieces[i][this.rowRange][k]){ //未显示 且 无棋子
+					}else if (!OR(mesh.goalVisible, mesh.isVisible) && !this.pieces[i][this.rowRange][k][this.widthRange]){ //未显示 且 无棋子
 						this.sizeInAnimation(mesh, 20); //显示
 					}
 				
 				//修改引用
-				if ( this.isBlock(this.pieces[i][before][k]) ) //是占位符或防误触
-					this.pieces[i][before][k] = null; //取消引用
-				if ( !this.pieces[i][this.rowRange][k] ) //没有引用
-					this.pieces[i][this.rowRange][k] = mesh; //引用占位符
+				if ( this.isBlock(this.pieces[i][before][k][this.widthRange]) ) //是占位符或防误触
+					this.pieces[i][before][k][this.widthRange] = null; //取消引用
+				if ( !this.pieces[i][this.rowRange][k][this.widthRange] ) //没有引用
+					this.pieces[i][this.rowRange][k][this.widthRange] = mesh; //引用占位符
 			}
 		
 		return this;
 	}
+	
+	//更新四维厚度
+	updateWidth(before){
+		const e = $("#axis > .scale > li");
+		for (let index=0; index<e.length; index++)
+			$(e[index]).removeClass("in").addClass(index==this.widthRange? "in": "");
+		
+		if (this.lines.circle.pos)
+			this.moveCircle(this.lines.circle.pos);
+		
+		for (let i=this.columns-1; i>=0; i--)
+			for (let k=this.depth-1; k>=0; k--){
+				for (let j=this.rows-1; j>=0; j--){
+					const last = this.pieces[i][j][k][before],
+						mesh = this.pieces[i][j][k][this.widthRange];
+					
+					//棋子隐藏
+					// if (i==4 && j==4 && k==5) debugger;
+					if ( last && !this.isBlock(last) ) //是棋子
+						this.sizeOutAnimation(last, 20); //隐藏上次的
+					if ( mesh && !this.isBlock(mesh) ) //是棋子
+						this.sizeInAnimation(mesh, 20); //显示这次的
+				}
+				
+				// if (i==4 && k==5) debugger;
+				const place = this.places[i][k];
+				//隐藏与显示动画
+				if (this.inRange(i, this.rowRange, k, this.widthRange)) //在范围内
+					if (OR(place.goalVisible, place.isVisible) && this.pieces[i][this.rowRange][k][this.widthRange]){ //已显示 且 有棋子
+						this.sizeOutAnimation(place, 20); //隐藏
+					}else if (!OR(place.goalVisible, place.isVisible) && !this.pieces[i][this.rowRange][k][this.widthRange]){ //未显示 且 无棋子
+						this.sizeInAnimation(place, 20); //显示
+					}
+				
+				//修改引用
+				if ( this.isBlock(this.pieces[i][this.rowRange][k][before]) ) //是占位符或防误触
+					this.pieces[i][this.rowRange][k][before] = null; //取消引用
+				if ( !this.pieces[i][this.rowRange][k][this.widthRange] ) //没有引用
+					this.pieces[i][this.rowRange][k][this.widthRange] = place; //引用占位符
+			}
+	}
 }
 
 
-const {N=5, cols=10, rows=10, depth=10} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
+const {N=5, cols=10, rows=10, depth=10, width=10} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
 	{mistake=true, skybox=true, border=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
 const board = new Board({ //棋盘
 	canvas: $("#board")[0],
@@ -1291,6 +1459,7 @@ const board = new Board({ //棋盘
 	rows,
 	columns: cols,
 	depth,
+	width,
 	none: {
 		size: 6,
 		color: [
@@ -1331,6 +1500,13 @@ const board = new Board({ //棋盘
 let waiting = false; //未等待
 
 const loadingId = layer.load(2);
+$("#axis > .scale").empty();
+for (let i=0; i<width; i++){
+	$("#axis > .scale").append(
+		$("<li></li>")
+			.addClass(i == board.widthRange? "in": "")
+	);
+}
 setTimeout(()=>{
 	board.loadScene(skybox, border);
 	layer.close(loadingId);
@@ -1691,7 +1867,8 @@ function init(){
 		cols,
 		rows,
 		depth,
-		D: 3,
+		width,
+		D: 4,
 		N,
 		mis: mistake
 	});
@@ -1733,8 +1910,9 @@ $("#board").click(function(e){
 	if ( !board.isBlock(pickResult.pickedMesh) ) return; //不是占位符和防误触
 	
 	const pos = pickResult.pickedMesh.position,
-		[i, j, k] = board.xyz2ijk(pos.x, pos.y, pos.z);
-	console.log("click", pickResult, pos, [i, j, k])
+		[i, j, k] = board.xyz2ijk(pos.x, pos.y, pos.z),
+		l = board.widthRange;
+	console.log("click", pickResult, pos, [i, j, k, l])
 	
 	playEffect(); //播放音效
 	
@@ -1742,21 +1920,21 @@ $("#board").click(function(e){
 	
 	request({
 		type: "play", //下棋
-		i, j, k
+		i, j, k, l
 	}).then((data)=>{
 		waiting = false;
-		console.log("play callback:", data.action, {i,j,k})
+		console.log("play callback:", data.action, {i, j, k, l})
 		switch (data.action){
 			case 2: //下黑棋
-				board.set(i, j, k, "black");
-				board.moveCircle([i, j, k], 5, [0,1,0]);
+				board.set(i, j, k, l, "black");
+				board.moveCircle([i, j, k, l], 5, [0,1,0]);
 				game.set(0);
 				game.steps++;
 				break;
 				
 			case 1: //下白棋
-				board.set(i, j, k, "white");
-				board.moveCircle([i, j, k], 5, [0,1,0]);
+				board.set(i, j, k, l, "white");
+				board.moveCircle([i, j, k, l], 5, [0,1,0]);
 				game.set(1);
 				game.steps++;
 				break;
@@ -1802,6 +1980,50 @@ $("#heightControl > .add").click(function(){
 });
 $("#heightControl > .sub").click(function(){
 	board.heightSub();
+});
+
+
+/* axis */
+const touch = {
+	x: null,
+	y: null
+};
+$("#axis").on("touchstart", function(e){
+	const {clientX: x, clientY: y} = e.originalEvent.targetTouches[0]; 
+	console.log("touchstart", x, y);
+	touch.x = x,
+	touch.y = y;
+	
+	e.preventDefault(); //阻止默认行为
+	e.stopPropagation(); //阻止冒泡
+	e.cancelBubble = true; //阻止冒泡
+	return false;
+});
+$("#axis").on("touchmove", function(e){
+	e.preventDefault(); //阻止默认行为
+	e.stopPropagation(); //阻止冒泡
+	e.cancelBubble = true; //阻止冒泡
+	return false;
+});
+$("#axis").on("touchend", function(e){
+	const {clientX: x, clientY: y} = e.originalEvent.changedTouches[0],
+		dx = x - touch.x,
+		dy = y - touch.y;
+	console.log("touchend", x, y, dx, dy);
+	
+	if (Math.abs(dx) < 20){
+		if (dy > 50){
+			board.widthAdd();
+		}else if (dy < -50){
+			board.widthSub();
+		}
+	}
+	touch.x = touch.y = null;
+	
+	e.preventDefault(); //阻止默认行为
+	e.stopPropagation(); //阻止冒泡
+	e.cancelBubble = true; //阻止冒泡
+	return false;
 });
 
 
@@ -1884,18 +2106,18 @@ $("#toolBtn > .review").click(function(){
 						board.visibleLines(true, "win"); //显示获胜划线
 						return layer.msg("不能再往后了");
 					}
-					const {i, j, k, v} = steps[++index];
-					board.set(i, j, k, v==2? "black": "white");
-					board.moveCircle([i, j, k], 5, [0,1,0]);
+					const {i, j, k, l, v} = steps[++index];
+					board.set(i, j, k, l, v==2? "black": "white");
+					board.moveCircle([i, j, k, l], 5, [0,1,0]);
 					return false;
 				},
 				last = ()=>{
 					if (index <= 0)
 						return layer.msg("不能再往前了");
 					
-					let {i, j, k, v} = steps[index--];
-					board.set(i, j, k, "none");
-					board.moveCircle([steps[index].i, steps[index].j, steps[index].k], 5, [0,1,0]);
+					let {i, j, k, l, v} = steps[index--];
+					board.set(i, j, k, l, "none");
+					board.moveCircle([steps[index].i, steps[index].j, steps[index].k, steps[index].l], 5, [0,1,0]);
 					
 					board.visibleLines(false, "win"); //隐藏获胜划线
 					return false;
@@ -1903,19 +2125,20 @@ $("#toolBtn > .review").click(function(){
 			reviewRestore = ()=>{
 				for (let i=board.columns-1; i>=0; i--)
 					for (let j=board.rows-1; j>=0; j--)
-						for (let k=board.depth-1; k>=0; k--){
-							switch (pieces[i][j][k]){
-								case 0:
-									board.set(i, j, k, "none");
-									break;
-								case 1:
-									board.set(i, j, k, "white");
-									break;
-								case 2:
-									board.set(i, j, k, "black");
-									break;
+						for (let k=board.depth-1; k>=0; k--)
+							for (let l=board.width-1; l>=0; l--){
+								switch (pieces[i][j][k][l]){
+									case 0:
+										board.set(i, j, k, l, "none");
+										break;
+									case 1:
+										board.set(i, j, k, l, "white");
+										break;
+									case 2:
+										board.set(i, j, k, l, "black");
+										break;
+								}
 							}
-						}
 				board.visibleLines(true, "win"); //显示获胜划线
 			};
 			
