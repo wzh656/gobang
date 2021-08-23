@@ -440,6 +440,11 @@
 		</footer>
 		
 <script>
+document.addEventListener("plusready", function(){
+	plus.navigator.setStatusBarBackground("#aef");
+}, false);
+</script>
+<script>
 $("html").addClass("fadeIn");
 function go(url){
 	$("html").addClass(url == "index.html"? "outDown": "outHeight");

@@ -511,6 +511,10 @@ $(window).resize(function(){
 	if (board.engine)
 		board.engine.resize(); //更新大小
 });
+
+document.addEventListener("plusready", function(){
+	plus.navigator.setStatusBarBackground("#aef");
+}, false);
 </script>
 <script>
 $("html").addClass("fadeIn");

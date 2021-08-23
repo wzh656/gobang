@@ -286,9 +286,9 @@
 			<i class="layui-icon layui-icon-set-fill"></i>
 			<label>设置</label>
 		</div>
-		<button id="two">双人对战</button>
-		<button id="one">人机对战</button>
-		<button id="online">多人联机</button>
+		<button id="two">两个人</button>
+		<button id="one">一个人</button>
+		<button id="online">很多人</button>
 		<section id="settings" style="display: none;">
 			<h2>设置</h2>
 			<div class="layui-tab layui-tab-brief">
@@ -429,6 +429,9 @@ if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test(
 }else{
 	device = 0; //电脑
 }
+document.addEventListener("plusready", function(){
+	plus.navigator.setStatusBarBackground("#000");
+}, false);
 </script>
 <script>
 

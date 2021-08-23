@@ -340,6 +340,10 @@ function resize(){
 }
 resize();
 //$(window).resize(resize);
+
+document.addEventListener("plusready", function(){
+	plus.navigator.setStatusBarBackground("#aef");
+}, false);
 </script>
 <script>
 $("html").addClass("fadeIn");
