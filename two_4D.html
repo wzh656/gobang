@@ -274,7 +274,7 @@
 		}
 		#axis > .scale > li.win{
 			background-color: #f00;
-			width: 30px;
+			width: 26px;
 		}
 		#axis > .scale > li.play{
 			background-color: #0f0;
@@ -422,8 +422,8 @@
 				<div>
 					<p class="name"></p>
 					<p class="time">
-						局时：<span class="total">10:00</span> &nbsp;
-						步时：<span class="step">45s</span>
+						局时：<span class="total">15:00</span> &nbsp;
+						步时：<span class="step">60s</span>
 					</p>
 				</div>
 			</div>
@@ -450,8 +450,8 @@
 				<div>
 					<p class="name"></p>
 					<p class="time">
-						局时：<span class="total">10:00</span> &nbsp;
-						步时：<span class="step">45s</span>
+						局时：<span class="total">15:00</span> &nbsp;
+						步时：<span class="step">60s</span>
 					</p>
 				</div>
 				<i></i>
@@ -571,6 +571,11 @@ class Board{
 		this.lines = { //划线
 			border: [], //棋盘边界
 			circle: [], //圆圈标记
+			update: { //需更新的划线
+				win: [],
+				analyse: [],
+				circle: []
+			},
 			win: [], //获胜
 			analyse: [] //分析
 		};
@@ -968,8 +973,7 @@ class Board{
 	//隐藏棋子
 	visible(i, j, k, l, visible){
 		const mesh = this.pieces[i][j][k][l];
-		mesh.isVisible = visible;
-		mesh.goalVisible = visible;
+		mesh.goalVisible = mesh.isVisible = visible;
 		return this;
 	}
 	
@@ -1036,7 +1040,11 @@ class Board{
 					//this.visible(i, j, k, l, false); //隐藏占位符
 				}
 				this.add(i, j, k, l, "black"); //添加棋子
-				this.sizeInAnimation(this.pieces[i][j][k][l]); //显示
+				if (l == this.widthRange){ //同一层
+					this.sizeInAnimation(this.pieces[i][j][k][l]); //显示
+				}else{
+					this.visible(i, j, k, l, false);
+				}
 				break;
 				
 			case "white": //白棋
@@ -1052,7 +1060,11 @@ class Board{
 					//this.visible(i, j, k, l, false); //隐藏占位符
 				}
 				this.add(i, j, k, l, "white"); //添加棋子
-				this.sizeInAnimation(this.pieces[i][j][k][l]); //显示
+				if (l == this.widthRange){
+					this.sizeInAnimation(this.pieces[i][j][k][l]); //显示
+				}else{
+					this.visible(i, j, k, l, false);
+				}
 				break;
 				
 		}
@@ -1071,10 +1083,49 @@ class Board{
 	
 	/* 划线 */
 	//添加划线
-	addLine(from, to, width=1, material){
-		const [x0, y0, z0] = from,
-			[x1, y1, z1] = to,
-			[dx, dy, dz] = to.map((v,i) => v-from[i]),
+	addLine([i0, j0, k0, l0], [i1, j1, k1, l1], width=1, material){
+		const type = material=="winLines"? "win": "analyse";
+		this.lines.update[type].push({
+			start: [i0, j0, k0, l0],
+			end: [i1, j1, k1, l1],
+			width,
+			material
+		});
+		console.log("addLine", type, this.lines.update[type])
+		
+		if ( this.widthRange < Math.min(l0, l1) ||
+			this.widthRange > Math.max(l0, l1)
+		) return; //不在同层不显示
+		
+		let from, to;
+		if ( this.widthRange == l0 &&
+			this.widthRange == l1
+		){
+			from = this.ijk2xyz(i0, j0, k0),
+			to = this.ijk2xyz(i1, j1, k1);
+		}else{
+			const range = [
+					Math.limitRange( this.widthRange-0.5, Math.min(l0, l1), Math.max(l0, l1) ),
+					Math.limitRange( this.widthRange+0.5, Math.min(l0, l1), Math.max(l0, l1) )
+				],
+				di = i1 - i0,
+				dj = j1 - j0,
+				dk = k1 - k0,
+				dl = l1 - l0,
+				drange = [range[0]-l0, range[1]-l0];
+			from = this.ijk2xyz(
+				+i0 + di * drange[0]/dl,
+				+j0 + dj * drange[0]/dl,
+				+k0 + dk * drange[0]/dl
+			),
+			to = this.ijk2xyz(
+				+i0 + di * drange[1]/dl,
+				+j0 + dj * drange[1]/dl,
+				+k0 + dk * drange[1]/dl
+			);
+		}
+		
+		const [dx, dy, dz] = to.map((v,i) => v-from[i]),
 			len = Math.sqrt(dx*dx + dy*dy + dz*dz),
 			line = BABYLON.MeshBuilder.CreateCylinder(
 				"cylinder_line",
@@ -1093,10 +1144,28 @@ class Board{
 		line.addRotation(0, 0, -Math.PI/2)
 			.addRotation(Math.atan(dz && dz/dx), 0, 0)
 			.addRotation(0, 0, Math.atan(dy / (symbolX * Math.sqrt(dx*dx + dz*dz)) ));
+		
 		if (material)
 			line.material = this.materials[material];
+		
 		line.isPickable = false; //禁止点击
+		
+		this.lines[type].push(line);
 		return line;
+	}
+	
+	//更新划线
+	updateLines(type){
+		if (type){
+			this.removeLines(...this.lines[type]); //先删除旧线
+			const lines = this.lines.update[type]; //先记录
+			this.lines.update[type] = []; //再清空
+			for (const line of lines)
+				this.addLine(line.start, line.end, line.width, line.material); //再重新添加
+		}else{
+			this.updateLines("win");
+			this.updateLines("analyse");
+		}
 	}
 	
 	//添加或移动圆圈标记
@@ -1108,7 +1177,7 @@ class Board{
 		for (let index=0; index<e.length; index++)
 			$(e[index]).removeClass("play").addClass(index==l? "play": "");
 		
-		this.lines.circle.pos = [i, j, k, l]; //存储位置
+		this.lines.update.circle = [i, j, k, l]; //存储位置
 		if (this.lines.circle.length > 0){ //已有
 			for (const line of this.lines.circle){
 				line.position = pos;
@@ -1211,6 +1280,12 @@ class Board{
 		return this;
 	}
 	
+	//更新圆圈标记
+	updateCircle(){
+		if (this.lines.update.circle.length > 0)
+			this.moveCircle(this.lines.update.circle);
+	}
+	
 	//隐藏划线
 	visibleLines(visible, type){
 		if (type){
@@ -1234,11 +1309,16 @@ class Board{
 		if (type){
 			this.removeLines(...this.lines[type]); //删除所有划线
 			this.lines[type] = [];
+			if (this.lines.update[type])
+				this.lines.update[type] = [];
 		}else{
 			this.removeLines(...this.lines.win, ...this.lines.analyse, ...this.lines.circle); //删除所有划线
 			this.lines.win = [];
 			this.lines.analyse = [];
 			this.lines.circle = [];
+			this.lines.update.win = [];
+			this.lines.update.analyse = [];
+			this.lines.update.circle = [];
 		}
 		return this;
 	}
@@ -1306,6 +1386,15 @@ class Board{
 		this.widthRange--;
 		
 		return this.updateWidth(this.widthRange+1);
+	}
+	
+	//设置四维厚度
+	setWidth(width){
+		const before = this.widthRange;
+		this.widthRange = Math.limitRange(width, 0, this.width-1);
+		if (this.widthRange != before) //改变
+			this.updateWidth(before);
+		return this;
 	}
 	
 	
@@ -1414,8 +1503,9 @@ class Board{
 		for (let index=0; index<e.length; index++)
 			$(e[index]).removeClass("in").addClass(index==this.widthRange? "in": "");
 		
-		if (this.lines.circle.pos)
-			this.moveCircle(this.lines.circle.pos);
+		//更新划线
+		this.updateLines();
+		this.updateCircle();
 		
 		for (let i=this.columns-1; i>=0; i--)
 			for (let k=this.depth-1; k>=0; k--){
@@ -1423,15 +1513,16 @@ class Board{
 					const last = this.pieces[i][j][k][before],
 						mesh = this.pieces[i][j][k][this.widthRange];
 					
+					if (last && last.material == this.materials.mistake)
+						last.material = this.materials.none;
+					
 					//棋子隐藏
-					// if (i==4 && j==4 && k==5) debugger;
 					if ( last && !this.isBlock(last) ) //是棋子
 						this.sizeOutAnimation(last, 20); //隐藏上次的
 					if ( mesh && !this.isBlock(mesh) ) //是棋子
 						this.sizeInAnimation(mesh, 20); //显示这次的
 				}
 				
-				// if (i==4 && k==5) debugger;
 				const place = this.places[i][k];
 				//隐藏与显示动画
 				if (this.inRange(i, this.rowRange, k, this.widthRange)) //在范围内
@@ -1500,13 +1591,14 @@ const board = new Board({ //棋盘
 let waiting = false; //未等待
 
 const loadingId = layer.load(2);
-$("#axis > .scale").empty();
+/*$("#axis > .scale").empty();
 for (let i=0; i<width; i++){
 	$("#axis > .scale").append(
 		$("<li></li>")
 			.addClass(i == board.widthRange? "in": "")
+			.click(()=>board.setWidth(i))
 	);
-}
+}*/
 setTimeout(()=>{
 	board.loadScene(skybox, border);
 	layer.close(loadingId);
@@ -1522,8 +1614,8 @@ let game = {
 		t0: [null, null], //上次时间
 		ids: [null, null], //计时器id
 		time: [
-			{total: 600, step: 45}, //0: 白
-			{total: 600, step: 45} //1: 黑
+			{total: 900, step: 60}, //0: 白
+			{total: 900, step: 60} //1: 黑
 		], //剩余时间
 		timeWarning: { //时间警告
 			total: {
@@ -1631,7 +1723,7 @@ let game = {
 			if (this.time[this.turn].total <= 0){ //超出局时
 				this.time[this.turn].step += 5;
 			}else{
-				this.time[this.turn].step = 45; //重置步时
+				this.time[this.turn].step = 60; //重置步时
 				//this.time[this.turn].total += 5; //增加局时
 			}
 			this.updateTime(this.turn);
@@ -1741,15 +1833,13 @@ let game = {
 			board.clearLines("analyse");
 			
 			if (display) //需显示
-				for (const v of this.lines)
+				for (const v of this.lines.sort((a,b)=>a.width<b.width) ) //width降序
 					if (v.width >= 3) //连子>=3 避免过密
-						board.lines.analyse.push(
-							board.addLine(
-								v.start,
-								v.end,
-								(v.width-3+1)/2,
-								v.pic==2? "white": "black"
-							)
+						board.addLine(
+							v.start,
+							v.end,
+							(v.width-3+1)/2,
+							v.pic==2? "white": "black"
 						);
 			
 			game.linesDisplay = display;
@@ -1769,21 +1859,27 @@ let game = {
 		lines(data){
 			const {lines} = data;
 			
-			lines.forEach( v => {
+			/*lines.forEach( v => {
 				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start);
 				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end);
-			});
+			});*/
 			
 			board.clearLines("win");
-			for (const v of lines)
-				board.lines.win.push(
-					board.addLine(
-						v.start,
-						v.end,
-						(0.1+N-3+1)/2,
-						"winLines"
-					)
+			for (const line of lines.sort((a,b)=>a.width<b.width) ) //width降序
+				board.addLine(
+					line.start,
+					line.end,
+					(0.1+N-3+1)/2,
+					"winLines"
 				);
+			
+			for (const line of lines){
+				const start = Math.min(line.start[3], line.end[3]),
+					end = Math.max(line.start[3], line.end[3]);
+				for (let index=0; index<board.width; index++)
+					if (index >= start && index <= end)
+						$("#axis > .scale > li:eq("+ index +")").addClass("win");
+			}
 			
 			//worker.terminate(); //关闭线程
 		},
@@ -1799,10 +1895,10 @@ let game = {
 			console.table(data.scores);
 			
 			const {scores, lines} = data;
-			lines.forEach( v => {
+			/*lines.forEach( v => {
 				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start);
 				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end);
-			});
+			});*/
 			
 			game.scores.goal = scores;
 			game.lines = lines;
@@ -1821,6 +1917,15 @@ let game = {
 
 //初始化
 function init(){
+	//w轴
+	$("#axis > .scale").empty();
+	for (let i=0; i<board.width; i++)
+		$("#axis > .scale").append(
+			$("<li></li>")
+				.addClass(i == board.widthRange? "in": "")
+				.click(()=>board.setWidth(i))
+		);
+	
 	//棋盘
 	board.clearLines(); //删除所有划线
 	waiting = true; //禁止点击
@@ -1838,10 +1943,10 @@ function init(){
 	clearInterval( game.ids[0] );
 	clearInterval( game.ids[1] ); //时间暂停
 	game.t0[0] = game.t0[1] = game.ids[0] = game.ids[1] = null;
-	game.time[0].total = 600;
-	game.time[0].step = 45;
-	game.time[1].total = 600;
-	game.time[1].step = 45;
+	game.time[0].total = 900;
+	game.time[0].step = 60;
+	game.time[1].total = 900;
+	game.time[1].step = 60;
 	game.scores.now[0] = game.scores.now[1] =
 		game.scores.goal[0] = game.scores.goal[1] = 0;
 	game.scores.t0 = +new Date();
@@ -2098,6 +2203,7 @@ $("#toolBtn > .review").click(function(){
 			board.clear(); //清空棋子
 			board.visibleLines(false, "win"); //隐藏获胜划线
 			board.clearLines("analyse"); //删除分析划线
+			const position = [...board.lines.update.circle]; //记录最后棋子位置
 			
 			let index = -1;
 			
@@ -2109,6 +2215,7 @@ $("#toolBtn > .review").click(function(){
 					const {i, j, k, l, v} = steps[++index];
 					board.set(i, j, k, l, v==2? "black": "white");
 					board.moveCircle([i, j, k, l], 5, [0,1,0]);
+					board.setWidth(l);
 					return false;
 				},
 				last = ()=>{
@@ -2118,6 +2225,7 @@ $("#toolBtn > .review").click(function(){
 					let {i, j, k, l, v} = steps[index--];
 					board.set(i, j, k, l, "none");
 					board.moveCircle([steps[index].i, steps[index].j, steps[index].k, steps[index].l], 5, [0,1,0]);
+					board.setWidth(steps[index].l);
 					
 					board.visibleLines(false, "win"); //隐藏获胜划线
 					return false;
@@ -2140,6 +2248,7 @@ $("#toolBtn > .review").click(function(){
 								}
 							}
 				board.visibleLines(true, "win"); //显示获胜划线
+				board.moveCircle(position); //还原最后棋子位置
 			};
 			
 			next();
@@ -2160,7 +2269,7 @@ $("#toolBtn > .review").click(function(){
 					review_id = null;
 					$(this).show();
 					$("#tools > .review > .stop").hide();
-				}, 1000);
+				}, 2000);
 			});
 			$("#tools > .review > .stop").click(function(){
 				clearInterval(review_id);

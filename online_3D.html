@@ -2527,6 +2527,7 @@ $("#toolBtn > .review").click(function(){
 			board.clear(); //清空棋子
 			board.visibleLines(false, "win"); //隐藏获胜划线
 			board.clearLines("analyse"); //删除分析划线
+			const position = board.lines.circle[0].position.clone(); //记录最后棋子位置
 			
 			let index = -1;
 			
@@ -2568,6 +2569,7 @@ $("#toolBtn > .review").click(function(){
 							}
 						}
 				board.visibleLines(true, "win"); //显示获胜划线
+				board.moveCircle(board.xyz2ijk(position.x, position.y, position.z), 5, [0,1,0]); //还原最后棋子位置
 			};
 			
 			next();
