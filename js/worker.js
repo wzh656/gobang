@@ -701,7 +701,7 @@ class PiecesSystem{
 									Math.random() + 1
 								);
 								
-								for (const [dx, dy, dz, dw] of THREE_DIRS_OPP){ //正方向
+								for (const [dx, dy, dz, dw] of FOUR_DIRS_OPP){ //正方向
 									let num = [0, 0],
 										len = [0, 0], //连子数（不包括自己）
 										px, py, pz, pw;

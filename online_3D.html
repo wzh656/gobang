@@ -378,6 +378,16 @@
 		
 		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
 		
+		<script>
+		var _hmt = _hmt || [];
+		(function() {
+		  var hm = document.createElement("script");
+		  hm.src = "https://hm.baidu.com/hm.js?c6b8f0ad7ec671e54d83e86a67280999";
+		  var s = document.getElementsByTagName("script")[0]; 
+		  s.parentNode.insertBefore(hm, s);
+		})();
+		</script>
+		
 	</head>
 	<body>
 		<header id="header">
@@ -452,6 +462,10 @@
 				</div>
 			</form>
 		</section>
+		
+		<footer>
+			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' type='text/javascript'%3E%3C/script%3E"));</script>
+		</footer>
 		
 <script>
 //生成任意维数组
@@ -2387,11 +2401,11 @@ $("#board").click(function(e){
 	if (!pickResult.hit) return; //未点击到物体
 	if ( !board.isBlock(pickResult.pickedMesh) ) return; //不是占位符和防误触
 	
+	playEffect(); //播放音效
+	
 	const pos = pickResult.pickedMesh.position,
 		[i, j, k] = board.xyz2ijk(pos.x, pos.y, pos.z);
 	console.log("click", pickResult, pos, [i, j, k])
-	
-	playEffect(); //播放音效
 	
 	waiting = true; //开始等待
 	game.play(i, j, k, pickResult.pickedMesh);
