@@ -488,7 +488,7 @@ class Board{
 	}
 }
 
-let gameOverMusic; //游戏结束音乐
+
 const {N=5, cols=19, rows=19, place=0, mistake=true} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}");
 $("#board").css("height", WIDTH *rows/cols + "px")
 	.attr("height", 2*WIDTH *rows/cols);
@@ -500,6 +500,16 @@ const board = new Board({ //棋盘
 	picSize: $("#board").attr("width")/(cols + place) *0.9
 }).add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10) //多加一个以备删除
 	.add((cols-1)/2, (rows-1)/2, place, "#000", undefined, undefined, 10);
+
+let gameOverMusic; //游戏结束音乐
+const setting_gameRecord = JSON.parse(localStorage.getItem("五子棋_战绩") || "{}");
+setting_gameRecord.two = setting_gameRecord.two || {}; //2D
+setting_gameRecord.two.win = setting_gameRecord.two.win || 0;
+setting_gameRecord.two.fail = setting_gameRecord.two.fail || 0;
+setting_gameRecord.two.total = setting_gameRecord.two.total || 0;
+function saveGameRecord(){
+	localStorage.setItem("五子棋_战绩", JSON.stringify(setting_gameRecord));
+}
 
 
 
@@ -659,14 +669,19 @@ let game = {
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "胜利！", icon: 6}
 				);
+				
+				setting_gameRecord.two.win++;
 				if (gameOverMusic)
 					gameOverMusic.stop();
 				gameOverMusic = new Player("./music/好运来.m4a");
+				
 			}else if (win === false){
 				this.winner = 1-this.first;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "你失败了！", icon: 5}
 				);
+				
+				setting_gameRecord.two.fail++;
 				if (gameOverMusic)
 					gameOverMusic.stop();
 				gameOverMusic = new Player("./music/凉凉.m4a");
@@ -676,6 +691,8 @@ let game = {
 					{title: "游戏结束"}
 				);
 			}
+			setting_gameRecord.two.total++;
+			saveGameRecord();
 		},
 		
 		//更新分数

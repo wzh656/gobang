@@ -464,6 +464,7 @@ setTimeout(function(){
 const setting_game = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
 	setting_personal = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}"),
 	setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"),
+	setting_gameRecord = JSON.parse(localStorage.getItem("五子棋_战绩") || "{}"),
 	form_game = $("#settings form.game")[0],
 	form_personal = $("#settings form.personal")[0],
 	form_music = $("#settings form.music")[0];
@@ -581,6 +582,23 @@ function readSetting(){ //加载设置
 		form.render(); //重绘
 	});
 	saveSetting(); //保存设置
+}
+function readRecord(){ //加载战绩
+	//2D
+	setting_gameRecord.two = setting_gameRecord.two || {};
+	setting_gameRecord.two.win = setting_gameRecord.two.win || 0;
+	setting_gameRecord.two.fail = setting_gameRecord.two.fail || 0;
+	setting_gameRecord.two.total = setting_gameRecord.two.total || 0;
+	//3D
+	setting_gameRecord.three = setting_gameRecord.three || {};
+	setting_gameRecord.three.win = setting_gameRecord.three.win || 0;
+	setting_gameRecord.three.fail = setting_gameRecord.three.fail || 0;
+	setting_gameRecord.three.total = setting_gameRecord.three.total || 0;
+	//4D
+	setting_gameRecord.four = setting_gameRecord.four || {};
+	setting_gameRecord.four.win = setting_gameRecord.four.win || 0;
+	setting_gameRecord.four.fail = setting_gameRecord.four.fail || 0;
+	setting_gameRecord.four.total = setting_gameRecord.four.total || 0;
 }
 
 
