@@ -1966,6 +1966,7 @@ let game = {
 		//电脑下
 		computer(data){
 			const {pos, value} = data;
+			if (game.winner !== false) return; //游戏已结束
 			if (game.first){ //电脑白棋
 				board.set(...pos, "white");
 				board.moveCircle(pos, 5, [0,1,0]);

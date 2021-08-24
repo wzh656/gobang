@@ -750,6 +750,25 @@ class Board{
 				$("#layerControl, #heightControl, #layerControl > *, #heightControl > *")
 					.css("border-color", color);
 			}, 1000);
+			
+			//月亮
+			if (moonDisplay){
+				const spriteManager = new BABYLON.SpriteManager("moonManager", "./img/moon.png", 1, 1059, this.scene);
+				const moon = new BABYLON.Sprite("moon", spriteManager);
+				moon.size = 20;
+				setInterval(function(){
+					if ((skyMaterial.inclination+0.5)%2 < 1)
+						return (moon.isVisible = false);
+					const radius = 400, //轨道距离
+						theta = (skyMaterial.inclination+1.5)%2 /2 *2*Math.PI;
+					moon.isVisible = true;
+					moon.position.set(
+						0,
+						radius * Math.sin(theta),
+						radius * Math.cos(theta)
+					);
+			}, 33);
+			}
 		}
 		
 		
@@ -1646,6 +1665,7 @@ let game = {
 		//电脑下
 		computer(data){
 			const {pos, value} = data;
+			if (game.winner !== false) return; //游戏已结束
 			if (game.first){ //电脑白棋
 				board.set(...pos, "white");
 				board.moveCircle(pos, 5, [0,1,0]);

@@ -801,6 +801,7 @@ let game = {
 		//电脑下
 		computer(data){
 			const {pos, value} = data;
+			if (game.winner !== false) return; //游戏已结束
 			if (game.first){ //电脑白棋
 				board.remove(-1)
 					.add(pos[0], pos[1], place, "#fff", "#000")

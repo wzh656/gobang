@@ -449,9 +449,16 @@
 						<div class="layui-form-item">
 							<label class="layui-form-label">天空盒</label>
 							<div class="layui-input-inline">
-								<input type="checkbox" name="skybox" class="skybox" lay-skin="switch" lay-text="显示|关闭" />
+								<input type="checkbox" name="skybox" class="skybox" lay-skin="switch" lay-text="显示|关闭" lay-filter="skybox" />
 							</div>
-							<div class="layui-form-mid layui-word-aux">（针对3D/4D五子棋）开启后将可边下棋边欣赏每天720次的日出日落</div>
+							<div class="layui-form-mid layui-word-aux">（针对3D/4D五子棋）开启后将可边下棋边在白天欣赏每天720次的日出日落</div>
+						</div>
+						<div class="layui-form-item">
+							<label class="layui-form-label">月亮</label>
+							<div class="layui-input-inline">
+								<input type="checkbox" name="moon" class="moon" lay-skin="switch" lay-text="显示|关闭" />
+							</div>
+							<div class="layui-form-mid layui-word-aux">（针对3D/4D五子棋）开启后将可边下棋边在夜里欣赏作者自摄的月亮</div>
 						</div>
 						<div class="layui-form-item">
 							<label class="layui-form-label">棋盘边界</label>
@@ -618,21 +625,25 @@ function setD(D){
 	}
 }
 
-function saveSetting(){ //保存设置
+
+//保存设置
+function saveSetting(){
 	localStorage.setItem("五子棋_游戏设置", JSON.stringify(setting_game));
 	localStorage.setItem("五子棋_个性化设置", JSON.stringify(setting_personal));
 	localStorage.setItem("五子棋_音乐设置", JSON.stringify(setting_music));
 }
-function readSetting(){ //加载设置
+//加载设置
+function readSetting(){
 	setting_game.D = setting_game.D || 2;
 	setting_game.N = setting_game.N || 5;
-	// setting_game.cols = setting_game.cols || 19;
+	setting_game.cols = setting_game.cols || 19;
 	setting_game.rows = setting_game.rows || 19;
 	setting_game.depth = setting_game.depth || 10;
 	setting_game.width = setting_game.width || 10;
 	setting_game.place = setting_game.place || 0;
 	
 	setting_personal.skybox = OR(setting_personal.skybox, true);
+	setting_personal.moon = OR(setting_personal.moon, true);
 	setting_personal.border = OR(setting_personal.border, true);
 	
 	setting_music.bgm = setting_music.bgm || "piano";
@@ -658,6 +669,7 @@ function readSetting(){ //加载设置
 		$(form_personal).find("input.mistake")[0].checked = setting_personal.mistake;
 	}
 	$(form_personal).find("input.skybox")[0].checked = setting_personal.skybox;
+	$(form_personal).find("input.moon")[0].checked = setting_personal.moon;
 	$(form_personal).find("input.border")[0].checked = setting_personal.border;
 	
 	form_music.bgm_custom.value = MUSICS.piano; //默认：deskgood作曲钢琴曲
@@ -685,7 +697,9 @@ function readSetting(){ //加载设置
 	});
 	saveSetting(); //保存设置
 }
-function readRecord(){ //加载战绩
+
+//加载战绩
+function readRecord(){
 	//2D
 	game_record.two = game_record.two || {};
 	game_record.two.win = game_record.two.win || 0;
@@ -814,6 +828,16 @@ let bgmTest, //bgm测试
 	effectTest; //音效测试
 layui.use("form", function(){
 	const form = layui.form;
+	//天空盒 影响 月亮
+	form.on("switch(skybox)", function(data){
+		console.log(data)
+		if (data.elem.checked){
+			$(form_personal).find("input.moon").parent().parent().show("slow");
+		}else{
+			$(form_personal).find("input.moon").parent().parent().hide("slow");
+		}
+	});
+	
 	//背景音乐自定义
 	form.on("select(bgm)", function(data){
 		console.log("bgm change", data.value)
@@ -942,6 +966,7 @@ $("#settings button.save").click(function(){
 	
 	setting_personal.mistake = form_personal.mistake.checked;
 	setting_personal.skybox = form_personal.skybox.checked;
+	setting_personal.moon = form_personal.moon.checked;
 	setting_personal.border = form_personal.border.checked;
 	
 	if (form_music.bgm.value == "custom"){
