@@ -1,0 +1,2142 @@
+<!DOCTYPE html>
+<!-- Copyright © 2021 by wzh -->
+<html lang="zh">
+	<head>
+		<meta charset="UTF-8" />
+		<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
+		<title>人机对战 | 3D五子棋</title>
+		
+		<!--icon-->
+		<link href="./img/icon.png" rel="icon" type="image/x-icon"/>
+		
+		<!-- 异步fonts加载 -->
+		<script src="./js/webfontloader.js"></script>
+		<script>
+		if (typeof require != "undefined"){ //electron
+			console.log("electron")
+			document.write(`<link href="./css/fonts.css" rel="stylesheet" type="text/css" />`);
+			window.onload = function(){
+				console.log("onload")
+				$("body").addClass("wf-active");
+			}
+		}else{
+			WebFont.load({
+				google: {
+					families: ["kt", "st", "xs", "zyyt"],
+					api: "./css/fonts.css"
+				}
+			});
+		}
+		</script>
+		
+		<style>
+		/* 字体缩放方案 */
+		/* @media screen and (max-width:320px){
+			body {font-size: calc(0.018 * 320px + 6px) !important;}
+		}
+		body{
+			font-size: calc(1.8vw + 6px) !important;
+		}
+		@media screen and (min-width: 960px){
+			body {font-size: calc(0.018 * 960px + 6px) !important;}
+		} */
+		
+		/* element */
+		*{
+			outline: none; /* 无点击线 */
+		}
+		html{
+			/* 禁止选择 */
+			-moz-user-select: none;
+			-khtml-user-select: none;
+			user-select: none;
+			
+			background-color: #fffae8; /* 背景 */
+		}
+		html.outDown{
+			min-height: 100%;
+			background: #fffae8 url("./img/background.jpg") no-repeat fixed center;
+			background-size: cover;
+			max-width: 100%;
+			margin: auto;
+			
+			overflow-y: hidden;
+		}
+		
+		body{
+			position: absolute;
+			width: 100%;
+			/*height: 100%;*/
+			left: 0;
+			top: 0;
+			margin: 0;
+			
+			display: flex;
+			flex-direction: column;
+			
+			background-color: #fffae8; /* 背景 */
+			
+			opacity: 0; /* 完全透明 */
+			transition: opacity 1s, top 0.6s; /* 出入动画 */
+		}
+		html.fadeIn > body{
+			opacity: 1; /* 不透明 */
+		}
+		html.outDown > body{
+			top: 100%; /* 下滑 */
+			overflow-y: hidden;
+		}
+		
+		
+		/* header */
+		body > header{
+			flex: none;
+			display: flex;
+			width: 100%;
+			z-index: 1;
+			background-color: #aef;
+		}
+		body > header > i{
+			flex: none;
+			padding: 0.3rem;
+			font-size: 2em !important;
+			font-weight: bold;
+			
+			background-color: #aef;
+			border: none;
+			transition: background-color 0.3s;
+		}
+		body > header > i:focus{
+			background-color: #afe;
+		}
+		body > header > i:active{
+			background-color: #9ed;
+		}
+		body > header > h1{
+			display: inline-block;
+			width: 100%;
+			margin: 0;
+			padding: 6px 0;
+			text-align: center;
+			font-weight: bold;
+		}
+		
+		
+		/* main */
+		#main{
+			margin: 8px;
+			
+			display: flex;
+			flex-direction: column;
+		}
+		
+		/* 双方 */
+		#main > div.side{
+			display: flex;
+			align-items: center;
+			z-index: 1;
+		}
+		#main > div.opposite{
+			text-align: left;
+			justify-content: flex-start;
+		}
+		#main > div.self{
+			text-align: right;
+			justify-content: flex-end;
+		}
+		
+		#main > div.side > i{ /* 图标 */
+			display: inline-block;
+			width: 1.8rem;
+			height: 1.8rem;
+			margin: 0.1rem;
+			border-radius: 50%;
+		}
+		#main > div.black > i{ /* 黑 */
+			background-color: black;
+			border: 1px solid white;
+		}
+		#main > div.white > i{ /* 白 */
+			background-color: white;
+			border: 1px solid black;
+		}
+		
+		#main > div.side > div{
+			display: inline-flex;
+			flex-direction: column;
+		}
+		
+		#main > div.side > div > p.name{ /* 名称 */
+			display: inline-block;
+			margin: 0.1rem;
+			font-weight: bold; /* 粗体 */
+		}
+		#main > div.black > div > p.name:before{ /* 黑 */
+			content: "黑方";
+		}
+		#main > div.white > div > p.name:before{ /* 白 */
+			content: "白方";
+		}
+		
+		#main > div.side > div > p.time{ /* 时长 */
+			display: inline-block;
+			margin: 0.1rem;
+		}
+		
+		/* 棋盘 */
+		#board{
+			position: fixed;
+			display: block;
+			left: 0;
+			top: 0;
+			width: 100%;
+			height: 100%;
+		}
+		html.outDown #board{
+			position: absolute;
+		}
+		#main > .fill{
+			flex: none;
+		}
+		
+		/* 控制 */
+		#layerControl{ /*显示层控制*/
+			position: absolute;
+			left: 1rem;
+			top: calc(100vh - 12rem);
+			z-index: 2;
+			display: flex;
+			flex-direction: column;
+			
+			border: 1px solid #000;
+			border-radius: 0.3rem;
+		}
+		#layerControl > *{
+			padding: 0.3rem;
+			font-size: 1.2em;
+		}
+		#layerControl > *:first-child{
+			border-bottom: 1px solid #000;
+		}
+		#layerControl > *:active{
+			background-color: #eee;
+		}
+		#heightControl{
+			position: absolute;
+			right: 1rem;
+			top: calc(100vh - 12rem);
+			z-index: 2;
+			display: flex;
+			flex-direction: column;
+			
+			border: 1px solid #000;
+			border-radius: 0.3rem;
+		}
+		#heightControl > *{
+			padding: 0.3rem;
+			font-size: 1.2em;
+		}
+		#heightControl > *:first-child{
+			border-bottom: 1px solid #000;
+		}
+		#heightControl > *:active{
+			background-color: #eee;
+		}
+		
+		/* 工具按钮 */
+		#toolBtn{
+			z-index: 1;
+		}
+		#toolBtn > button{
+			width: 2.8rem;
+			height: 2.8rem;
+			margin: 0.1rem;
+			font-size: 1em;
+			
+			background-color: #fc7;
+			border: 1px solid #c94;
+			border-radius: 50%;
+			transition: background-color 0.3s;
+			box-shadow: 1px 1px 2px #888,
+				3px 3px 2px #888;
+		}
+		#toolBtn > button:active{
+			background-color: #eb6;
+			box-shadow: 3px 3px 3px #888;
+		}
+		
+		/* 工具 */
+		#tools{
+			z-index: 1;
+		}
+		
+		#tools > .scores{
+			border: 1px solid #ddd;
+		}
+		
+		#tools > .review > *{
+			display: inline-block;
+			width: 2rem;
+			height: 2rem;
+			margin: 0.2rem;
+			padding: 0.3rem;
+			background-color: #ddd;
+			border: 3px outset #ddd;
+			box-shadow: 1px 1px 2px #888,
+				3px 3px 2px #888;
+		}
+		#tools > .review > *:active{
+			background-color: #ccc;
+			border: 3px inset #ddd;
+		}
+		</style>
+		
+		<!-- jquery -->
+		<script src="./js/jquery.min.js"></script>
+		<script>
+		if (typeof require != "undefined") //electron
+			window.$ = window.jQuery = require("./js/jquery.min.js");
+		</script>
+		
+		<!-- babylon.js -->
+		<script src="./js/babylon.min.js"></script>
+		<script src="./js/babylonjs.materials.min.js"></script>
+		<!-- stats.js -->
+		<script src="./js/stats.min.js"></script>
+		
+		<!-- layui -->
+		<!--<link rel="stylesheet" href="https://unpkg.com/layui@2.6.4/dist/css/layui.css">
+		<script src="https://unpkg.com/layui@2.6.8/dist/layui.js"></script>-->
+		<script src="./layui/layui.js"></script>
+		<link rel="stylesheet" href="./layui/css/layui.css">
+		
+		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
+		<script>
+		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
+			//手机
+			eruda.init();
+			new VConsole();
+		}
+		</script>
+		
+		<!-- PianoMusic Bgm -->
+		<script src="./js/acoustic_grand_piano-ogg.js"></script>
+		<script src="./js/music.js"></script>
+		<script src="./js/bgm.js"></script>
+		
+		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
+		
+		<script>
+		var _hmt = _hmt || [];
+		(function() {
+		  var hm = document.createElement("script");
+		  hm.src = "https://hm.baidu.com/hm.js?c6b8f0ad7ec671e54d83e86a67280999";
+		  var s = document.getElementsByTagName("script")[0]; 
+		  s.parentNode.insertBefore(hm, s);
+		})();
+		</script>
+		
+	</head>
+	<body>
+		<header id="header">
+			<i id="back" class="layui-icon layui-icon-return"></i>
+			<h1>人机对战 3D</h1>
+			<i id="restart" class="layui-icon layui-icon-refresh"></i>
+		</header>
+		
+		<section id="main">
+			<div class="side opposite">
+				<i></i>
+				<div>
+					<p class="name"></p>
+					<p class="time">
+						局时：<span class="total">10:00</span> &nbsp;
+						步时：<span class="step">45s</span>
+					</p>
+				</div>
+			</div>
+			<canvas id="board"></canvas>
+			<div class="fill"></div>
+			<div id="layerControl">
+				<i class="add layui-icon layui-icon-addition"></i>
+				<i class="sub layui-icon layui-icon-subtraction"></i>
+			</div>
+			<div id="heightControl">
+				<i class="add layui-icon layui-icon-up"></i>
+				<i class="sub layui-icon layui-icon-down"></i>
+			</div>
+			<div class="side self">
+				<div>
+					<p class="name"></p>
+					<p class="time">
+						局时：<span class="total">10:00</span> &nbsp;
+						步时：<span class="step">45s</span>
+					</p>
+				</div>
+				<i></i>
+			</div>
+			<div id="toolBtn">
+				<button class="scores">棋局<br>评分</button>
+				<button class="analyse">棋局<br>分析</button>
+				<button class="review" disabled>复盘<br>回放</button>
+			</div>
+			<div id="tools">
+				<canvas class="scores" height="36" style="display: none;"></canvas>
+				<div class="review" style="display: none;">
+					<svg class="last" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" xmlns:xlink="http://www.w3.org/1999/xlink">
+						<polygon points="94.65,10 25.35,50 94.65,90 94.65,10" />
+						<polygon points="5.35,10 25.35,10 25.35,90 5.35,90" />
+					</svg>
+					<svg class="play" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" xmlns:xlink="http://www.w3.org/1999/xlink">
+						<polygon points="6.7,0 93.3,50 6.7,100 6.7,0" />
+					</svg>
+					<svg class="stop" style="display: none;" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" xmlns:xlink="http://www.w3.org/1999/xlink">
+						<polygon points="20,0 40,0 40,100 20,100" />
+						<polygon points="60,0 80,0 80,100 60,100" />
+					</svg>
+					<svg class="next" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" xmlns:xlink="http://www.w3.org/1999/xlink">
+						<polygon points="5.35,10 74.65,50 5.35,90 5.35,10" />
+						<polygon points="94.65,10 74.65,10 74.65,90 94.75,90" />
+					</svg>
+				</div>
+			</div>
+		</section>
+		
+		<footer style="display: none;">
+			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' type='text/javascript'%3E%3C/script%3E"));</script>
+		</footer>
+		
+<script>
+//生成任意维数组
+Array.new = function(value, len, ...num){
+	if (num.length == 0){
+		if (value instanceof Function){
+			return Array.from({
+				length: len
+			}, value);
+		}else{
+			return Array.from({
+				length: len
+			}, ()=>value);
+		}
+	}else{
+		return Array.from({
+			length: len
+		}, ()=>Array.new(value, ...num));
+	}
+};
+</script>
+<script>
+function resize(){
+	console.log("resize")
+	
+	const width = innerWidth-16,
+		height = innerHeight
+			-$("#header").height()
+			-8*2 //#main margin
+			-$("#main > .side").height()*2
+			-$("#toolBtn").height();
+	$("#main > .fill").css("width", width + "px")
+		.css("height", height + "px");
+	
+	$("#tools > .scores").attr("width", innerWidth-18);
+}
+resize();
+$(window).resize(function(){
+	$("#board").attr("width", innerWidth)
+		.attr("height", innerHeight);
+	
+	if (board.engine)
+		board.engine.resize(); //更新大小
+});
+
+document.addEventListener("plusready", function(){
+	plus.navigator.setStatusBarBackground("#aef");
+	plus.navigator.setStatusBarStyle("dark");
+}, false);
+</script>
+<script>
+$("html").addClass("fadeIn");
+function go(url){
+	$("html").addClass("outDown");
+	setTimeout(function(){
+		location.href = url;
+	}, 600);
+	layer.load(0);
+}
+
+
+$("button, input[type='button'], svg, header > i, #layerControl *, #heightControl *").click(function(){
+	playEffect(); //播放音效
+});
+
+
+
+class Board{
+	constructor ({canvas, background, rows, columns, depth, none, mistake, black, white, winLines, spacing}){
+		this.canvas = canvas;
+		this.width = canvas.width;
+		this.height = canvas.height;
+		this.background = background;
+		
+		this.columns = columns;
+		this.rows = rows;
+		this.depth = depth;
+		
+		this.columnRange = [0, columns-1]; //列范围
+		this.rowRange = ~~((rows-1)/2); //行
+		this.depthRange = [0, depth-1]; //深度范围
+		
+		this.none = none; //空气配置
+		this.mistake = mistake; //防误触配置
+		this.black = black; //黑棋配置
+		this.white = white; //白棋配置
+		this.winLines = winLines; //获胜划线材质
+		
+		this.spacing = spacing; //间隔
+		this.lines = { //划线
+			border: [], //棋盘边界
+			circle: [], //圆圈标记
+			win: [], //获胜
+			analyse: [] //分析
+		};
+	}
+	
+	
+	/* 场景 */
+	//载入场景
+	loadScene(skyboxDisplay=true, moonDisplay=true, borderDisplay=true){
+		//stats.js
+		this.stats = new Stats();
+		this.stats.showPanel(0);
+		$("#main").append(
+			$(this.stats.dom)
+				.css("top", "calc(2em + 2 * 0.3rem)")
+				.css("left", "auto")
+				.css("right", "0")
+				.css("opacity", "0.5")
+		);
+		
+		//引擎 场景 相机
+		this.engine = new BABYLON.Engine(this.canvas); //引擎
+		this.engine.enableOfflineSupport = false; //不支持离线 以减少内存
+		this.scene = new BABYLON.Scene(this.engine, {
+			//useGeometryIdsMap: true,
+			//useMaterialMeshMap: true,
+			//useClonedMeshMap: true
+		}); //场景
+		this.scene.clearColor = new BABYLON.Color3(...this.background); //背景颜色
+		this.camera = new BABYLON.ArcRotateCamera( //弧形旋转相机
+			"Camera",
+			-Math.PI/2, //alpha=-90°
+			Math.PI/4, //beta=45°
+			300, //radius
+			BABYLON.Vector3.Zero(), //position
+			this.scene
+		);
+		this.camera.attachControl(this.canvas, false);
+		
+		//添加光
+		this.hemisphericLight = new BABYLON.HemisphericLight( //模拟环境光
+			"hemisphericLight",
+			new BABYLON.Vector3(0, 1, 0),
+			this.scene
+		);
+		this.directionalLight = new BABYLON.DirectionalLight( //平行光
+			"directionalLight",
+			new BABYLON.Vector3(0.6, 1, 0.6), //方向（斜向上）
+			this.scene
+		);
+		this.directionalLight.intensity = 0.6; //亮度
+		
+		//所有棋子模板
+		this.materials = {}; //材质
+		this.templates = {}; //网格模板
+		for (const name of ["none", "mistake", "black", "white"]){
+			const material = new BABYLON.StandardMaterial("material_"+name, this.scene); //空气材质
+			if ( this[name].color[0] )
+				material.diffuseColor = new BABYLON.Color3(...this[name].color[0]); //漫反射颜色
+			if ( this[name].color[1] )
+				material.specularColor = new BABYLON.Color3(...this[name].color[1]); //镜面颜色
+			if ( this[name].color[2] )
+				material.emissiveColor = new BABYLON.Color3(...this[name].color[2]); //自发光颜色
+			if ( this[name].color[3] )
+				material.ambientColor = new BABYLON.Color3(...this[name].color[3]); //环境光颜色
+			material.freeze();
+			this.materials[name] = material;
+			
+			let template;
+			if (name == "none" || name == "mistake"){ //方块
+				template = BABYLON.MeshBuilder.CreateBox(
+					"piece_template_"+name,
+					{size: this[name].size}, //边长
+					this.scene
+				);
+			}else{ //球
+				template = BABYLON.MeshBuilder.CreateSphere(
+					"piece_template_"+name,
+					{diameter: this[name].size}, //边长
+					this.scene
+				);
+			}
+			template.material = material;
+			template.isVisible = false; //隐藏
+			template.freezeWorldMatrix();
+			this.templates[name] = template;
+		}
+		//获胜划线材质
+		const material = new BABYLON.StandardMaterial("material_winLines", this.scene); //空气材质
+		if ( this.winLines.color[0] )
+			material.diffuseColor = new BABYLON.Color3(...this.winLines.color[0]); //漫反射颜色
+		if ( this.winLines.color[1] )
+			material.specularColor = new BABYLON.Color3(...this.winLines.color[1]); //镜面颜色
+		if ( this.winLines.color[2] )
+			material.emissiveColor = new BABYLON.Color3(...this.winLines.color[2]); //自发光颜色
+		if ( this.winLines.color[3] )
+			material.ambientColor = new BABYLON.Color3(...this.winLines.color[3]); //环境光颜色
+		material.freeze();
+		this.materials.winLines = material;
+		
+		
+		//通用动画缓动函数
+		this.easingFunction = new BABYLON.CircleEase(); //缓动函数
+		this.easingFunction.setEasingMode( BABYLON.EasingFunction.EASINGMODE_EASEINOUT ); //模式
+		
+		
+		//生成所有占位符和棋子
+		this.places = Array.new(null, this.columns, this.depth);
+		this.pieces = Array.new(null, this.columns, this.rows, this.depth);
+		//this.clear();
+		
+		
+		//生成棋盘边界
+		if (borderDisplay){ //允许显示
+			const paths = [];
+			paths[0] = [ //上面
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, 0, 0)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, 0, 0)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, 0, this.depth-1)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, 0, this.depth-1)
+				),
+				new BABYLON.Vector3( //闭合
+					...this.ijk2xyz(0, 0, 0)
+				)
+			];
+			paths[1] = [ //下面
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, this.rows-1, 0)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, this.rows-1, 0)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, this.rows-1, this.depth-1)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, this.rows-1, this.depth-1)
+				),
+				new BABYLON.Vector3( //闭合
+					...this.ijk2xyz(0, this.rows-1, 0)
+				)
+			];
+			paths[2] = [
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, 0, 0)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, this.rows-1, 0)
+				)
+			];
+			paths[3] = [
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, 0, 0)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, this.rows-1, 0)
+				),
+			];
+			paths[4] = [
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, 0, this.depth-1)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, this.rows-1, this.depth-1)
+				),
+			];
+			paths[5] = [
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, 0, this.depth-1)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, this.rows-1, this.depth-1)
+				)
+			];
+			const color = new BABYLON.Color4(0.8, 0.8, 0, 1); //黄色
+			for (const path of paths){
+				const colors = new Array(path.length).fill(color);
+				const line = BABYLON.MeshBuilder.CreateLines("lines", {points: path, colors}, this.scene);
+				line.isPickable = false; //禁止点击
+				this.lines.border.push(line);
+				this.sizeInAnimation(line, 100);
+			}
+		}
+		
+		
+		//天空盒
+		if (skyboxDisplay){ //允许显示
+			const skybox = BABYLON.Mesh.CreateBox("skyBox", 1000, this.scene);
+			const skyMaterial = new BABYLON.SkyMaterial("skyMaterial", this.scene);
+			skyMaterial.backFaceCulling = false;
+			skybox.material = skyMaterial;
+			skybox.isPickable = false; //禁止点击
+			this.skybox = skybox;
+			
+			//太阳倾斜角
+			const skyInclinationAnimation = new BABYLON.Animation(
+				"animation_sky_inclination",
+				"material.inclination",
+				30,
+				BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+				BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
+			);
+			skyInclinationAnimation.setKeys([
+				{frame: 0, value: -0.5},
+				{frame: 30*60, value: 0.5}
+			]);
+			//太阳浑浊度
+			const skyTurbidityAnimation = new BABYLON.Animation(
+				"animation_sky_turbidity",
+				"material.turbidity",
+				30,
+				BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+				BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
+			);
+			skyTurbidityAnimation.setKeys([
+				{frame: 0, value: 2},
+				{frame: 30*30, value: 5},
+				{frame: 30*60, value: 2}
+			]);
+			//天空亮度
+			const skyLuminanceAnimation = new BABYLON.Animation(
+				"animation_sky_luminance",
+				"material.luminance",
+				30,
+				BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+				BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
+			);
+			skyLuminanceAnimation.setKeys([
+				{frame: 0, value: 1},
+				{frame: 30*30, value: 0.5},
+				{frame: 30*60, value: 1}
+			]);
+			skybox.animations = [skyInclinationAnimation, skyTurbidityAnimation, skyLuminanceAnimation];
+			this.scene.beginAnimation(skybox, 0, 30*60, true);
+			
+			setInterval(function(){
+				const x = (skyMaterial.inclination + 1) % 2,
+					y1 = 256/(1+Math.E**( -4*Math.E*(x-0.5) )),
+					y2 = 256/(1+Math.E**( 4*Math.E*(x-1.5) )),
+					min = ~~(256 - Math.min(y1, y2)),
+					color = `rgb(${min},${min},${min})`;
+				$("#main").css("color", color);
+				$("#layerControl, #heightControl, #layerControl > *, #heightControl > *")
+					.css("border-color", color);
+			}, 1000);
+			
+			//月亮
+			if (moonDisplay){
+				const spriteManager = new BABYLON.SpriteManager("moonManager", "./img/moon.png", 1, 1059, this.scene);
+				const moon = new BABYLON.Sprite("moon", spriteManager);
+				moon.size = 20;
+				this.moon = moon;
+				setInterval(function(){
+					if ((skyMaterial.inclination+0.5)%2 < 1)
+						return (moon.isVisible = false);
+					const radius = 400, //轨道距离
+						theta = (skyMaterial.inclination+1.5)%2 /2 *2*Math.PI;
+					moon.isVisible = true;
+					moon.position.set(
+						0,
+						radius * Math.sin(theta),
+						radius * Math.cos(theta)
+					);
+				}, 33);
+			}
+		}
+		
+		
+		//优化阻止dirty
+		this.scene.blockMaterialDirtyMechanism = true;
+		
+		//渲染循环
+		this.engine.runRenderLoop(()=>{
+			this.stats.update(); //stats.js更新
+			this.scene.render();
+		});
+	}
+	
+	//棋子由小变大动画
+	sizeInAnimation(mesh, frame=20){
+		return new Promise((resolve, reject)=>{
+			mesh.goalVisible = true; //将要显示
+			mesh.isVisible = true;
+			if (mesh.scaling.x == 1 && mesh.scaling.y == 1 && mesh.scaling.z == 1)
+				mesh.scaling.set(0, 0, 0);
+			//由小到大动画
+			BABYLON.Animation.CreateAndStartAnimation(
+				"animation_sizeIn",
+				mesh,
+				"scaling",
+				30,
+				frame,
+				mesh.scaling,
+				new BABYLON.Vector3(1, 1, 1),
+				BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+				this.easingFunction,
+				resolve
+			);
+		});
+	}
+	
+	//棋子由大变小动画
+	sizeOutAnimation(mesh, frame=20){
+		return new Promise((resolve, reject)=>{
+			//由大到小动画
+			mesh.goalVisible = false; //将要隐藏
+			BABYLON.Animation.CreateAndStartAnimation(
+				"animation_sizeOut",
+				mesh,
+				"scaling",
+				30,
+				20,
+				mesh.scaling,
+				new BABYLON.Vector3(0, 0, 0),
+				BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+				this.easingFunction,
+				()=>{
+					if (!mesh.goalVisible) //仍要隐藏
+						mesh.isVisible = false;
+					resolve();
+				}
+			);
+		});
+	}
+	
+	//进入动画
+	intoAnimation(time){
+		return new Promise((resolve, reject)=>{
+			/*//由透明变不透明
+			const alphaAnimation = new BABYLON.Animation(
+				"animation_alpha", //名称
+				"material.alpha", //属性
+				30, //FPS
+				BABYLON.Animation.ANIMATIONTYPE_FLOAT, //属性类型
+				BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT //仅一次
+			);
+			alphaAnimation.setKeys([ //关键帧
+				{ frame: 0, value: 0 },
+				{ frame: 100, value: 1 }
+			]);
+			alphaAnimation.setEasingFunction( this.easingFunction ); //缓动函数*/
+			
+			for (let i=this.columns-1; i>=0; i--)
+				for (let j=this.rows-1; j>=0; j--)
+					for (let k=this.depth-1; k>=0; k--){
+						const mesh = this.pieces[i][j][k];
+						if (!mesh) continue; //无棋子
+						if (!OR(mesh.goalVisible, mesh.isVisible)) continue; //已隐藏
+						
+						//位置进入动画
+						BABYLON.Animation.CreateAndStartAnimation(
+							"animation_comeIn", //名称
+							mesh, //物体
+							"position", //属性
+							30, //fps
+							100, //frames
+							new BABYLON.Vector3(0, 0, 0), //from
+							new BABYLON.Vector3(...this.ijk2xyz(i, j, k)), //to
+							BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT, //mode
+							this.easingFunction, //缓动函数
+							resolve
+						);
+						
+						//由小到大动画
+						this.sizeInAnimation(mesh, 100);
+					}
+		});
+	}
+	
+	
+	/* 坐标 */
+	//棋子序号 转 场景坐标
+	ijk2xyz(i, j, k){
+		return [
+			(i - (this.columns-1)/2 ) * this.spacing.x,
+			(j - (this.rows-1)/2 ) * this.spacing.y,
+			(k - (this.depth - 1)/2 ) * this.spacing.z
+		];
+	}
+	//场景坐标 转 棋子序号
+	xyz2ijk(x, y, z){
+		return [
+			Math.round( x/this.spacing.x + (this.columns - 1)/2 ),
+			Math.round( y/this.spacing.y + (this.rows - 1)/2 ),
+			Math.round( z/this.spacing.z + (this.depth - 1)/2 )
+		];
+	}
+	
+	
+	/* 棋子 */
+	//添加棋子
+	add(i, j, k, type){
+		const piece = this.templates[type].clone(`pieces(${i},${j},${k})`);
+		piece.isVisible = true; //显示
+		piece.position.set( ...this.ijk2xyz(i, j, k) );
+		piece.freezeWorldMatrix();
+		piece.cullingStrategy = BABYLON.AbstractMesh.CULLINGSTRATEGY_BOUNDINGSPHERE_ONLY; //网格剔除策略：边界球
+		this.pieces[i][j][k] = piece;
+		if (type == "none" || type == "mistake")
+			this.places[i][k] = piece;
+		return this;
+	}
+	
+	//隐藏棋子
+	visible(i, j, k, visible){
+		const mesh = this.pieces[i][j][k];
+		mesh.isVisible = visible;
+		mesh.goalVisible = visible;
+		return this;
+	}
+	
+	//删除棋子
+	remove(i, j, k){
+		if (this.pieces[i][j][k])
+			this.pieces[i][j][k].dispose();
+		this.pieces[i][j][k] = null;
+		return this;
+	}
+	
+	//为占位符或防误触
+	isBlock(mesh){
+		if ( mesh.material == this.materials.none ||
+			mesh.material == this.materials.mistake
+		) return true;
+		return false;
+	}
+	
+	//设置棋子
+	set(i, j, k, type){
+		const mesh = this.pieces[i][j][k];
+		switch (type){
+			/*case null: //隐藏
+				if (mesh) //有棋子
+					this.remove(i, j, k);
+				break;*/
+				
+			case "none": //占位符
+				if (mesh){ //有棋子
+					//this.visible(i, j, k, true); //显示
+					if (mesh.material == this.materials.none)
+						return; //类型相同不改
+					if (mesh.material == this.materials.mistake) //同形状 改材质
+						return (mesh.material = this.materials.none);
+					this.pieces[i][j][k] = null; //取消引用
+					this.sizeOutAnimation(mesh, 20)
+						.then(()=>{
+							if (!mesh.goalVisible) //仍要隐藏
+								mesh.dispose();
+						}); //否则删除原有棋子
+					//this.remove(i, j, k);
+				}
+				if (this.inRange(i, j, k)){
+					this.add(i, j, k, "none"); //添加棋子
+					this.sizeInAnimation(this.pieces[i][j][k], 20);
+				}
+				break;
+				
+			/*case "mistake": //防误触
+				this.places[i][k].material = this.materials.mistake;
+				break;*/
+				
+			case "black": //黑棋
+				if (mesh){ //有棋子
+					//this.visible(i, j, k, true); //显示
+					if (mesh.material == this.materials.black)
+						return this.visible(i, j, k, true); //类型相同不改
+					if (mesh.material == this.materials.white) //同形状 改材质
+						return (mesh.material = this.materials.black);
+					if (mesh.material == this.materials.mistake)
+						mesh.material = this.materials.none; //关闭防误触
+					this.sizeOutAnimation(mesh, 20); //隐藏占位符
+					//this.visible(i, j, k, false); //隐藏占位符
+				}
+				this.add(i, j, k, "black"); //添加棋子
+				this.sizeInAnimation(this.pieces[i][j][k]); //显示
+				break;
+				
+			case "white": //白棋
+				if (mesh){ //有棋子
+					//this.visible(i, j, k, true); //显示
+					if (mesh.material == this.materials.white)
+						return this.visible(i, j, k, true); //类型相同不改
+					if (mesh.material == this.materials.black) //同形状 改材质
+						return (mesh.material = this.materials.white);
+					if (mesh.material == this.materials.mistake)
+						mesh.material = this.materials.none; //关闭防误触
+					this.sizeOutAnimation(mesh, 20); //隐藏占位符
+					//this.visible(i, j, k, false); //隐藏占位符
+				}
+				this.add(i, j, k, "white"); //添加棋子
+				this.sizeInAnimation(this.pieces[i][j][k]); //显示
+				break;
+				
+		}
+	}
+	
+	//清除棋子
+	clear(){
+		for (let i=this.columns-1; i>=0; i--)
+			for (let j=this.rows-1; j>=0; j--)
+				for (let k=this.depth-1; k>=0; k--)
+					this.set(i, j, k, "none");
+		return this;
+	}
+	
+	
+	/* 划线 */
+	//添加划线
+	addLine(from, to, width=1, material){
+		const [x0, y0, z0] = from,
+			[x1, y1, z1] = to,
+			[dx, dy, dz] = to.map((v,i) => v-from[i]),
+			len = Math.sqrt(dx*dx + dy*dy + dz*dz),
+			line = BABYLON.MeshBuilder.CreateCylinder(
+				"cylinder_line",
+				{
+					height: len,
+					diameter: width, //直径
+					tessellation: 8, //细分度
+					heightSubdivs: 1 //高度细分度
+				},
+				this.scene
+			);
+		line.position = new BABYLON.Vector3(
+			...to.map( (v,i) => (v+from[i])/2 ) //取平均值
+		);
+		const symbolX = dx>=0? +1: -1; //dx的符号
+		line.addRotation(0, 0, -Math.PI/2)
+			.addRotation(Math.atan(dz && dz/dx), 0, 0)
+			.addRotation(0, 0, Math.atan(dy / (symbolX * Math.sqrt(dx*dx + dz*dz)) ));
+		if (material)
+			line.material = this.materials[material];
+		line.isPickable = false; //禁止点击
+		return line;
+	}
+	
+	//添加或移动圆圈标记
+	moveCircle([i, j, k], radius, color, delta=30){
+		const pos = new BABYLON.Vector3(...this.ijk2xyz(i, j, k));
+		console.log("moveCircle", pos, this.lines.circle.length)
+		if (this.lines.circle.length > 0){ //已有
+			for (const line of this.lines.circle){
+				line.position = pos;
+				this.sizeInAnimation(line, 20);
+				/*BABYLON.Animation.CreateAndStartAnimation(
+					"animation_", //名称
+					line, //物体
+					"scaling", //属性
+					30, //fps
+					20, //frames
+					new BABYLON.Vector3(0, 0, 0), //from
+					new BABYLON.Vector3(1, 1, 1), //to
+					BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT//, //mode
+					//this.easingFunction //缓动函数
+				);*/
+			}
+			//this.lines.circle.forEach(line => line.position=pos);
+			
+		}else{ //未创建
+			if (color)
+				color = new BABYLON.Color4(...color, 0.6); //透明度0.6
+			const paths = Array.new(()=>[], 9),
+				colors = color? []: null;
+			for (let theta=0; theta<=360; theta+=delta){
+				//x
+				paths[0].push( new BABYLON.Vector3(
+					radius * Math.sin(-Math.PI/6), // -30°
+					radius * Math.cos(-Math.PI/6) * Math.cos(theta/180*Math.PI),
+					radius * Math.cos(-Math.PI/6) * Math.sin(theta/180*Math.PI)
+				) );
+				paths[1].push( new BABYLON.Vector3(
+					0, // 0°
+					radius * Math.cos(theta/180*Math.PI),
+					radius * Math.sin(theta/180*Math.PI)
+				) );
+				paths[2].push( new BABYLON.Vector3(
+					radius * Math.sin(Math.PI/6), // 30°
+					radius * Math.cos(Math.PI/6) * Math.cos(theta/180*Math.PI),
+					radius * Math.cos(Math.PI/6) * Math.sin(theta/180*Math.PI)
+				) );
+				
+				//y
+				paths[3].push( new BABYLON.Vector3(
+					radius * Math.cos(-Math.PI/6) * Math.cos(theta/180*Math.PI),
+					radius * Math.sin(-Math.PI/6), // -30°
+					radius * Math.cos(-Math.PI/6) * Math.sin(theta/180*Math.PI)
+				) );
+				paths[4].push( new BABYLON.Vector3(
+					radius * Math.cos(theta/180*Math.PI),
+					0, // 0°
+					radius * Math.sin(theta/180*Math.PI)
+				) );
+				paths[5].push( new BABYLON.Vector3(
+					radius * Math.cos(Math.PI/6) * Math.cos(theta/180*Math.PI),
+					radius * Math.sin(Math.PI/6), // 30°
+					radius * Math.cos(Math.PI/6) * Math.sin(theta/180*Math.PI)
+				) );
+				
+				//z
+				paths[6].push( new BABYLON.Vector3(
+					radius * Math.cos(-Math.PI/6) * Math.cos(theta/180*Math.PI),
+					radius * Math.cos(-Math.PI/6) * Math.sin(theta/180*Math.PI),
+					radius * Math.sin(-Math.PI/6) // -30°
+				) );
+				paths[7].push( new BABYLON.Vector3(
+					radius * Math.cos(theta/180*Math.PI),
+					radius * Math.sin(theta/180*Math.PI),
+					0 // 0°
+				) );
+				paths[8].push( new BABYLON.Vector3(
+					radius * Math.cos(Math.PI/6) * Math.cos(theta/180*Math.PI),
+					radius * Math.cos(Math.PI/6) * Math.sin(theta/180*Math.PI),
+					radius * Math.sin(Math.PI/6) // 30°
+				) );
+				
+				if (color)
+					colors.push(color);
+			}
+			
+			const lines = [];
+			for (const path of paths){
+				const line = BABYLON.MeshBuilder.CreateLines("lines", {points: path, colors}, this.scene);
+				line.position = pos;
+				line.isPickable = false; //禁止点击
+				lines.push(line);
+				this.sizeInAnimation(line);
+			}
+			
+			this.lines.circle.push(...lines);
+		}
+		
+		return this;
+	}
+	
+	//隐藏划线
+	visibleLines(visible, type){
+		if (type){
+			this.lines[type].forEach(v => v.isVisible=visible);
+		}else{
+			this.lines.win.forEach(v => v.isVisible=visible);
+			this.lines.analyse.forEach(v => v.isVisible=visible);
+		}
+		return this;
+	}
+	
+	//删除划线
+	removeLines(...lines){
+		for (const line of lines)
+			line.dispose();
+		return this;
+	}
+	
+	//清空划线
+	clearLines(type){
+		if (type){
+			this.removeLines(...this.lines[type]); //删除所有划线
+			this.lines[type] = [];
+		}else{
+			this.removeLines(...this.lines.win, ...this.lines.analyse, ...this.lines.circle); //删除所有划线
+			this.lines.win = [];
+			this.lines.analyse = [];
+			this.lines.circle = [];
+		}
+		return this;
+	}
+	
+	
+	/* 占位符控制 */
+	//层增大
+	layerAdd(){
+		if (this.columnRange[0] <= 0) return this;
+		if (this.columnRange[1] >= this.columns-1) return this;
+		if (this.depthRange[0] <= 0) return this;
+		if (this.depthRange[1] >= this.depth-1) return this;
+		
+		this.columnRange[0]--;
+		this.columnRange[1]++;
+		this.depthRange[0]--;
+		this.depthRange[1]++;
+		
+		return this.updateLayer(+1);
+	}
+	
+	//层减小
+	layerSub(){
+		if (this.columnRange[0] == this.columnRange[1]) return this;
+		if (this.columnRange[0]-1 == this.columnRange[1]) return this;
+		if (this.depthRange[0] == this.depthRange[1]) return this;
+		if (this.depthRange[0]-1 == this.depthRange[1]) return this;
+		
+		this.columnRange[0]++;
+		this.columnRange[1]--;
+		this.depthRange[0]++;
+		this.depthRange[1]--;
+		
+		return this.updateLayer(-1);
+	}
+	
+	//高度增加
+	heightAdd(){
+		if (this.rowRange >= this.rows-1) return this;
+		this.rowRange++;
+		
+		return this.updateHeight(this.rowRange-1);
+	}
+	
+	//高度减小
+	heightSub(){
+		if (this.rowRange <= 0) return this;
+		this.rowRange--;
+		
+		return this.updateHeight(this.rowRange+1);
+	}
+	
+	
+	/* 占位符更新 */
+	//可显示（在范围内）
+	inRange(i, j, k){
+		if ( j == this.rowRange &&
+			i >= this.columnRange[0] && i <= this.columnRange[1] &&
+			k >= this.depthRange[0] && k <= this.depthRange[1]
+		) return true; //在加载范围内
+		return false;
+	}
+	
+	//更新层
+	updateLayer(type){
+		switch (type){
+			case +1: //增加
+				for (let i=this.columns-1; i>=0; i--)
+					for (let k=this.depth-1; k>=0; k--)
+						if ( i >= this.columnRange[0] && i <= this.columnRange[1] &&
+							k >= this.depthRange[0] && k <= this.depthRange[1] &&
+							( i == this.columnRange[0] || i == this.columnRange[1] ||
+								k == this.depthRange[0] || k == this.depthRange[1] ) &&
+							( !this.pieces[i][this.rowRange][k] ||
+								this.isBlock(this.pieces[i][this.rowRange][k]) )
+						){ //在范围内 且 无棋子
+							const mesh = this.places[i][k];
+							//mesh.material = this.materials.none; //取消防误触
+							this.sizeInAnimation(mesh, 20); //显示
+						}
+				break;
+				
+			case -1: //去除
+				const columnBefore = [
+						this.columnRange[0]+type,
+						this.columnRange[1]-type
+					],
+					depthBefore = [
+						this.depthRange[0]+type,
+						this.depthRange[1]-type
+					];
+				
+				for (let i=this.columns-1; i>=0; i--)
+					for (let k=this.depth-1; k>=0; k--)
+						if ( i >= columnBefore[0] && i <= columnBefore[1] &&
+							k >= depthBefore[0] && k <= depthBefore[1] &&
+							( i == columnBefore[0] || i == columnBefore[1] ||
+								k == depthBefore[0] || k == depthBefore[1] )
+						){ //在范围内
+							const mesh = this.places[i][k];
+							//mesh.material = this.materials.none; //取消防误触
+							this.sizeOutAnimation(mesh, 20); //隐藏
+						}
+				break;
+		}
+		
+		return this;
+	}
+	
+	//更新高度
+	updateHeight(before){
+		const y = this.ijk2xyz(0, this.rowRange, 0)[1];
+		for (let i=this.columns-1; i>=0; i--)
+			for (let k=this.depth-1; k>=0; k--){
+				const mesh = this.places[i][k];
+				
+				//取消防误触
+				mesh.material = this.materials.none;
+				
+				//mesh.enableBlending = true; //混合动画
+				//高度改变动画
+				BABYLON.Animation.CreateAndStartAnimation(
+					"animation_height",
+					mesh,
+					"position.y",
+					30,
+					20,
+					mesh.position.y,
+					y,
+					BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT,
+					this.easingFunction
+				);
+				
+				//隐藏与显示动画
+				if (this.inRange(i, this.rowRange, k)) //在范围内
+					if (OR(mesh.goalVisible, mesh.isVisible) && this.pieces[i][this.rowRange][k]){ //已显示 且 有棋子
+						this.sizeOutAnimation(mesh, 20); //隐藏
+					}else if (!OR(mesh.goalVisible, mesh.isVisible) && !this.pieces[i][this.rowRange][k]){ //未显示 且 无棋子
+						this.sizeInAnimation(mesh, 20); //显示
+					}
+				
+				//修改引用
+				if ( this.isBlock(this.pieces[i][before][k]) ) //是占位符或防误触
+					this.pieces[i][before][k] = null; //取消引用
+				if ( !this.pieces[i][this.rowRange][k] ) //没有引用
+					this.pieces[i][this.rowRange][k] = mesh; //引用占位符
+			}
+		
+		return this;
+	}
+}
+
+
+const {N=5, cols=10, rows=10, depth=10} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
+	{mistake=true, skybox=true, moon=true, moon=true, border=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
+const board = new Board({ //棋盘
+	canvas: $("#board")[0],
+	background: [0xff/0xff, 0xfa/0xff, 0xe8/0xff],
+	rows,
+	columns: cols,
+	depth,
+	none: {
+		size: 6,
+		color: [
+			[0.9, 0.9, 0.9], //漫反射
+			[1, 1, 1] //镜面反射
+		]
+	},
+	mistake: {
+		size: 6,
+		color: [
+			[0, 0, 1], //漫反射
+			[0.6, 0.6, 1] //镜面反射
+		]
+	},
+	black: {
+		size: 8,
+		color: [
+			[0, 0, 0], //漫反射
+			[0.8, 0.8, 0.8] //镜面反射
+		]
+	},
+	white: {
+		size: 8,
+		color: [
+			[1, 1, 1], //漫反射
+			[1, 1, 1] //镜面反射
+		]
+	},
+	winLines: {
+		color: [
+			[1, 0, 0], //漫反射
+			[1, 0.8, 0.8], //镜面反射
+			[0.2, 0.2, 0.2] //自发光颜色
+		]
+	},
+	spacing: {x: 10, y: 10, z: 10}
+});
+let waiting = false; //未等待
+
+const loadingId = layer.load(2);
+setTimeout(()=>{
+	board.loadScene(skybox, moon, border);
+	layer.close(loadingId);
+	init();
+}, 600);
+
+let gameOverMusic; //游戏结束音乐
+const game_record = JSON.parse(localStorage.getItem("五子棋_战绩") || "{}"),
+	sizeText = `${cols}*${rows}*${depth}`;
+
+game_record.three = game_record.three || {}; //2D
+game_record.three.win = game_record.three.win || 0;
+game_record.three.fail = game_record.three.fail || 0;
+game_record.three.total = game_record.three.total || 0;
+
+game_record.three[N] = game_record.three[N] || {};
+game_record.three[N].win = game_record.three[N].win || 0;
+game_record.three[N].fail = game_record.three[N].fail || 0;
+game_record.three[N].total = game_record.three[N].total || 0;
+
+game_record.three[N][0] = game_record.three[N][0] || {};
+game_record.three[N][0].win = game_record.three[N][0].win || 0;
+game_record.three[N][0].fail = game_record.three[N][0].fail || 0;
+game_record.three[N][0].total = game_record.three[N][0].total || 0;
+
+game_record.three[N][1] = game_record.three[N][1] || {};
+game_record.three[N][1].win = game_record.three[N][1].win || 0;
+game_record.three[N][1].fail = game_record.three[N][1].fail || 0;
+game_record.three[N][1].total = game_record.three[N][1].total || 0;
+
+game_record.three[N][0][sizeText] = game_record.three[N][0][sizeText] || {};
+game_record.three[N][0][sizeText].win = game_record.three[N][0][sizeText].win || 0;
+game_record.three[N][0][sizeText].fail = game_record.three[N][0][sizeText].fail || 0;
+game_record.three[N][0][sizeText].total = game_record.three[N][0][sizeText].total || 0;
+
+game_record.three[N][1][sizeText] = game_record.three[N][1][sizeText] || {};
+game_record.three[N][1][sizeText].win = game_record.three[N][1][sizeText].win || 0;
+game_record.three[N][1][sizeText].fail = game_record.three[N][1][sizeText].fail || 0;
+game_record.three[N][1][sizeText].total = game_record.three[N][1][sizeText].total || 0;
+
+function saveGameRecord(){
+	localStorage.setItem("五子棋_战绩", JSON.stringify(game_record));
+}
+
+
+
+let game = {
+		turn: 1, //下棋方 1:黑, 0:白
+		startTime: null, //开始游戏时间
+		steps: 0, //下棋总步数
+		winner: false, //获胜者 1:黑, 0:白, null:平 false:未获胜
+		t0: [null, null], //上次时间
+		ids: [null, null], //计时器id
+		time: [
+			{total: 600, step: 45}, //0: 白
+			{total: 600, step: 45} //1: 黑
+		], //剩余时间
+		timeWarning: { //时间警告
+			total: {
+				60: ["#f00", 1.2],
+				180: ["#fa0", 1.1],
+				600: ["inherit", 1]
+			},
+			step: {
+				10: ["#f00", 1.5],
+				20: ["#fa0", 1.1],
+				45: ["inherit", 1]
+			}
+		},
+		scores: {
+			now: [0, 0], //当前
+			goal: [0, 0], //目标
+			t0: +new Date(),
+			k: 0.005
+		}, //分数 白:0 黑:1
+		lines: [], //分析连线
+		linesDisplay: false, //显示连线
+		
+		//更新时间显示
+		updateTime(turn){
+			let total, step,
+				totalElem, stepElem;
+			
+			//黑
+			total = Math.max(this.time[1].total, 0);
+			step = Math.max(this.time[1].step, 0);
+			
+			totalElem = $("#main > .black > div > .time > .total"),
+			stepElem = totalElem.next(".step");
+			
+			totalElem.html(
+				( ~~(total/60) +"").padStart(2,"0") + ":" + ( ~~total%60 +"").padStart(2, "0")
+			);
+			for (const [i,v] of Object.entries(this.timeWarning.total))
+				if (total <= i){
+					totalElem.css("color", v[0])
+						.css("font-size", v[1] + "em");
+					break;
+				}
+			
+			stepElem.html(
+				~~step + "s"
+			);
+			for (const [i,v] of Object.entries(this.timeWarning.step))
+				if (step <= i){
+					stepElem.css("color", v[0])
+						.css("font-size", v[1] + "em");
+					break;
+				}
+			
+			if (~~step < 10 && ~~step >= 9)
+				this.flash(this.turn, "#f00"); //背景闪烁
+			
+			//白
+			total = Math.max(this.time[0].total, 0);
+			step = Math.max(this.time[0].step, 0);
+			
+			totalElem = $("#main > .white > div > .time > .total"),
+			stepElem = totalElem.next(".step");
+			
+			totalElem.html(
+				( ~~(total/60) +"").padStart(2,"0") + ":" + ( ~~total%60 +"").padStart(2, "0")
+			);
+			for (const [i,v] of Object.entries(this.timeWarning.total))
+				if (total <= i){
+					totalElem.css("color", v[0])
+						.css("font-size", v[1] + "em");
+					break;
+				}
+			
+			stepElem.html(
+				~~step + "s"
+			);
+			for (const [i,v] of Object.entries(this.timeWarning.step))
+				if (step <= i){
+					stepElem.css("color", v[0])
+						.css("font-size", v[1] + "em");
+					break;
+				}
+			
+			if (~~step < 10 && ~~step >= 9)
+				this.flash(this.turn, "#f00"); //背景闪烁
+		},
+		
+		//背景闪烁
+		flash(turn, color){
+			let elem;
+			if (this.turn == 1){ //黑
+				elem = $("#main > div.black > i");
+			}else{ //白
+				elem = $("#main > div.white > i");
+			}
+			elem.css("background-color", color);
+			setTimeout(()=> elem.css("background-color", ""), 150);
+			setTimeout(()=> elem.css("background-color", color), 300);
+			setTimeout(()=> elem.css("background-color", ""), 450);
+		},
+		
+		//切换下棋方
+		set(turn){
+			if (this.time[this.turn].total <= 0){ //超出局时
+				this.time[this.turn].step += 5;
+			}else{
+				this.time[this.turn].step = 45; //重置步时
+				//this.time[this.turn].total += 5; //增加局时
+			}
+			this.updateTime(this.turn);
+			clearInterval( this.ids[this.turn] );
+			
+			this.turn = turn;
+			this.flash(this.turn, "#af8"); //背景闪烁
+			this.t0[this.turn] = +new Date();
+			this.ids[this.turn] = setInterval(()=>{
+				const interval = (new Date() - this.t0[this.turn]) / 1000;
+				this.t0[this.turn] = +new Date();
+				
+				this.time[this.turn].total -= interval;
+				this.time[this.turn].step -= interval;
+				this.updateTime(this.turn);
+				
+				if (this.time[this.turn].step <= 0){ //超出步时
+					if (game.winner !== false) return; //游戏已结束
+					game.over(this.turn!=this.first, this.turn==1?"黑方超时":"白方超时");
+				}
+				
+			}, 200);
+		},
+		
+		//游戏结束
+		over(win, text){
+			console.log("game over", win, text)
+			
+			const t = (new Date() - this.startTime) / 1000;
+			clearInterval( this.ids[this.turn] );
+			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
+			
+			if (win === true){
+				this.winner = +this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "胜利！", icon: 6}
+				);
+				
+				game_record.three.win++;
+				game_record.three[N].win++;
+				game_record.three[N][+this.first].win++;
+				game_record.three[N][+this.first][sizeText].win++;
+				saveGameRecord();
+				if (gameOverMusic)
+					gameOverMusic.stop();
+				gameOverMusic = new Player("./music/好运来.m4a").play();
+				
+			}else if (win === false){
+				this.winner = 1-this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "你失败了！", icon: 5}
+				);
+				
+				game_record.three.fail++;
+				game_record.three[N].fail++;
+				game_record.three[N][+this.first].fail++;
+				game_record.three[N][+this.first][sizeText].fail++;
+				saveGameRecord();
+				if (gameOverMusic)
+					gameOverMusic.stop();
+				gameOverMusic = new Player("./music/凉凉.mp3").play();
+				
+			}else{
+				this.winner = null;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "游戏结束"}
+				);
+			}
+		},
+		
+		//更新分数
+		updateScores(){
+			const t = new Date()-this.scores.t0,
+				now = this.scores.now,
+				goal = this.scores.goal,
+				k = this.scores.k,
+				e = $("#tools > .scores");
+			this.scores.t0 = +new Date();
+			if (t > 300) return; //跳帧
+			
+			now[0] += (goal[0] - now[0]) *t *k;
+			now[1] += (goal[1] - now[1]) *t *k;
+			
+			const black = now[1] + 0.001,
+				white = now[0] + 0.001,
+				total = black + white,
+				ctx = e[0].getContext("2d"),
+				width = e.attr("width"),
+				height = e.attr("height");
+			
+			//清除背景
+			ctx.beginPath();
+			ctx.fillStyle = "#fff";
+			ctx.fillRect(0, 0, width, height);
+			
+			//背景
+			ctx.beginPath();
+			ctx.fillStyle = "#000";
+			ctx.moveTo(0, 0);
+			ctx.lineTo(black / total * width + 5, 0);
+			ctx.lineTo(black / total * width - 5, height);
+			ctx.lineTo(0, height);
+			ctx.fill();
+			
+			ctx.beginPath();
+			ctx.fillStyle = "#fff";
+			ctx.moveTo(width, 0);
+			ctx.lineTo(black / total * width + 5, 0);
+			ctx.lineTo(black / total * width - 5, height);
+			ctx.lineTo(width, height);
+			ctx.fill();
+			
+			//文字
+			ctx.beginPath();
+			ctx.fillStyle = "#fff"; //白字
+			ctx.textAlign = "left";
+			ctx.textBaseline = "top"; //基线：左上
+			ctx.font = height*5/6 + "px xs"; // 5/6vh
+			ctx.shadowOffsetX = 1;
+			ctx.shadowOffsetY = 1;
+			ctx.shadowColor = "#000";
+			ctx.shadowBlur = 3;
+			ctx.fillText(Math.round(black-0.001, 2), height/6, height/12); //margin: 0.2vh ;0.1vh
+			
+			ctx.beginPath();
+			ctx.fillStyle = "#000"; //黑字
+			ctx.textAlign = "right";
+			ctx.textBaseline = "top"; //基线：右上
+			ctx.font = height*5/6 + "px xs"; // 5/6vh
+			ctx.shadowOffsetX = 1;
+			ctx.shadowOffsetY = 1;
+			ctx.shadowColor = "#fff";
+			ctx.shadowBlur = 3;
+			ctx.fillText(Math.round(white-0.001, 2), width-height/6, height/12); //margin: 0.2vh ;0.1vh
+		},
+		
+		//更新分析画线
+		updateLines(display=true){
+			board.clearLines("analyse");
+			
+			if (display) //需显示
+				for (const v of this.lines)
+					if (v.width >= 3) //连子>=3 避免过密
+						board.lines.analyse.push(
+							board.addLine(
+								v.start,
+								v.end,
+								(v.width-3+1)/2,
+								v.pic==2? "white": "black"
+							)
+						);
+			
+			game.linesDisplay = display;
+		}
+	},
+	worker,
+	workerCallback = {  //收到消息回调
+		//电脑下
+		computer(data){
+			const {pos, value} = data;
+			if (game.winner !== false) return; //游戏已结束
+			if (game.first){ //电脑白棋
+				board.set(...pos, "white");
+				board.moveCircle(pos, 5, [0,1,0]);
+				game.set(1);
+			}else{ //电脑黑棋
+				board.set(...pos, "black");
+				board.moveCircle(pos, 5, [0,1,0]);
+				game.set(0);
+			}
+		},
+		
+		//获胜
+		won(data){
+			const {winner, steps} = data;
+			
+			if (game.winner !== false) return; //游戏已结束
+			game.over(winner-1==game.first, winner==2?"黑方胜":"白方胜");
+		},
+		
+		//获胜画线
+		lines(data){
+			const {lines} = data;
+			
+			lines.forEach( v => {
+				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start);
+				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end);
+			});
+			
+			board.clearLines("win");
+			for (const v of lines)
+				board.lines.win.push(
+					board.addLine(
+						v.start,
+						v.end,
+						(0.1+N-3+1)/2,
+						"winLines"
+					)
+				);
+			
+			//worker.terminate(); //关闭线程
+		},
+		
+		//平局
+		gameOver(){
+			//worker.terminate(); //关闭线程
+			
+			if (game.winner !== false) return; //游戏已结束
+			game.over(null, "平局");
+		},
+		
+		//分析
+		scores(data){
+			console.table(data.scores);
+			
+			const {scores, lines} = data;
+			lines.forEach( v => {
+				[v.start[0], v.start[1], v.start[2]] = board.ijk2xyz(...v.start);
+				[v.end[0], v.end[1], v.end[2]] = board.ijk2xyz(...v.end);
+			});
+			
+			game.scores.goal = scores;
+			game.lines = lines;
+			
+			if (game.linesDisplay){ //已显示
+				game.updateLines(true);
+			}else{
+				game.updateLines(false);
+			}
+		}
+	},
+	scores_id = null, //分数更新id
+	review_id = null; //复盘id
+
+
+
+//初始化
+function init(){
+	//棋盘
+	board.clearLines(); //删除所有划线
+	waiting = true; //禁止点击
+	board.clear().clearLines().intoAnimation().then(()=>{
+		//game.startTime = +new Date();
+		//game.set(1); //黑棋先下
+		waiting = false; //允许点击
+	});
+	
+	//游戏
+	game.steps = 0;
+	game.startTime = +new Date();
+	game.turn = 1;
+	game.winner = false;
+	clearInterval( game.ids[0] );
+	clearInterval( game.ids[1] ); //时间暂停
+	game.t0[0] = game.t0[1] = game.ids[0] = game.ids[1] = null;
+	game.time[0].total = 600;
+	game.time[0].step = 45;
+	game.time[1].total = 600;
+	game.time[1].step = 45;
+	game.scores.now[0] = game.scores.now[1] =
+		game.scores.goal[0] = game.scores.goal[1] = 0;
+	game.scores.t0 = +new Date();
+	game.scores.k = 0.005;
+	game.lines = []; //清空分析画线
+	
+	//关闭工具
+	scores(false);
+	analyse(false);
+	clearInterval(review_id); //停止复盘
+	review_id = null;
+	$("#tools > .review > .stop").hide();
+	$("#tools > .review > .play").show();
+	$("#toolBtn > .review").attr("disabled", "disabled");
+	$("#tools > .review").slideUp("fast");
+	
+	//选择先行
+	const finish_choose = ()=>{
+		//战绩
+		game_record.three.total++;
+		game_record.three[N].total++;
+		game_record.three[N][+game.first].total++;
+		game_record.three[N][+game.first][sizeText].total++;
+		saveGameRecord();
+		
+		if (game.first){ //自己先行
+			$("#main > div.self").removeClass("white").addClass("black");
+			$("#main > div.opposite").removeClass("black").addClass("white");
+			layer.msg("你执黑棋，电脑执白棋");
+		}else{ //电脑先行
+			$("#main > div.self").removeClass("black").addClass("white");
+			$("#main > div.opposite").removeClass("white").addClass("black");			
+			layer.msg("你执白棋，电脑执黑棋");
+			request({
+				type: "computer",
+				side: 2 //电脑黑棋
+			});
+		}
+		game.set(1); //黑棋先下
+		game.startTime = +new Date(); //开始计时
+	};
+	layer.confirm("请选择先手/后手", {
+		btn: ["随机", "先手", "后手"],
+		btn1(){
+			game.first = !!~~(Math.random()*2);
+			finish_choose(); //选择完毕
+		},
+		btn2(){
+			game.first = true;
+			finish_choose(); //选择完毕
+		},
+		btn3(){
+			game.first = false;
+			finish_choose(); //选择完毕
+		}
+	});
+	
+	//线程
+	if (worker)
+		worker.terminate(); //关闭线程
+	worker = new Worker("./js/worker.js"); //多线程
+	worker.postMessage({
+		type: "init", //初始化
+		cols,
+		rows,
+		depth,
+		D: 3,
+		N,
+		mis: mistake
+	});
+	worker.onmessage = function(e){
+		console.log("message: ", e.data.type, e.data)
+		const type = e.data.type;
+		if (workerCallback[type])
+			workerCallback[type](e.data);
+	};
+	worker.onerror = function(e){
+		console.error(`${e.message}\n\tat ${e.filename}:${e.lineno}`)
+	};
+}
+//setTimeout(init, 1000); //等待淡入动画结束
+
+
+
+//请求线程
+function request(data){
+	console.log("post: ", data.type, data)
+	worker.postMessage(data);
+	return {
+		then(func){
+			workerCallback[data.type] = func;
+		}
+	};
+}
+
+
+let lastMistake = null; //上次防误触物体
+$("#board").click(function(e){
+	if (!worker) return; //未初始化线程
+	if (game.winner !== false) return; //已结束
+	if (waiting) return; //上次未响应
+	
+	const {offsetX: x, offsetY: y} = e,
+		pickResult = board.scene.pick(x, y);
+	if (!pickResult.hit) return; //未点击到物体
+	if ( !board.isBlock(pickResult.pickedMesh) ) return; //不是占位符和防误触
+	
+	playEffect(); //播放音效
+	
+	const pos = pickResult.pickedMesh.position,
+		[i, j, k] = board.xyz2ijk(pos.x, pos.y, pos.z);
+	console.log("click", pickResult, pos, [i, j, k])
+	
+	waiting = true; //开始等待
+	
+	request({
+		type: "play", //下棋
+		i, j, k
+	}).then((data)=>{
+		waiting = false;
+		console.log("play callback:", data.action, {i,j,k})
+		switch (data.action){
+			case 2: //下黑棋
+				board.set(i, j, k, "black");
+				board.moveCircle([i, j, k], 5, [0,1,0]);
+				game.set(0);
+				game.steps++;
+				if (game.first && !game.winner) //自己先手 且 未结束
+					request({
+						type: "computer",
+						side: 1 //电脑白棋
+					});
+				break;
+				
+			case 1: //下白棋
+				board.set(i, j, k, "white");
+				board.moveCircle([i, j, k], 5, [0,1,0]);
+				game.set(1);
+				game.steps++;
+				if (!game.first && !game.winner) //自己后手 且 未结束
+					request({
+						type: "computer",
+						side: 2 //电脑黑棋
+					});
+				break;
+				
+			case -2: //添加标记
+				pickResult.pickedMesh.material = board.materials.mistake;
+				lastMistake = pickResult.pickedMesh;
+				/*lastMistake.splice(0, 3);
+				lastMistake.push(i, j, k);
+				board.set(i, j, k, "mistake");*/
+				break;
+				
+			case -1: //删除标记
+				lastMistake.material = board.materials.none;
+				/*const [x, y, z] = lastMistake;
+				board.set(x, y, z, "none");*/
+				break;
+		}
+	});
+});
+
+
+
+/* header */
+//返回
+$("#back").click(function(){
+	go("index.html");
+});
+
+//重来
+$("#restart").click(init);
+
+
+/* control */
+$("#layerControl > .add").click(function(){
+	board.layerAdd();
+});
+$("#layerControl > .sub").click(function(){
+	board.layerSub();
+});
+$("#heightControl > .add").click(function(){
+	board.heightAdd();
+});
+$("#heightControl > .sub").click(function(){
+	board.heightSub();
+});
+
+
+/* tools */
+//评分
+function scores(display){
+	const btn = $("#toolBtn > .scores"),
+		tool = $("#tools > .scores");
+	if ( display === true || //欲显示
+		(display === undefined && tool.css("display") == "none") //已隐藏
+	){
+		clearInterval( scores_id ); //停止更新
+		scores_id = setInterval(()=>game.updateScores(), 30); //更新分数
+		
+		btn.attr("disabled", "disabled");
+		tool.slideDown("slow", ()=>btn.removeAttr("disabled"));
+		
+	}else{
+		clearInterval( scores_id ); //停止更新
+		scores_id = null;
+		
+		btn.attr("disabled", "disabled");
+		tool.slideUp("slow", ()=>btn.removeAttr("disabled"));
+	}
+}
+$("#toolBtn > .scores").click(function(){
+	if ( $("#tools > .review").css("display") != "none" ){
+		scores(false);
+		return layer.msg("复盘时暂不支持棋局评分");
+	}
+	scores();
+});
+
+//分析
+function analyse(display){
+	if ( display === false || //欲隐藏
+		(display === undefined && game.linesDisplay) //已显示
+	){
+		if (game.linesDisplay) //已显示
+			layer.msg("棋局分析已关闭");
+		game.updateLines(false);
+	}else{
+		if (!game.linesDisplay) //已隐藏
+			layer.msg("棋局分析已开启");
+		game.updateLines(true);
+	}
+}
+$("#toolBtn > .analyse").click(function(){
+	if ($("#tools > .review").css("display") != "none"){
+		analyse(false);
+		return layer.msg("复盘时暂不支持棋局分析");
+	}
+	analyse();
+});
+
+//重放
+let reviewRestore; //重置函数
+$("#toolBtn > .review").click(function(){
+	if ( $("#tools > .review").css("display") == "none" ){ //需显示
+		$(this).attr("disabled", "disabled");
+		$("#tools > .review").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
+		
+		scores(false); //关闭棋局评分
+		analyse(false); //关闭棋局分析
+		$("#tools > .review > .stop").hide();
+		$("#tools > .review > .play").show(); //暂停
+		
+		request({
+			type: "review" //重放
+		}).then((data)=>{
+			const {steps, pieces} = data;
+			board.clear(); //清空棋子
+			board.visibleLines(false, "win"); //隐藏获胜划线
+			board.clearLines("analyse"); //删除分析划线
+			const position = board.lines.circle[0].position.clone(); //记录最后棋子位置
+			
+			let index = -1;
+			
+			const next = ()=>{
+					if (index >= steps.length-1){
+						board.visibleLines(true, "win"); //显示获胜划线
+						return layer.msg("不能再往后了");
+					}
+					const {i, j, k, v} = steps[++index];
+					board.set(i, j, k, v==2? "black": "white");
+					board.moveCircle([i, j, k], 5, [0,1,0]);
+					return false;
+				},
+				last = ()=>{
+					if (index <= 0)
+						return layer.msg("不能再往前了");
+					
+					let {i, j, k, v} = steps[index--];
+					board.set(i, j, k, "none");
+					board.moveCircle([steps[index].i, steps[index].j, steps[index].k], 5, [0,1,0]);
+					
+					board.visibleLines(false, "win"); //隐藏获胜划线
+					return false;
+				};
+			reviewRestore = ()=>{
+				for (let i=board.columns-1; i>=0; i--)
+					for (let j=board.rows-1; j>=0; j--)
+						for (let k=board.depth-1; k>=0; k--){
+							switch (pieces[i][j][k]){
+								case 0:
+									board.set(i, j, k, "none");
+									break;
+								case 1:
+									board.set(i, j, k, "white");
+									break;
+								case 2:
+									board.set(i, j, k, "black");
+									break;
+							}
+						}
+				board.visibleLines(true, "win"); //显示获胜划线
+				board.moveCircle(board.xyz2ijk(position.x, position.y, position.z), 5, [0,1,0]); //还原最后棋子位置
+			};
+			
+			next();
+			
+			$("#tools > .review > .last").click(last);
+			$("#tools > .review > .next").click(next);
+			
+			$("#tools > .review > .play").click(function(){
+				$(this).hide();
+				$("#tools > .review > .stop").show();
+				
+				if (review_id)
+					clearInterval(review_id);
+				
+				review_id = setInterval(()=>{
+					if (next() === false) return;
+					clearInterval(review_id);
+					review_id = null;
+					$(this).show();
+					$("#tools > .review > .stop").hide();
+				}, 1000);
+			});
+			$("#tools > .review > .stop").click(function(){
+				clearInterval(review_id);
+				review_id = null;
+				$(this).hide();
+				$("#tools > .review > .play").show();
+			});
+		});
+		
+	}else{
+		clearInterval(review_id);
+		review_id = null;
+		reviewRestore(); //重置
+		
+		$("#tools > .review > .stop").hide();
+		$("#tools > .review > .play").show();
+		$(this).attr("disabled", "disabled");
+		$("#tools > .review").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
+	}
+});
+</script>
+		
+	</body>
+</html>

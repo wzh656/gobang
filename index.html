@@ -271,9 +271,6 @@
 			padding: 0;
 			overflow-y: auto;
 			
-			display: flex;
-			flex-direction: column;
-			
 			background-color: #fafafa;
 			font-size: 1.3em;
 		}
@@ -296,6 +293,7 @@
 		/* table */
 		#record > table{
 			margin: 0.6rem;
+			margin-bottom: 2rem;
 			text-align: center;
 		}
 		#record > table th, #record > table td{
@@ -304,6 +302,9 @@
 		
 		/* button */
 		#record > .back{
+			position: absolute;
+			left: 50%;
+			transform: translateX(-50%);
 			width: 66%;
 			margin: 0.3rem auto;
 			padding: 0.3rem;
@@ -332,17 +333,7 @@
 		<!--<link rel="stylesheet" href="https://unpkg.com/layui@2.6.4/dist/css/layui.css">
 		<script src="https://unpkg.com/layui@2.6.8/dist/layui.js"></script>-->
 		<script src="./layui/layui.js"></script>
-		<link rel="stylesheet" href="./layui/css/layui.css">
-		
-		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
-		<script>
-		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
-			//手机
-			eruda.init();
-			new VConsole();
-		}
-		</script>
+		<link rel="stylesheet" href="./layui/css/layui.css" />
 		
 		<!-- PianoMusic Bgm -->
 		<script src="./js/acoustic_grand_piano-ogg.js"></script>
@@ -351,6 +342,8 @@
 		
 		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
 		
+		<script src="https://wzh656.github.io/js/count.js"></script>
+		<script src="https://wzh656.github.io/js/dynamic.js"></script>
 		<script>
 		var _hmt = _hmt || [];
 		(function() {
@@ -515,15 +508,15 @@
 			<h2>战绩</h2>
 			<h3>2D人机对战</h3>
 			<table class="two" border="2">
-				<tr><th>棋盘大小</th><th>胜</th><th>负</th><th>总</th><th>胜率</th></tr>
+				<tr><th>连子数</th><th>先行</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率</th></tr>
 			</table>
 			<h3>3D人机对战</h3>
 			<table class="three" border="2">
-				<tr><th>棋盘大小</th><th>胜</th><th>负</th><th>总</th><th>胜率</th></tr>
+				<tr><th>连子数</th><th>先行</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率</th></tr>
 			</table>
 			<h3>4D人机对战</h3>
 			<table class="four" border="2">
-				<tr><th>棋盘大小</th><th>胜</th><th>负</th><th>总</th><th>胜率</th></tr>
+				<tr><th>连子数</th><th>先行</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率</th></tr>
 			</table>
 			<button class="back">确定</button>
 		</section>
@@ -697,6 +690,7 @@ function readSetting(){
 	});
 	saveSetting(); //保存设置
 }
+readSetting();
 
 //加载战绩
 function readRecord(){
@@ -718,96 +712,312 @@ function readRecord(){
 	
 	$("#record > table tr:not(:first-child)").remove(); //先清空
 	
-	for (const size of Object.keys(game_record.two)){
-		if (size.indexOf("*") == -1) continue; //不存在*
+	//2D
+	for (const N in game_record.two){
+		if ( isNaN(N) ) continue; //非数字
+		
+		let firstN = true;
+		for (const first in game_record.two[N]){
+			if ( isNaN(first) ) continue; //非数字
+			
+			let firstFirst = true;
+			for (const size in game_record.two[N][first]){
+				if (size.indexOf("*") == -1) continue; //不含*
+				
+				$("#record > table.two").append(
+					$("<tr></tr>").append(
+						firstN
+						?$(`<td rowspan="${Object.keys(game_record.two[N][0]).length-3+1+Object.keys(game_record.two[N][1]).length-3+1+1}">${N}</td>`)
+							.css("border-top-width", "4px")
+						:null
+					).append(
+						firstFirst
+						?$(`<td rowspan="${Object.keys(game_record.two[N][first]).length-3+1}">${+first? "先手": "后手"}</td>`)
+							.css("border-top-width", firstN? "4px": "2px")
+						:null
+					).append(
+						$("<td></td>").html(size)
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					).append(
+						$("<td></td>").html(game_record.two[N][first][size].win)
+							.css("color", "red")
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					).append(
+						$("<td></td>").html(game_record.two[N][first][size].fail)
+							.css("color", "green")
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					).append(
+						$("<td></td>").html(game_record.two[N][first][size].total)
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					).append(
+						$("<td></td>").html(Math.round(game_record.two[N][first][size].win / game_record.two[N][first][size].total*100, 2) + "%")
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					)
+				);
+				firstN = false;
+				firstFirst = false;
+			}
+			$("#record > table.two").append(
+				$("<tr></tr>").append(
+					$("<td></td>").html("总计")
+				).append(
+					$("<td></td>").html(game_record.two[N][first].win)
+						.css("color", "red")
+				).append(
+					$("<td></td>").html(game_record.two[N][first].fail)
+						.css("color", "green")
+				).append(
+					$("<td></td>").html(game_record.two[N][first].total)
+				).append(
+					$("<td></td>").html(Math.round(game_record.two[N][first].win / game_record.two[N][first].total*100, 2) + "%")
+				)
+			);
+		}
 		$("#record > table.two").append(
 			$("<tr></tr>").append(
-				$("<td></td>").html(size)
+				$("<td colspan='2'></td>").html("总计")
+					.css("border-top-width", "2px")
 			).append(
-				$("<td></td>").html(game_record.two[size].win)
+				$("<td></td>").html(game_record.two[N].win)
+					.css("color", "red")
+					.css("border-top-width", "2px")
 			).append(
-				$("<td></td>").html(game_record.two[size].fail)
+				$("<td></td>").html(game_record.two[N].fail)
+					.css("color", "green")
+					.css("border-top-width", "2px")
 			).append(
-				$("<td></td>").html(game_record.two[size].total)
+				$("<td></td>").html(game_record.two[N].total)
+					.css("border-top-width", "2px")
 			).append(
-				$("<td></td>").html(Math.round(game_record.two[size].win / game_record.two[size].total*100, 2) + "%")
+				$("<td></td>").html(Math.round(game_record.two[N].win / game_record.two[N].total*100, 2) + "%")
+					.css("border-top-width", "2px")
 			)
 		);
 	}
-	
 	$("#record > table.two").append(
 		$("<tr></tr>").append(
-			$("<td></td>").html("总计")
+			$("<td colspan='3'></td>").html("总计")
+				.css("border-top-width", "4px")
 		).append(
 			$("<td></td>").html(game_record.two.win)
+				.css("color", "red")
+				.css("border-top-width", "4px")
 		).append(
 			$("<td></td>").html(game_record.two.fail)
+				.css("color", "green")
+				.css("border-top-width", "4px")
 		).append(
 			$("<td></td>").html(game_record.two.total)
+				.css("border-top-width", "4px")
 		).append(
 			$("<td></td>").html(Math.round(game_record.two.win / game_record.two.total*100, 2) + "%")
+				.css("border-top-width", "4px")
 		)
 	);
 	
-	for (const size of Object.keys(game_record.three)){
-		if (size.indexOf("*") == -1) continue; //不存在*
+	//3D
+	for (const N in game_record.three){
+		if ( isNaN(N) ) continue; //非数字
+		
+		let firstN = true;
+		for (const first in game_record.three[N]){
+			if ( isNaN(first) ) continue; //非数字
+			
+			let firstFirst = true;
+			for (const size in game_record.three[N][first]){
+				if (size.indexOf("*") == -1) continue; //不含*
+				
+				$("#record > table.three").append(
+					$("<tr></tr>").append(
+						firstN
+						?$(`<td rowspan="${Object.keys(game_record.three[N][0]).length-3+1+Object.keys(game_record.three[N][1]).length-3+1+1}">${N}</td>`)
+							.css("border-top-width", "4px")
+						:null
+					).append(
+						firstFirst
+						?$(`<td rowspan="${Object.keys(game_record.three[N][first]).length-3+1}">${+first? "先手": "后手"}</td>`)
+							.css("border-top-width", firstN? "4px": "2px")
+						:null
+					).append(
+						$("<td></td>").html(size)
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					).append(
+						$("<td></td>").html(game_record.three[N][first][size].win)
+							.css("color", "red")
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					).append(
+						$("<td></td>").html(game_record.three[N][first][size].fail)
+							.css("color", "green")
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					).append(
+						$("<td></td>").html(game_record.three[N][first][size].total)
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					).append(
+						$("<td></td>").html(Math.round(game_record.three[N][first][size].win / game_record.three[N][first][size].total*100, 2) + "%")
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					)
+				);
+				firstN = false;
+				firstFirst = false;
+			}
+			$("#record > table.three").append(
+				$("<tr></tr>").append(
+					$("<td></td>").html("总计")
+				).append(
+					$("<td></td>").html(game_record.three[N][first].win)
+					.css("color", "red")
+				).append(
+					$("<td></td>").html(game_record.three[N][first].fail)
+					.css("color", "green")
+				).append(
+					$("<td></td>").html(game_record.three[N][first].total)
+				).append(
+					$("<td></td>").html(Math.round(game_record.three[N][first].win / game_record.three[N][first].total*100, 2) + "%")
+				)
+			);
+		}
 		$("#record > table.three").append(
 			$("<tr></tr>").append(
-				$("<td></td>").html(size)
+				$("<td colspan='2'></td>").html("总计")
+					.css("border-top-width", "2px")
 			).append(
-				$("<td></td>").html(game_record.three[size].win)
+				$("<td></td>").html(game_record.three[N].win)
+					.css("color", "red")
+					.css("border-top-width", "2px")
 			).append(
-				$("<td></td>").html(game_record.three[size].fail)
+				$("<td></td>").html(game_record.three[N].fail)
+					.css("color", "green")
+					.css("border-top-width", "2px")
 			).append(
-				$("<td></td>").html(game_record.three[size].total)
+				$("<td></td>").html(game_record.three[N].total)
+					.css("border-top-width", "2px")
 			).append(
-				$("<td></td>").html(Math.round(game_record.three[size].win / game_record.three[size].total*100, 2) + "%")
+				$("<td></td>").html(Math.round(game_record.three[N].win / game_record.three[N].total*100, 2) + "%")
+					.css("border-top-width", "2px")
 			)
 		);
 	}
-	
 	$("#record > table.three").append(
 		$("<tr></tr>").append(
-			$("<td></td>").html("总计")
+			$("<td colspan='3'></td>").html("总计")
+				.css("border-top-width", "4px")
 		).append(
 			$("<td></td>").html(game_record.three.win)
+				.css("color", "red")
+				.css("border-top-width", "4px")
 		).append(
 			$("<td></td>").html(game_record.three.fail)
+				.css("color", "green")
+				.css("border-top-width", "4px")
 		).append(
 			$("<td></td>").html(game_record.three.total)
+				.css("border-top-width", "4px")
 		).append(
 			$("<td></td>").html(Math.round(game_record.three.win / game_record.three.total*100, 2) + "%")
+				.css("border-top-width", "4px")
 		)
 	);
 	
-	for (const size of Object.keys(game_record.four)){
-		if (size.indexOf("*") == -1) continue; //不存在*
+	//4D
+	for (const N in game_record.four){
+		if ( isNaN(N) ) continue; //非数字
+		
+		let firstN = true;
+		for (const first in game_record.four[N]){
+			if ( isNaN(first) ) continue; //非数字
+			
+			let firstFirst = true;
+			for (const size in game_record.four[N][first]){
+				if (size.indexOf("*") == -1) continue; //不含*
+				
+				$("#record > table.four").append(
+					$("<tr></tr>").append(
+						firstN
+						?$(`<td rowspan="${Object.keys(game_record.four[N][0]).length-3+1+Object.keys(game_record.four[N][1]).length-3+1+1}">${N}</td>`)
+							.css("border-top-width", "4px")
+						:null
+					).append(
+						firstFirst
+						?$(`<td rowspan="${Object.keys(game_record.four[N][first]).length-3+1}">${+first? "先手": "后手"}</td>`)
+							.css("border-top-width", firstN? "4px": "2px")
+						:null
+					).append(
+						$("<td></td>").html(size)
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					).append(
+						$("<td></td>").html(game_record.four[N][first][size].win)
+							.css("color", "red")
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					).append(
+						$("<td></td>").html(game_record.four[N][first][size].fail)
+							.css("color", "green")
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					).append(
+						$("<td></td>").html(game_record.four[N][first][size].total)
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					).append(
+						$("<td></td>").html(Math.round(game_record.four[N][first][size].win / game_record.four[N][first][size].total*100, 2) + "%")
+							.css("border-top-width", firstN? "4px": firstFirst? "2px": "1px")
+					)
+				);
+				firstN = false;
+				firstFirst = false;
+			}
+			$("#record > table.four").append(
+				$("<tr></tr>").append(
+					$("<td></td>").html("总计")
+				).append(
+					$("<td></td>").html(game_record.four[N][first].win)
+						.css("color", "red")
+				).append(
+					$("<td></td>").html(game_record.four[N][first].fail)
+						.css("color", "green")
+				).append(
+					$("<td></td>").html(game_record.four[N][first].total)
+				).append(
+					$("<td></td>").html(Math.round(game_record.four[N][first].win / game_record.four[N][first].total*100, 2) + "%")
+				)
+			);
+		}
 		$("#record > table.four").append(
 			$("<tr></tr>").append(
-				$("<td></td>").html(size)
+				$("<td colspan='2'></td>").html("总计")
+					.css("border-top-width", "2px")
 			).append(
-				$("<td></td>").html(game_record.four[size].win)
+				$("<td></td>").html(game_record.four[N].win)
+					.css("color", "red")
+					.css("border-top-width", "2px")
 			).append(
-				$("<td></td>").html(game_record.four[size].fail)
+				$("<td></td>").html(game_record.four[N].fail)
+					.css("color", "green")
+					.css("border-top-width", "2px")
 			).append(
-				$("<td></td>").html(game_record.four[size].total)
+				$("<td></td>").html(game_record.four[N].total)
+					.css("border-top-width", "2px")
 			).append(
-				$("<td></td>").html(Math.round(game_record.four[size].win / game_record.four[size].total*100, 2) + "%")
+				$("<td></td>").html(Math.round(game_record.four[N].win / game_record.four[N].total*100, 2) + "%")
+					.css("border-top-width", "2px")
 			)
 		);
 	}
-	
 	$("#record > table.four").append(
 		$("<tr></tr>").append(
-			$("<td></td>").html("总计")
+			$("<td colspan='3'></td>").html("总计")
+				.css("border-top-width", "4px")
 		).append(
 			$("<td></td>").html(game_record.four.win)
+				.css("color", "red")
+				.css("border-top-width", "4px")
 		).append(
 			$("<td></td>").html(game_record.four.fail)
+				.css("color", "green")
+				.css("border-top-width", "4px")
 		).append(
 			$("<td></td>").html(game_record.four.total)
+				.css("border-top-width", "4px")
 		).append(
 			$("<td></td>").html(Math.round(game_record.four.win / game_record.four.total*100, 2) + "%")
+				.css("border-top-width", "4px")
 		)
 	);
 }

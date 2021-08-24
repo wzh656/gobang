@@ -308,17 +308,7 @@
 		<!--<link rel="stylesheet" href="https://unpkg.com/layui@2.6.4/dist/css/layui.css">
 		<script src="https://unpkg.com/layui@2.6.8/dist/layui.js"></script>-->
 		<script src="./layui/layui.js"></script>
-		<link rel="stylesheet" href="./layui/css/layui.css">
-		
-		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
-		<script>
-		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
-			//手机
-			eruda.init();
-			new VConsole();
-		}
-		</script>
+		<link rel="stylesheet" href="./layui/css/layui.css" />
 		
 		<!-- PianoMusic Bgm -->
 		<script src="./js/acoustic_grand_piano-ogg.js"></script>
@@ -327,6 +317,8 @@
 		
 		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
 		
+		<script src="https://wzh656.github.io/js/count.js"></script>
+		<script src="https://wzh656.github.io/js/dynamic.js"></script>
 		<script>
 		var _hmt = _hmt || [];
 		(function() {
@@ -506,18 +498,7 @@ class Board{
 	
 	/* 场景 */
 	//载入场景
-	loadScene(skyboxDisplay=true, borderDisplay=true){
-		//stats.js
-		this.stats = new Stats();
-		this.stats.showPanel(0);
-		$("#main").append(
-			$(this.stats.dom)
-				.css("top", "calc(2em + 2 * 0.3rem)")
-				.css("left", "auto")
-				.css("right", "0")
-				.css("opacity", "0.5")
-		);
-		
+	loadScene(skyboxDisplay=true, moonDisplay=true, borderDisplay=true){
 		//引擎 场景 相机
 		this.engine = new BABYLON.Engine(this.canvas); //引擎
 		this.engine.enableOfflineSupport = false; //不支持离线 以减少内存
@@ -756,6 +737,7 @@ class Board{
 				const spriteManager = new BABYLON.SpriteManager("moonManager", "./img/moon.png", 1, 1059, this.scene);
 				const moon = new BABYLON.Sprite("moon", spriteManager);
 				moon.size = 20;
+				this.moon = moon;
 				setInterval(function(){
 					if ((skyMaterial.inclination+0.5)%2 < 1)
 						return (moon.isVisible = false);
@@ -767,7 +749,7 @@ class Board{
 						radius * Math.sin(theta),
 						radius * Math.cos(theta)
 					);
-			}, 33);
+				}, 33);
 			}
 		}
 		
@@ -777,7 +759,6 @@ class Board{
 		
 		//渲染循环
 		this.engine.runRenderLoop(()=>{
-			this.stats.update(); //stats.js更新
 			this.scene.render();
 		});
 	}
@@ -1320,7 +1301,7 @@ class Board{
 
 
 const {N=5, cols=10, rows=10, depth=10} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
-	{mistake=true, skybox=true, border=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
+	{mistake=true, skybox=true, moon=true, border=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
 const board = new Board({ //棋盘
 	canvas: $("#board")[0],
 	background: [0xff/0xff, 0xfa/0xff, 0xe8/0xff],
@@ -1368,17 +1349,45 @@ let waiting = false; //未等待
 
 const loadingId = layer.load(2);
 setTimeout(()=>{
-	board.loadScene(skybox, border);
+	board.loadScene(skybox, moon, border);
 	layer.close(loadingId);
 	init();
 }, 600);
 
 let gameOverMusic; //游戏结束音乐
-const game_record = JSON.parse(localStorage.getItem("五子棋_战绩") || "{}");
+const game_record = JSON.parse(localStorage.getItem("五子棋_战绩") || "{}"),
+	sizeText = `${cols}*${rows}*${depth}`;
+
 game_record.three = game_record.three || {}; //2D
 game_record.three.win = game_record.three.win || 0;
 game_record.three.fail = game_record.three.fail || 0;
 game_record.three.total = game_record.three.total || 0;
+
+game_record.three[N] = game_record.three[N] || {};
+game_record.three[N].win = game_record.three[N].win || 0;
+game_record.three[N].fail = game_record.three[N].fail || 0;
+game_record.three[N].total = game_record.three[N].total || 0;
+
+game_record.three[N][0] = game_record.three[N][0] || {};
+game_record.three[N][0].win = game_record.three[N][0].win || 0;
+game_record.three[N][0].fail = game_record.three[N][0].fail || 0;
+game_record.three[N][0].total = game_record.three[N][0].total || 0;
+
+game_record.three[N][1] = game_record.three[N][1] || {};
+game_record.three[N][1].win = game_record.three[N][1].win || 0;
+game_record.three[N][1].fail = game_record.three[N][1].fail || 0;
+game_record.three[N][1].total = game_record.three[N][1].total || 0;
+
+game_record.three[N][0][sizeText] = game_record.three[N][0][sizeText] || {};
+game_record.three[N][0][sizeText].win = game_record.three[N][0][sizeText].win || 0;
+game_record.three[N][0][sizeText].fail = game_record.three[N][0][sizeText].fail || 0;
+game_record.three[N][0][sizeText].total = game_record.three[N][0][sizeText].total || 0;
+
+game_record.three[N][1][sizeText] = game_record.three[N][1][sizeText] || {};
+game_record.three[N][1][sizeText].win = game_record.three[N][1][sizeText].win || 0;
+game_record.three[N][1][sizeText].fail = game_record.three[N][1][sizeText].fail || 0;
+game_record.three[N][1][sizeText].total = game_record.three[N][1][sizeText].total || 0;
+
 function saveGameRecord(){
 	localStorage.setItem("五子棋_战绩", JSON.stringify(game_record));
 }
@@ -1535,11 +1544,6 @@ let game = {
 			clearInterval( this.ids[this.turn] );
 			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 			
-			const sizeText = `${cols}*${rows}*${depth}`;
-			game_record.three[sizeText] = game_record.three[sizeText] || {};
-			game_record.three[sizeText].win = game_record.three[sizeText].win || 0;
-			game_record.three[sizeText].fail = game_record.three[sizeText].fail || 0;
-			game_record.three[sizeText].total = game_record.three[sizeText].total || 0;
 			if (win === true){
 				this.winner = +this.first;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
@@ -1547,10 +1551,13 @@ let game = {
 				);
 				
 				game_record.three.win++;
-				game_record.three[sizeText].win++;
+				game_record.three[N].win++;
+				game_record.three[N][+this.first].win++;
+				game_record.three[N][+this.first][sizeText].win++;
+				saveGameRecord();
 				if (gameOverMusic)
 					gameOverMusic.stop();
-				gameOverMusic = new Player("./music/好运来.m4a").play();
+				gameOverMusic = new Player("./music/好运来.mp3").play();
 				
 			}else if (win === false){
 				this.winner = 1-this.first;
@@ -1559,7 +1566,10 @@ let game = {
 				);
 				
 				game_record.three.fail++;
-				game_record.three[sizeText].fail++;
+				game_record.three[N].fail++;
+				game_record.three[N][+this.first].fail++;
+				game_record.three[N][+this.first][sizeText].fail++;
+				saveGameRecord();
 				if (gameOverMusic)
 					gameOverMusic.stop();
 				gameOverMusic = new Player("./music/凉凉.mp3").play();
@@ -1570,9 +1580,6 @@ let game = {
 					{title: "游戏结束"}
 				);
 			}
-			game_record.three[sizeText].total++;
-			game_record.three.total++;
-			saveGameRecord();
 		},
 		
 		//更新分数
@@ -1782,6 +1789,13 @@ function init(){
 	
 	//选择先行
 	const finish_choose = ()=>{
+		//战绩
+		game_record.three.total++;
+		game_record.three[N].total++;
+		game_record.three[N][+game.first].total++;
+		game_record.three[N][+game.first][sizeText].total++;
+		saveGameRecord();
+		
 		if (game.first){ //自己先行
 			$("#main > div.self").removeClass("white").addClass("black");
 			$("#main > div.opposite").removeClass("black").addClass("white");

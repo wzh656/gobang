@@ -357,17 +357,7 @@
 		<!--<link rel="stylesheet" href="https://unpkg.com/layui@2.6.4/dist/css/layui.css">
 		<script src="https://unpkg.com/layui@2.6.8/dist/layui.js"></script>-->
 		<script src="./layui/layui.js"></script>
-		<link rel="stylesheet" href="./layui/css/layui.css">
-		
-		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
-		<script>
-		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
-			//手机
-			eruda.init();
-			new VConsole();
-		}
-		</script>
+		<link rel="stylesheet" href="./layui/css/layui.css" />
 		
 		<!-- PianoMusic Bgm -->
 		<script src="./js/acoustic_grand_piano-ogg.js"></script>
@@ -378,6 +368,8 @@
 		
 		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
 		
+		<script src="https://wzh656.github.io/js/count.js"></script>
+		<script src="https://wzh656.github.io/js/dynamic.js"></script>
 		<script>
 		var _hmt = _hmt || [];
 		(function() {
@@ -567,18 +559,7 @@ class Board{
 	
 	/* 场景 */
 	//载入场景
-	loadScene(skyboxDisplay=true, borderDisplay=true){
-		//stats.js
-		this.stats = new Stats();
-		this.stats.showPanel(0);
-		$("#main").append(
-			$(this.stats.dom)
-				.css("top", "calc(2em + 2 * 0.3rem)")
-				.css("left", "auto")
-				.css("right", "0")
-				.css("opacity", "0.5")
-		);
-		
+	loadScene(skyboxDisplay=true, moonDisplay=true, borderDisplay=true){
 		//引擎 场景 相机
 		this.engine = new BABYLON.Engine(this.canvas); //引擎
 		this.engine.enableOfflineSupport = false; //不支持离线 以减少内存
@@ -811,166 +792,34 @@ class Board{
 				$("#layerControl, #heightControl, #layerControl > *, #heightControl > *")
 					.css("border-color", color);
 			}, 1000);
-		}//通用动画缓动函数
-		this.easingFunction = new BABYLON.CircleEase(); //缓动函数
-		this.easingFunction.setEasingMode( BABYLON.EasingFunction.EASINGMODE_EASEINOUT ); //模式
-		
-		
-		//生成所有占位符和棋子
-		this.places = Array.new(null, this.columns, this.depth);
-		this.pieces = Array.new(null, this.columns, this.rows, this.depth);
-		//this.clear();
-		
-		
-		//生成棋盘边界
-		if (borderDisplay){ //允许显示
-			const paths = [];
-			paths[0] = [ //上面
-				new BABYLON.Vector3(
-					...this.ijk2xyz(0, 0, 0)
-				),
-				new BABYLON.Vector3(
-					...this.ijk2xyz(this.columns-1, 0, 0)
-				),
-				new BABYLON.Vector3(
-					...this.ijk2xyz(this.columns-1, 0, this.depth-1)
-				),
-				new BABYLON.Vector3(
-					...this.ijk2xyz(0, 0, this.depth-1)
-				),
-				new BABYLON.Vector3( //闭合
-					...this.ijk2xyz(0, 0, 0)
-				)
-			];
-			paths[1] = [ //下面
-				new BABYLON.Vector3(
-					...this.ijk2xyz(0, this.rows-1, 0)
-				),
-				new BABYLON.Vector3(
-					...this.ijk2xyz(this.columns-1, this.rows-1, 0)
-				),
-				new BABYLON.Vector3(
-					...this.ijk2xyz(this.columns-1, this.rows-1, this.depth-1)
-				),
-				new BABYLON.Vector3(
-					...this.ijk2xyz(0, this.rows-1, this.depth-1)
-				),
-				new BABYLON.Vector3( //闭合
-					...this.ijk2xyz(0, this.rows-1, 0)
-				)
-			];
-			paths[2] = [
-				new BABYLON.Vector3(
-					...this.ijk2xyz(0, 0, 0)
-				),
-				new BABYLON.Vector3(
-					...this.ijk2xyz(0, this.rows-1, 0)
-				)
-			];
-			paths[3] = [
-				new BABYLON.Vector3(
-					...this.ijk2xyz(this.columns-1, 0, 0)
-				),
-				new BABYLON.Vector3(
-					...this.ijk2xyz(this.columns-1, this.rows-1, 0)
-				),
-			];
-			paths[4] = [
-				new BABYLON.Vector3(
-					...this.ijk2xyz(this.columns-1, 0, this.depth-1)
-				),
-				new BABYLON.Vector3(
-					...this.ijk2xyz(this.columns-1, this.rows-1, this.depth-1)
-				),
-			];
-			paths[5] = [
-				new BABYLON.Vector3(
-					...this.ijk2xyz(0, 0, this.depth-1)
-				),
-				new BABYLON.Vector3(
-					...this.ijk2xyz(0, this.rows-1, this.depth-1)
-				)
-			];
-			const color = new BABYLON.Color4(0.8, 0.8, 0, 1); //黄色
-			for (const path of paths){
-				const colors = new Array(path.length).fill(color);
-				const line = BABYLON.MeshBuilder.CreateLines("lines", {points: path, colors}, this.scene);
-				line.isPickable = false; //禁止点击
-				this.lines.border.push(line);
-				this.sizeInAnimation(line, 100);
+			
+			//月亮
+			if (moonDisplay){
+				const spriteManager = new BABYLON.SpriteManager("moonManager", "./img/moon.png", 1, 1059, this.scene);
+				const moon = new BABYLON.Sprite("moon", spriteManager);
+				moon.size = 20;
+				this.moon = moon;
+				setInterval(function(){
+					if ((skyMaterial.inclination+0.5)%2 < 1)
+						return (moon.isVisible = false);
+					const radius = 400, //轨道距离
+						theta = (skyMaterial.inclination+1.5)%2 /2 *2*Math.PI;
+					moon.isVisible = true;
+					moon.position.set(
+						0,
+						radius * Math.sin(theta),
+						radius * Math.cos(theta)
+					);
+				}, 33);
 			}
-		}
-		
-		
-		//天空盒
-		if (skyboxDisplay){ //允许显示
-			const skybox = BABYLON.Mesh.CreateBox("skyBox", 1000, this.scene);
-			const skyMaterial = new BABYLON.SkyMaterial("skyMaterial", this.scene);
-			skyMaterial.backFaceCulling = false;
-			skybox.material = skyMaterial;
-			skybox.isPickable = false; //禁止点击
-			this.skybox = skybox;
 			
-			//太阳倾斜角
-			const skyInclinationAnimation = new BABYLON.Animation(
-				"animation_sky_inclination",
-				"material.inclination",
-				30,
-				BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-				BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
-			);
-			skyInclinationAnimation.setKeys([
-				{frame: 0, value: -0.5},
-				{frame: 30*60, value: 0.5}
-			]);
-			//太阳浑浊度
-			const skyTurbidityAnimation = new BABYLON.Animation(
-				"animation_sky_turbidity",
-				"material.turbidity",
-				30,
-				BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-				BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
-			);
-			skyTurbidityAnimation.setKeys([
-				{frame: 0, value: 2},
-				{frame: 30*30, value: 5},
-				{frame: 30*60, value: 2}
-			]);
-			//天空亮度
-			const skyLuminanceAnimation = new BABYLON.Animation(
-				"animation_sky_luminance",
-				"material.luminance",
-				30,
-				BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-				BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
-			);
-			skyLuminanceAnimation.setKeys([
-				{frame: 0, value: 1},
-				{frame: 30*30, value: 0.5},
-				{frame: 30*60, value: 1}
-			]);
-			skybox.animations = [skyInclinationAnimation, skyTurbidityAnimation, skyLuminanceAnimation];
-			this.scene.beginAnimation(skybox, 0, 30*60, true);
-			
-			setInterval(function(){
-				const x = (skyMaterial.inclination + 1) % 2,
-					y1 = 256/(1+Math.E**( -4*Math.E*(x-0.5) )),
-					y2 = 256/(1+Math.E**( 4*Math.E*(x-1.5) )),
-					min = ~~(256 - Math.min(y1, y2)),
-					color = `rgb(${min},${min},${min})`;
-				$("#main").css("color", color);
-				$("#layerControl, #heightControl, #layerControl > *, #heightControl > *")
-					.css("border-color", color);
-			}, 1000);
 		}
-		
 		
 		//优化阻止dirty
 		this.scene.blockMaterialDirtyMechanism = true;
 		
 		//渲染循环
 		this.engine.runRenderLoop(()=>{
-			this.stats.update(); //stats.js更新
 			this.scene.render();
 		});
 	}
@@ -1514,7 +1363,7 @@ class Board{
 
 const N = +location.getQueryString("N"),
 	{cols, rows, depth} = JSON.parse(location.getQueryString("size")),
-	{mistake=true, skybox=true, border=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
+	{mistake=true, skybox=true, moon=true, border=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
 const board = new Board({ //棋盘
 	canvas: $("#board")[0],
 	background: [0xff/0xff, 0xfa/0xff, 0xe8/0xff],
@@ -1562,7 +1411,7 @@ let waiting = false; //未等待
 
 const loadingId = layer.load(2);
 setTimeout(()=>{
-	board.loadScene(skybox, border);
+	board.loadScene(skybox, moon, border);
 	layer.close(loadingId);
 	//init();
 }, 600);
