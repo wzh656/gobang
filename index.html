@@ -107,7 +107,7 @@
 		/* set */
 		#set{
 			position: absolute;
-			right: 0;
+			left: 0;
 			top: 0;
 			display: flex;
 			flex-direction: column;
@@ -117,6 +117,27 @@
 			font-size: 3.6em;
 		}
 		#set > label{
+			display: block;
+			margin: 0 auto;
+			margin-top: -5px;
+			font-size: 1.1em;
+			font-weight: bold;
+		}
+		
+		
+		/* 打开战绩 */
+		#openRecord{
+			position: absolute;
+			right: 0;
+			top: 0;
+			display: flex;
+			flex-direction: column;
+		}
+		#openRecord > i{
+			display: block;
+			font-size: 3.6em;
+		}
+		#openRecord > label{
 			display: block;
 			margin: 0 auto;
 			margin-top: -5px;
@@ -237,6 +258,30 @@
 			background-color: #d95;
 			border: 3px inset #ea6;
 		}
+		
+		
+		/* 战绩 */
+		#record{
+			position: absolute;
+			width: 100%;
+			height: 100%;
+			left: 0;
+			top: 0;
+			margin: 0;
+			padding: 0;
+			overflow-y: auto;
+			
+			background-color: #fafafa;
+			font-size: 1.3em;
+		}
+		
+		/* h2 */
+		#record > h2{
+			margin: 1rem;
+			font-size: 2em;
+			font-weight: bold;
+			text-align: center;
+		}
 		</style>
 		
 		<!-- jquery -->
@@ -257,8 +302,8 @@
 		<script>
 		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
 			//手机
-			eruda.init();
-			new VConsole();
+			// eruda.init();
+			// new VConsole();
 		}
 		</script>
 		
@@ -285,6 +330,10 @@
 		<div id="set">
 			<i class="layui-icon layui-icon-set-fill"></i>
 			<label>设置</label>
+		</div>
+		<div id="openRecord">
+			<i class="layui-icon layui-icon-chart-screen"></i>
+			<label>战绩</label>
 		</div>
 		<button id="two">两个人</button>
 		<button id="one">一个人</button>
@@ -418,6 +467,21 @@
 				<button class="cancel">取消</button>
 			</div>
 		</section>
+		<section id="record" style="display: none;">
+			<h2>战绩</h2>
+			<h3>2D人机对战</h3>
+			<table class="two" border="2">
+				<tr><th>棋盘大小</th><th>胜</th><th>负</th><th>总</th><th>胜率</th></tr>
+			</table>
+			<h3>3D人机对战</h3>
+			<table class="three" border="2">
+				<tr><th>棋盘大小</th><th>胜</th><th>负</th><th>总</th><th>胜率</th></tr>
+			</table>
+			<h3>4D人机对战</h3>
+			<table class="four" border="2">
+				<tr><th>棋盘大小</th><th>胜</th><th>负</th><th>总</th><th>胜率</th></tr>
+			</table>
+		</section>
 		
 		<footer style="display: none;">
 			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' type='text/javascript'%3E%3C/script%3E"));</script>
@@ -464,7 +528,7 @@ setTimeout(function(){
 const setting_game = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
 	setting_personal = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}"),
 	setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"),
-	setting_gameRecord = JSON.parse(localStorage.getItem("五子棋_战绩") || "{}"),
+	game_record = JSON.parse(localStorage.getItem("五子棋_战绩") || "{}"),
 	form_game = $("#settings form.game")[0],
 	form_personal = $("#settings form.personal")[0],
 	form_music = $("#settings form.music")[0];
@@ -524,7 +588,7 @@ function saveSetting(){ //保存设置
 function readSetting(){ //加载设置
 	setting_game.D = setting_game.D || 2;
 	setting_game.N = setting_game.N || 5;
-	setting_game.cols = setting_game.cols || 19;
+	// setting_game.cols = setting_game.cols || 19;
 	setting_game.rows = setting_game.rows || 19;
 	setting_game.depth = setting_game.depth || 10;
 	setting_game.width = setting_game.width || 10;
@@ -585,20 +649,62 @@ function readSetting(){ //加载设置
 }
 function readRecord(){ //加载战绩
 	//2D
-	setting_gameRecord.two = setting_gameRecord.two || {};
-	setting_gameRecord.two.win = setting_gameRecord.two.win || 0;
-	setting_gameRecord.two.fail = setting_gameRecord.two.fail || 0;
-	setting_gameRecord.two.total = setting_gameRecord.two.total || 0;
+	game_record.two = game_record.two || {};
+	game_record.two.win = game_record.two.win || 0;
+	game_record.two.fail = game_record.two.fail || 0;
+	game_record.two.total = game_record.two.total || 0;
 	//3D
-	setting_gameRecord.three = setting_gameRecord.three || {};
-	setting_gameRecord.three.win = setting_gameRecord.three.win || 0;
-	setting_gameRecord.three.fail = setting_gameRecord.three.fail || 0;
-	setting_gameRecord.three.total = setting_gameRecord.three.total || 0;
+	game_record.three = game_record.three || {};
+	game_record.three.win = game_record.three.win || 0;
+	game_record.three.fail = game_record.three.fail || 0;
+	game_record.three.total = game_record.three.total || 0;
 	//4D
-	setting_gameRecord.four = setting_gameRecord.four || {};
-	setting_gameRecord.four.win = setting_gameRecord.four.win || 0;
-	setting_gameRecord.four.fail = setting_gameRecord.four.fail || 0;
-	setting_gameRecord.four.total = setting_gameRecord.four.total || 0;
+	game_record.four = game_record.four || {};
+	game_record.four.win = game_record.four.win || 0;
+	game_record.four.fail = game_record.four.fail || 0;
+	game_record.four.total = game_record.four.total || 0;
+	
+	$("#record > table.two").append(
+		$("<tr></tr>").append(
+			$("<td></td>").html("总计")
+		).append(
+			$("<td></td>").html(game_record.two.win)
+		).append(
+			$("<td></td>").html(game_record.two.fail)
+		).append(
+			$("<td></td>").html(game_record.two.total)
+		).append(
+			$("<td></td>").html(Math.round(game_record.two.win / game_record.two.total*100, 2))
+		)
+	);
+	
+	$("#record > table.three").append(
+		$("<tr></tr>").append(
+			$("<td></td>").html("总计")
+		).append(
+			$("<td></td>").html(game_record.three.win)
+		).append(
+			$("<td></td>").html(game_record.three.fail)
+		).append(
+			$("<td></td>").html(game_record.three.total)
+		).append(
+			$("<td></td>").html(Math.round(game_record.three.win / game_record.three.total*100, 2))
+		)
+	);
+	
+	$("#record > table.four").append(
+		$("<tr></tr>").append(
+			$("<td></td>").html("总计")
+		).append(
+			$("<td></td>").html(game_record.four.win)
+		).append(
+			$("<td></td>").html(game_record.four.fail)
+		).append(
+			$("<td></td>").html(game_record.four.total)
+		).append(
+			$("<td></td>").html(Math.round(game_record.four.win / game_record.four.total*100, 2))
+		)
+	);
 }
 
 
@@ -762,6 +868,15 @@ $("#settings button.save").click(function(){
 	layer.msg("设置成功");
 	$("#settings").slideUp("slow");
 });
+
+
+//打开战绩
+$("#openRecord").click(function(){
+	readRecord(); //读取战绩
+	$("#record").slideDown("slow");
+});
+
+
 
 //双击
 $("body > h1").on("dblclick",function(){

@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
-		<title>双人对战 | 4D五子棋</title>
+		<title>人机对战 | 4D五子棋</title>
 		
 		<!--icon-->
 		<link href="./img/icon.png" rel="icon" type="image/x-icon"/>
@@ -428,7 +428,7 @@
 	<body>
 		<header id="header">
 			<i id="back" class="layui-icon layui-icon-return"></i>
-			<h1>双人对战 4D</h1>
+			<h1>人机对战 4D</h1>
 			<i id="restart" class="layui-icon layui-icon-refresh"></i>
 		</header>
 		
@@ -1659,6 +1659,17 @@ setTimeout(()=>{
 	init();
 }, 600);
 
+let gameOverMusic; //游戏结束音乐
+const game_record = JSON.parse(localStorage.getItem("五子棋_战绩") || "{}");
+game_record.four = game_record.four || {}; //2D
+game_record.four.win = game_record.four.win || 0;
+game_record.four.fail = game_record.four.fail || 0;
+game_record.four.total = game_record.four.total || 0;
+function saveGameRecord(){
+	localStorage.setItem("五子棋_战绩", JSON.stringify(game_record));
+}
+
+
 
 let game = {
 		turn: 1, //下棋方 1:黑, 0:白
@@ -1796,24 +1807,58 @@ let game = {
 				
 				if (this.time[this.turn].step <= 0){ //超出步时
 					if (game.winner !== false) return; //游戏已结束
-					game.over(1-this.turn, this.turn==1?"黑方超时":"白方超时");
+					game.over(this.turn!=this.first, this.turn==1?"黑方超时":"白方超时");
 				}
 				
 			}, 200);
 		},
 		
 		//游戏结束
-		over(winner, text){
-			console.log("game over", winner, text)
+		over(win, text){
+			console.log("game over", win, text)
 			
-			this.winner = +winner;
+			const t = (new Date() - this.startTime) / 1000;
 			clearInterval( this.ids[this.turn] );
 			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 			
-			const t = (new Date() - this.startTime) / 1000;
-			layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
-				{title: "游戏结束"}
-			);
+			const sizeText = `${cols}*${rows}`;
+			game_record.four[sizeText] = game_record.four[sizeText] || {};
+			game_record.four[sizeText].win = game_record.four[sizeText].win || 0;
+			game_record.four[sizeText].fail = game_record.four[sizeText].fail || 0;
+			game_record.four[sizeText].total = game_record.four[sizeText].total || 0;
+			if (win === true){
+				this.winner = +this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "胜利！", icon: 6}
+				);
+				
+				game_record.four.win++;
+				game_record.four[sizeText].win++;
+				if (gameOverMusic)
+					gameOverMusic.stop();
+				gameOverMusic = new Player("./music/好运来.m4a").play();
+				
+			}else if (win === false){
+				this.winner = 1-this.first;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "你失败了！", icon: 5}
+				);
+				
+				game_record.four.fail++;
+				game_record.four[sizeText].fail++;
+				if (gameOverMusic)
+					gameOverMusic.stop();
+				gameOverMusic = new Player("./music/凉凉.mp3").play();
+				
+			}else{
+				this.winner = null;
+				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+					{title: "游戏结束"}
+				);
+			}
+			game_record.four[sizeText].total++;
+			game_record.four.total++;
+			saveGameRecord();
 		},
 		
 		//更新分数
@@ -1937,7 +1982,7 @@ let game = {
 			const {winner, steps} = data;
 			
 			if (game.winner !== false) return; //游戏已结束
-			game.over(winner-1, winner==2?"黑方胜":"白方胜");
+			game.over(winner-1==game.first, winner==2?"黑方胜":"白方胜");
 		},
 		
 		//获胜画线

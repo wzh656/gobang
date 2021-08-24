@@ -4,9 +4,36 @@ class Player{
 		const audio = $("<audio></audio>")[0];
 		audio.src = url;
 		audio.volume = volume;
-		audio.play();
+		
 		$("body").append( audio );
 		this.audio = audio;
+	}
+	
+	play(){
+		console.log("play", this.audio.src, this.audio.volume)
+		this.audio.play().catch((err)=>{
+			console.error(err)
+			const play = ()=>{
+				if (this.audio.paused)
+					this.audio.play();
+			};
+			document.addEventListener("plusready", function plusready(){
+				play();
+				console.log("plusready -> play", url, volume)
+				document.removeEventListener("plusready", plusready);
+			});
+			document.addEventListener("click", function click(){
+				play();
+				console.log("click -> play", url, volume)
+				document.removeEventListener("click", click);
+			});
+			document.addEventListener("touchstart", function touchstart(){
+				play();
+				console.log("touchstart -> play", url, volume)
+				document.removeEventListener("touchstart", touchstart);
+			});
+		});
+		return this;
 	}
 	
 	stop(){

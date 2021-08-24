@@ -97,7 +97,7 @@ let {bgm, playEffect} = (function(){
 	if (setting_music.bgm == "piano"){ //deskgood作曲钢琴曲
 		bgm = new Music(MUSICS.piano, 6, 72).play();
 	}else if (setting_music.bgm == "random"){ //网易云随机音乐
-		bgm = new Player("https://api.vvhan.com/api/rand.music?sort=热歌榜");
+		bgm = new Player("https://api.vvhan.com/api/rand.music?sort=热歌榜").play();
 	}else if (setting_music.bgm != "none"){ //自定义
 		bgm = new Music(setting_music.bgm, 6, 72).play();
 	}
