@@ -738,7 +738,7 @@ class Board{
 				{frame: 30*60, value: 1}
 			]);
 			skybox.animations = [skyInclinationAnimation, skyTurbidityAnimation, skyLuminanceAnimation];
-			// this.scene.beginAnimation(skybox, 0, 30*60, true);
+			this.scene.beginAnimation(skybox, 0, 30*60, true);
 			
 			setInterval(function(){
 				const x = (skyMaterial.inclination + 1) % 2,
@@ -1516,7 +1516,7 @@ let game = {
 			clearInterval( this.ids[this.turn] );
 			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 			
-			const sizeText = `${cols}*${rows}`;
+			const sizeText = `${cols}*${rows}*${depth}`;
 			game_record.three[sizeText] = game_record.three[sizeText] || {};
 			game_record.three[sizeText].win = game_record.three[sizeText].win || 0;
 			game_record.three[sizeText].fail = game_record.three[sizeText].fail || 0;

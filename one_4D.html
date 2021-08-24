@@ -1821,7 +1821,7 @@ let game = {
 			clearInterval( this.ids[this.turn] );
 			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 			
-			const sizeText = `${cols}*${rows}`;
+			const sizeText = `${cols}*${rows}*${depth}*${width}`;
 			game_record.four[sizeText] = game_record.four[sizeText] || {};
 			game_record.four[sizeText].win = game_record.four[sizeText].win || 0;
 			game_record.four[sizeText].fail = game_record.four[sizeText].fail || 0;

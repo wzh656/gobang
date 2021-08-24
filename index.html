@@ -271,6 +271,9 @@
 			padding: 0;
 			overflow-y: auto;
 			
+			display: flex;
+			flex-direction: column;
+			
 			background-color: #fafafa;
 			font-size: 1.3em;
 		}
@@ -281,6 +284,40 @@
 			font-size: 2em;
 			font-weight: bold;
 			text-align: center;
+		}
+		
+		/* h3 */
+		#record > h3{
+			margin: 0.6rem;
+			font-size: 1.2em;
+			/*font-weight: bold;*/
+		}
+		
+		/* table */
+		#record > table{
+			margin: 0.6rem;
+			text-align: center;
+		}
+		#record > table th, #record > table td{
+			padding: 0.2rem;
+		}
+		
+		/* button */
+		#record > .back{
+			width: 66%;
+			margin: 0.3rem auto;
+			padding: 0.3rem;
+			
+			color: #fff;
+			background-color: #6af;
+			border: 3px outset #6af;
+			border-radius: 0.3rem;
+			font-size: 1.2em;
+			transition: color 0.3s, background-color 0.3s;
+		}
+		#record > .back:active{
+			background-color: #59e;
+			border: 3px inset #6af;
 		}
 		</style>
 		
@@ -302,8 +339,8 @@
 		<script>
 		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
 			//手机
-			// eruda.init();
-			// new VConsole();
+			eruda.init();
+			new VConsole();
 		}
 		</script>
 		
@@ -481,6 +518,7 @@
 			<table class="four" border="2">
 				<tr><th>棋盘大小</th><th>胜</th><th>负</th><th>总</th><th>胜率</th></tr>
 			</table>
+			<button class="back">确定</button>
 		</section>
 		
 		<footer style="display: none;">
@@ -664,6 +702,25 @@ function readRecord(){ //加载战绩
 	game_record.four.fail = game_record.four.fail || 0;
 	game_record.four.total = game_record.four.total || 0;
 	
+	$("#record > table tr:not(:first-child)").remove(); //先清空
+	
+	for (const size of Object.keys(game_record.two)){
+		if (size.indexOf("*") == -1) continue; //不存在*
+		$("#record > table.two").append(
+			$("<tr></tr>").append(
+				$("<td></td>").html(size)
+			).append(
+				$("<td></td>").html(game_record.two[size].win)
+			).append(
+				$("<td></td>").html(game_record.two[size].fail)
+			).append(
+				$("<td></td>").html(game_record.two[size].total)
+			).append(
+				$("<td></td>").html(Math.round(game_record.two[size].win / game_record.two[size].total*100, 2) + "%")
+			)
+		);
+	}
+	
 	$("#record > table.two").append(
 		$("<tr></tr>").append(
 			$("<td></td>").html("总计")
@@ -674,9 +731,26 @@ function readRecord(){ //加载战绩
 		).append(
 			$("<td></td>").html(game_record.two.total)
 		).append(
-			$("<td></td>").html(Math.round(game_record.two.win / game_record.two.total*100, 2))
+			$("<td></td>").html(Math.round(game_record.two.win / game_record.two.total*100, 2) + "%")
 		)
 	);
+	
+	for (const size of Object.keys(game_record.three)){
+		if (size.indexOf("*") == -1) continue; //不存在*
+		$("#record > table.three").append(
+			$("<tr></tr>").append(
+				$("<td></td>").html(size)
+			).append(
+				$("<td></td>").html(game_record.three[size].win)
+			).append(
+				$("<td></td>").html(game_record.three[size].fail)
+			).append(
+				$("<td></td>").html(game_record.three[size].total)
+			).append(
+				$("<td></td>").html(Math.round(game_record.three[size].win / game_record.three[size].total*100, 2) + "%")
+			)
+		);
+	}
 	
 	$("#record > table.three").append(
 		$("<tr></tr>").append(
@@ -688,9 +762,26 @@ function readRecord(){ //加载战绩
 		).append(
 			$("<td></td>").html(game_record.three.total)
 		).append(
-			$("<td></td>").html(Math.round(game_record.three.win / game_record.three.total*100, 2))
+			$("<td></td>").html(Math.round(game_record.three.win / game_record.three.total*100, 2) + "%")
 		)
 	);
+	
+	for (const size of Object.keys(game_record.four)){
+		if (size.indexOf("*") == -1) continue; //不存在*
+		$("#record > table.four").append(
+			$("<tr></tr>").append(
+				$("<td></td>").html(size)
+			).append(
+				$("<td></td>").html(game_record.four[size].win)
+			).append(
+				$("<td></td>").html(game_record.four[size].fail)
+			).append(
+				$("<td></td>").html(game_record.four[size].total)
+			).append(
+				$("<td></td>").html(Math.round(game_record.four[size].win / game_record.four[size].total*100, 2) + "%")
+			)
+		);
+	}
 	
 	$("#record > table.four").append(
 		$("<tr></tr>").append(
@@ -702,7 +793,7 @@ function readRecord(){ //加载战绩
 		).append(
 			$("<td></td>").html(game_record.four.total)
 		).append(
-			$("<td></td>").html(Math.round(game_record.four.win / game_record.four.total*100, 2))
+			$("<td></td>").html(Math.round(game_record.four.win / game_record.four.total*100, 2) + "%")
 		)
 	);
 }
@@ -874,6 +965,11 @@ $("#settings button.save").click(function(){
 $("#openRecord").click(function(){
 	readRecord(); //读取战绩
 	$("#record").slideDown("slow");
+});
+
+//返回
+$("#record > .back").click(function(){
+	$("#record").slideUp("slow");
 });
 
 
