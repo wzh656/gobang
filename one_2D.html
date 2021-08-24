@@ -343,6 +343,7 @@ resize();
 
 document.addEventListener("plusready", function(){
 	plus.navigator.setStatusBarBackground("#aef");
+	plus.navigator.setStatusBarStyle("dark");
 }, false);
 </script>
 <script>
@@ -487,6 +488,7 @@ class Board{
 	}
 }
 
+let gameOverMusic; //游戏结束音乐
 const {N=5, cols=19, rows=19, place=0, mistake=true} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}");
 $("#board").css("height", WIDTH *rows/cols + "px")
 	.attr("height", 2*WIDTH *rows/cols);
@@ -657,11 +659,17 @@ let game = {
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "胜利！", icon: 6}
 				);
+				if (gameOverMusic)
+					gameOverMusic.stop();
+				gameOverMusic = new Player("./music/好运来.m4a");
 			}else if (win === false){
 				this.winner = 1-this.first;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "你失败了！", icon: 5}
 				);
+				if (gameOverMusic)
+					gameOverMusic.stop();
+				gameOverMusic = new Player("./music/凉凉.m4a");
 			}else{
 				this.winner = null;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,

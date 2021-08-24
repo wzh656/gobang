@@ -1,3 +1,22 @@
+//url播放
+class Player{
+	constructor(url, volume=1){
+		const audio = $("<audio></audio>")[0];
+		audio.src = url;
+		audio.volume = volume;
+		audio.play();
+		$("body").append( audio );
+		this.audio = audio;
+	}
+	
+	stop(){
+		this.audio.stop();
+		return this;
+	}
+}
+
+
+//钢琴音符播放
 class PianoMusic{
 	constructor(audioNum=2, speed=60){
 		this.audios = [];
@@ -36,7 +55,7 @@ class PianoMusic{
 }
 
 
-
+//钢琴曲播放
 class Music{
 	constructor(score, audioNum=2, speed=60){
 		this.audioNum = audioNum; //声道数量

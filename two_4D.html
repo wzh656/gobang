@@ -388,6 +388,7 @@
 		<!-- babylon.js -->
 		<script src="./js/babylon.min.js"></script>
 		<script src="./js/babylonjs.materials.min.js"></script>
+		<script src="./js/babylonjs.proceduralTextures.min.js"></script>
 		<!-- stats.js -->
 		<script src="./js/stats.min.js"></script>
 		
@@ -549,6 +550,7 @@ $(window).resize(function(){
 
 document.addEventListener("plusready", function(){
 	plus.navigator.setStatusBarBackground("#aef");
+	plus.navigator.setStatusBarStyle("dark");
 }, false);
 </script>
 <script>
@@ -794,7 +796,7 @@ class Board{
 		
 		//天空盒
 		if (skyboxDisplay){ //允许显示
-			const skybox = BABYLON.Mesh.CreateBox("skyBox", 1000, this.scene);
+			const skybox = BABYLON.Mesh.CreateBox("skyBox", 1415, this.scene);
 			const skyMaterial = new BABYLON.SkyMaterial("skyMaterial", this.scene);
 			skyMaterial.backFaceCulling = false;
 			skybox.material = skyMaterial;
@@ -811,7 +813,7 @@ class Board{
 			);
 			skyInclinationAnimation.setKeys([
 				{frame: 0, value: -0.5},
-				{frame: 30*60, value: 0.5}
+				{frame: 30*60*2.5, value: 0.5}
 			]);
 			//太阳浑浊度
 			const skyTurbidityAnimation = new BABYLON.Animation(
@@ -823,8 +825,8 @@ class Board{
 			);
 			skyTurbidityAnimation.setKeys([
 				{frame: 0, value: 2},
-				{frame: 30*30, value: 5},
-				{frame: 30*60, value: 2}
+				{frame: 30*60*2.5/2, value: 5},
+				{frame: 30*60*2.5, value: 2}
 			]);
 			//天空亮度
 			const skyLuminanceAnimation = new BABYLON.Animation(
@@ -836,11 +838,11 @@ class Board{
 			);
 			skyLuminanceAnimation.setKeys([
 				{frame: 0, value: 1},
-				{frame: 30*30, value: 0.5},
-				{frame: 30*60, value: 1}
+				{frame: 30*60*2.5/2, value: 0.5},
+				{frame: 30*60*2.5, value: 1}
 			]);
 			skybox.animations = [skyInclinationAnimation, skyTurbidityAnimation, skyLuminanceAnimation];
-			this.scene.beginAnimation(skybox, 0, 30*60, true);
+			this.scene.beginAnimation(skybox, 0, 30*60*2.5, true);
 			
 			setInterval(function(){
 				const x = (skyMaterial.inclination + 1) % 2,
@@ -1178,24 +1180,131 @@ class Board{
 		return line;
 	}
 	
+	//添加球形划线
+	addLinesCircle(pos, radius, color, type){
+		console.log("addLinesCircle", pos, radius, color, type)
+		
+		let pass = false;
+		for (const v of this.lines.update[type])
+			if ( v.pos &&
+				pos.every((p,i) => p==v.pos[i])
+			){ //有相同 跳过
+				pass = true;
+				break;
+			}
+		if (pass) return this; //不添加
+		
+		if (pos[3] != this.widthRange){ //w不同
+			board.lines.update[type].push({ pos, radius, color });
+			return this;
+		}
+		
+		board.lines.update[type].push({ pos, radius, color });
+		
+		const lines = this.addCircle(pos, radius, color);
+		lines.forEach(line => this.sizeInAnimation(line)); //淡入
+		this.lines[type].push(...lines);
+		return this;
+	}
+	
 	//更新划线
 	updateLines(type){
 		if (type){
 			this.removeLines(...this.lines[type]); //先删除旧线
+			this.lines[type] = [];
 			const lines = this.lines.update[type]; //先记录
 			this.lines.update[type] = []; //再清空
 			for (const line of lines)
-				this.addLine(line.start, line.end, line.width, line.material); //再重新添加
+				if (line.pos){ //球形划线
+					this.addLinesCircle(line.pos, line.radius, line.color, type); //再重新添加
+				}else{ //普通划线
+					this.addLine(line.start, line.end, line.width, line.material); //再重新添加
+				}
 		}else{
 			this.updateLines("win");
 			this.updateLines("analyse");
 		}
 	}
 	
+	//添加圆圈标记
+	addCircle([i, j, k, l], radius, color, delta=30){
+		const pos = new BABYLON.Vector3(...this.ijk2xyz(i, j, k));
+		console.log("addCircle", [i, j, k, l], pos)
+		
+		if (color)
+			color = new BABYLON.Color4(...color, 0.6); //透明度0.6
+		const paths = Array.new(()=>[], 9),
+			colors = color? []: null;
+		for (let theta=0; theta<=360; theta+=delta){
+			//x
+			paths[0].push( new BABYLON.Vector3(
+				radius * Math.sin(-Math.PI/6), // -30°
+				radius * Math.cos(-Math.PI/6) * Math.cos(theta/180*Math.PI),
+				radius * Math.cos(-Math.PI/6) * Math.sin(theta/180*Math.PI)
+			) );
+			paths[1].push( new BABYLON.Vector3(
+				0, // 0°
+				radius * Math.cos(theta/180*Math.PI),
+				radius * Math.sin(theta/180*Math.PI)
+			) );
+			paths[2].push( new BABYLON.Vector3(
+				radius * Math.sin(Math.PI/6), // 30°
+				radius * Math.cos(Math.PI/6) * Math.cos(theta/180*Math.PI),
+				radius * Math.cos(Math.PI/6) * Math.sin(theta/180*Math.PI)
+			) );
+			
+			//y
+			paths[3].push( new BABYLON.Vector3(
+				radius * Math.cos(-Math.PI/6) * Math.cos(theta/180*Math.PI),
+				radius * Math.sin(-Math.PI/6), // -30°
+				radius * Math.cos(-Math.PI/6) * Math.sin(theta/180*Math.PI)
+			) );
+			paths[4].push( new BABYLON.Vector3(
+				radius * Math.cos(theta/180*Math.PI),
+				0, // 0°
+				radius * Math.sin(theta/180*Math.PI)
+			) );
+			paths[5].push( new BABYLON.Vector3(
+				radius * Math.cos(Math.PI/6) * Math.cos(theta/180*Math.PI),
+				radius * Math.sin(Math.PI/6), // 30°
+				radius * Math.cos(Math.PI/6) * Math.sin(theta/180*Math.PI)
+			) );
+			
+			//z
+			paths[6].push( new BABYLON.Vector3(
+				radius * Math.cos(-Math.PI/6) * Math.cos(theta/180*Math.PI),
+				radius * Math.cos(-Math.PI/6) * Math.sin(theta/180*Math.PI),
+				radius * Math.sin(-Math.PI/6) // -30°
+			) );
+			paths[7].push( new BABYLON.Vector3(
+				radius * Math.cos(theta/180*Math.PI),
+				radius * Math.sin(theta/180*Math.PI),
+				0 // 0°
+			) );
+			paths[8].push( new BABYLON.Vector3(
+				radius * Math.cos(Math.PI/6) * Math.cos(theta/180*Math.PI),
+				radius * Math.cos(Math.PI/6) * Math.sin(theta/180*Math.PI),
+				radius * Math.sin(Math.PI/6) // 30°
+			) );
+			
+			if (color)
+				colors.push(color);
+		}
+		
+		const lines = [];
+		for (const path of paths){
+			const line = BABYLON.MeshBuilder.CreateLines("lines", {points: path, colors}, this.scene);
+			line.position = pos;
+			line.isPickable = false; //禁止点击
+			lines.push(line);
+		}
+		
+		return lines;
+	}
+	
 	//添加或移动圆圈标记
 	moveCircle([i, j, k, l], radius, color, delta=30){
-		const pos = new BABYLON.Vector3(...this.ijk2xyz(i, j, k));
-		console.log("moveCircle", [i, j, k, l], pos)
+		console.log("moveCircle", [i, j, k, l])
 		
 		const e = $("#axis > .scale > li");
 		for (let index=0; index<e.length; index++)
@@ -1203,6 +1312,7 @@ class Board{
 		
 		this.lines.update.circle = [i, j, k, l]; //存储位置
 		if (this.lines.circle.length > 0){ //已有
+			const pos = new BABYLON.Vector3(...this.ijk2xyz(i, j, k));
 			for (const line of this.lines.circle){
 				line.position = pos;
 				if (l == this.widthRange){ //在同一三维层
@@ -1210,94 +1320,15 @@ class Board{
 				}else{
 					line.goalVisible = line.isVisible = false;
 				}
-				/*BABYLON.Animation.CreateAndStartAnimation(
-					"animation_", //名称
-					line, //物体
-					"scaling", //属性
-					30, //fps
-					20, //frames
-					new BABYLON.Vector3(0, 0, 0), //from
-					new BABYLON.Vector3(1, 1, 1), //to
-					BABYLON.Animation.ANIMATIONLOOPMODE_CONSTANT//, //mode
-					//this.easingFunction //缓动函数
-				);*/
 			}
-			//this.lines.circle.forEach(line => line.position=pos);
 			
 		}else{ //未创建
-			if (color)
-				color = new BABYLON.Color4(...color, 0.6); //透明度0.6
-			const paths = Array.new(()=>[], 9),
-				colors = color? []: null;
-			for (let theta=0; theta<=360; theta+=delta){
-				//x
-				paths[0].push( new BABYLON.Vector3(
-					radius * Math.sin(-Math.PI/6), // -30°
-					radius * Math.cos(-Math.PI/6) * Math.cos(theta/180*Math.PI),
-					radius * Math.cos(-Math.PI/6) * Math.sin(theta/180*Math.PI)
-				) );
-				paths[1].push( new BABYLON.Vector3(
-					0, // 0°
-					radius * Math.cos(theta/180*Math.PI),
-					radius * Math.sin(theta/180*Math.PI)
-				) );
-				paths[2].push( new BABYLON.Vector3(
-					radius * Math.sin(Math.PI/6), // 30°
-					radius * Math.cos(Math.PI/6) * Math.cos(theta/180*Math.PI),
-					radius * Math.cos(Math.PI/6) * Math.sin(theta/180*Math.PI)
-				) );
-				
-				//y
-				paths[3].push( new BABYLON.Vector3(
-					radius * Math.cos(-Math.PI/6) * Math.cos(theta/180*Math.PI),
-					radius * Math.sin(-Math.PI/6), // -30°
-					radius * Math.cos(-Math.PI/6) * Math.sin(theta/180*Math.PI)
-				) );
-				paths[4].push( new BABYLON.Vector3(
-					radius * Math.cos(theta/180*Math.PI),
-					0, // 0°
-					radius * Math.sin(theta/180*Math.PI)
-				) );
-				paths[5].push( new BABYLON.Vector3(
-					radius * Math.cos(Math.PI/6) * Math.cos(theta/180*Math.PI),
-					radius * Math.sin(Math.PI/6), // 30°
-					radius * Math.cos(Math.PI/6) * Math.sin(theta/180*Math.PI)
-				) );
-				
-				//z
-				paths[6].push( new BABYLON.Vector3(
-					radius * Math.cos(-Math.PI/6) * Math.cos(theta/180*Math.PI),
-					radius * Math.cos(-Math.PI/6) * Math.sin(theta/180*Math.PI),
-					radius * Math.sin(-Math.PI/6) // -30°
-				) );
-				paths[7].push( new BABYLON.Vector3(
-					radius * Math.cos(theta/180*Math.PI),
-					radius * Math.sin(theta/180*Math.PI),
-					0 // 0°
-				) );
-				paths[8].push( new BABYLON.Vector3(
-					radius * Math.cos(Math.PI/6) * Math.cos(theta/180*Math.PI),
-					radius * Math.cos(Math.PI/6) * Math.sin(theta/180*Math.PI),
-					radius * Math.sin(Math.PI/6) // 30°
-				) );
-				
-				if (color)
-					colors.push(color);
+			const lines = this.addCircle([i, j, k, l], radius, color, delta);
+			if (l == this.widthRange){ //在同一三维层
+				lines.forEach( line => this.sizeInAnimation(line) );
+			}else{
+				lines.forEach( line => line.goalVisible=line.isVisible=false );
 			}
-			
-			const lines = [];
-			for (const path of paths){
-				const line = BABYLON.MeshBuilder.CreateLines("lines", {points: path, colors}, this.scene);
-				line.position = pos;
-				line.isPickable = false; //禁止点击
-				lines.push(line);
-				if (l == this.widthRange){ //在同一三维层
-					this.sizeInAnimation(line);
-				}else{
-					line.goalVisible = line.isVisible = false;
-				}
-			}
-			
 			this.lines.circle.push(...lines);
 		}
 		
@@ -1857,14 +1888,31 @@ let game = {
 			board.clearLines("analyse");
 			
 			if (display) //需显示
-				for (const v of this.lines.sort((a,b)=>a.width<b.width) ) //width降序
-					if (v.width >= 3) //连子>=3 避免过密
+				for (const line of this.lines.sort((a,b)=>a.width<b.width) ){ //width降序
+					if (line.width < 3) continue; //连子>=3 避免过密
+					if ( line.start[3] != line.end[3] &&
+						line.start[0] == line.end[0] &&
+						line.start[1] == line.end[1] &&
+						line.start[2] == line.end[2]
+					){ //仅w不同
+						const min = Math.min(line.start[3], line.end[3]),
+							max = Math.max(line.start[3], line.end[3]);
+						for (let l=min; l<=max; l++)
+							board.addLinesCircle(
+								[line.start[0], line.start[1], line.start[2], l],
+								4 + (line.width-3+1)/5,
+								line.pic==2? [1,1,1]: [0,0,0],
+								"analyse"
+							);
+					}else{
 						board.addLine(
-							v.start,
-							v.end,
-							(v.width-3+1)/2,
-							v.pic==2? "white": "black"
+							line.start,
+							line.end,
+							(line.width-3+1)/2,
+							line.pic==2? "white": "black"
 						);
+					}
+				}
 			
 			game.linesDisplay = display;
 		}
@@ -1890,12 +1938,28 @@ let game = {
 			
 			board.clearLines("win");
 			for (const line of lines.sort((a,b)=>a.width<b.width) ) //width降序
-				board.addLine(
-					line.start,
-					line.end,
-					(0.1+N-3+1)/2,
-					"winLines"
-				);
+				if ( line.start[3] != line.end[3] &&
+					line.start[0] == line.end[0] &&
+					line.start[1] == line.end[1] &&
+					line.start[2] == line.end[2]
+				){ //仅w不同
+					const min = Math.min(line.start[3], line.end[3]),
+						max = Math.max(line.start[3], line.end[3]);
+					for (let l=min; l<=max; l++)
+						board.addLinesCircle(
+							[line.start[0], line.start[1], line.start[2], l],
+							4 + (N-3+1)/5 + 0.1,
+							[1,0,0],
+							"win"
+						);
+				}else{
+					board.addLine(
+						line.start,
+						line.end,
+						(0.1+N-3+1)/2,
+						"winLines"
+					);
+				}
 			
 			for (const line of lines){
 				const start = Math.min(line.start[3], line.end[3]),

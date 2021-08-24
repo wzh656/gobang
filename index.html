@@ -382,6 +382,7 @@
 								<select name="bgm" lay-filter="bgm">
 									<option value="none">无</option>
 									<option value="piano" checked>纯音乐钢琴曲(deskgood作曲)</option>
+									<option value="random">网抑云随机热歌</option>
 									<option value="custom">自定义</option>
 								</select>
 							</div>
@@ -431,6 +432,7 @@ if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test(
 }
 document.addEventListener("plusready", function(){
 	plus.navigator.setStatusBarBackground("#000");
+	plus.navigator.setStatusBarStyle("light");
 }, false);
 </script>
 <script>
@@ -557,7 +559,7 @@ function readSetting(){ //加载设置
 	
 	form_music.bgm_custom.value = MUSICS.piano; //默认：deskgood作曲钢琴曲
 	form_music.effect_custom.value = MUSICS.stars; //默认：小星星
-	if (["none", "piano"].indexOf(setting_music.bgm) == -1){ //自定义
+	if (["none", "piano", "random"].indexOf(setting_music.bgm) == -1){ //自定义
 		form_music.bgm.value = "custom";
 		form_music.bgm_custom.value = setting_music.bgm;
 		$(form_music.bgm_custom).parent().parent().show();
@@ -608,6 +610,9 @@ layui.use("form", function(){
 		if (data.value == "piano"){ //测试播放
 			if (!bgm) //未播放bgm
 				bgmTest = new Music(MUSICS.piano, 6, 72).play();
+		}else if (data.value == "random"){ //测试播放
+			if (!bgm)
+				bgmTest = new Player("https://api.vvhan.com/api/rand.music?sort=热歌榜");
 		}else if (data.value == "none"){ //无 停止播放
 			if (bgmTest)
 				bgmTest.setStop(true); //停止bgm测试
