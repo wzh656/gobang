@@ -453,6 +453,8 @@ $("html").addClass("fadeIn");
 function go(url){
 	$("html").addClass("outDown");
 	setTimeout(function(){
+		plus.navigator.setStatusBarBackground("#000");
+		plus.navigator.setStatusBarStyle("light");
 		location.href = url;
 	}, 600);
 	layer.load(0);

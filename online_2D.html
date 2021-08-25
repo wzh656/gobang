@@ -401,6 +401,8 @@ $("html").addClass("fadeIn");
 function go(url){
 	$("html").addClass("outDown");
 	setTimeout(function(){
+		plus.navigator.setStatusBarBackground("#aef");
+		plus.navigator.setStatusBarStyle("dark");
 		location.href = url;
 	}, 600);
 	layer.load(0);
