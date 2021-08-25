@@ -83,7 +83,7 @@
 			
 			/* 背景 */
 			min-height: 100%;
-			background: #1b2036 url("./img/background.jpg") no-repeat fixed center;
+			background: #fffae8 url("./img/background.jpg") no-repeat fixed center;
 			background-size: cover;
 			max-width: 100%;
 			margin: auto;
@@ -345,8 +345,8 @@
 		
 		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
 		
-		<script src="https://wzh656.github.io/js/count.js"></script>
-		<script src="https://wzh656.github.io/js/dynamic.js"></script>
+		<script src="https://wzh656.github.io/gobang/js/count.js"></script>
+		<script src="https://wzh656.github.io/gobang/js/dynamic.js"></script>
 		<script>
 		var _hmt = _hmt || [];
 		(function() {
@@ -549,8 +549,10 @@ function go(url){
 	layer.load(0);
 	$("html").addClass("outUp");
 	setTimeout(function(){
-		plus.navigator.setStatusBarBackground("#aef");
-		plus.navigator.setStatusBarStyle("dark");
+		if (typeof plus != "undefined"){
+			plus.navigator.setStatusBarBackground("#aef");
+			plus.navigator.setStatusBarStyle("dark");
+		}
 		location.href = url;
 	}, 600);
 }
@@ -1148,7 +1150,7 @@ $("#one").click(function(){
 
 //多人联机
 $("#online").click(function(){
-	go("rooms.html");
+	plus.runtime.openURL("https://wzh656.github.io/gobang/");
 });
 
 
@@ -1216,17 +1218,16 @@ $("#record > .back").click(function(){
 //双击
 $("body > h1").on("dblclick",function(){
 	for (let i=0; i<36*Math.random()+36; i++){
+		console.log(Math.random()*6-3)
 		$("body").animate({
 			left: (Math.random()*6-3)+"%",
-			top: (Math.random()*6-3)+"%",
-			opacity: 1
-		},10);
+			top: (Math.random()*6-3)+"%"
+		}, 10);
 	}
 	$("body").animate({
 		left: "0%",
-		top: "0%",
-		opacity: 1
-	},10);
+		top: "0%"
+	}, 10);
 });
 </script>
 		

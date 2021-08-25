@@ -86,11 +86,11 @@ const TWO_DIRS_OPP = [ //2D正方向 8/2=4
 	];
 
 class PiecesSystem{
-	constructor({columns, rows, depth, lengthFour, D, N}){
+	constructor({columns, rows, depth, width, D, N}){
 		this.columns = columns; //列数
 		this.rows = rows; //行数
 		this.depth = depth; //深度
-		this.lengthFour = lengthFour; //4维长度
+		this.width = width; //4维厚度
 		this.pieces = new Array(columns);
 		switch (D){
 			case 2:
@@ -111,8 +111,8 @@ class PiecesSystem{
 					this.pieces[i] = [];
 					for (let j=0; j<rows; j++){
 						this.pieces[i][j] = [];
-						for (let k=0; j<depth; j++)
-							this.pieces[i][j][k] = new Array(lengthFour).fill(0); //0:空白 1:白 2:黑 undefined:超出范围
+						for (let k=0; k<depth; k++)
+							this.pieces[i][j][k] = new Array(width).fill(0); //0:空白 1:白 2:黑 undefined:超出范围
 					}
 				}
 				break;
@@ -697,11 +697,11 @@ class PiecesSystem{
 									(x - (pieces.columns-1)/2) **2 +
 									(y - (pieces.rows-1)/2) **2 +
 									(z - (pieces.depth-1)/2) **2 +
-									(w - (pieces.lengthFour-1)/2) **2 +
+									(w - (pieces.width-1)/2) **2 +
 									Math.random() + 1
 								);
 								
-								for (const [dx, dy, dz, dw] of THREE_DIRS_OPP){ //正方向
+								for (const [dx, dy, dz, dw] of FOUR_DIRS_OPP){ //正方向
 									let num = [0, 0],
 										len = [0, 0], //连子数（不包括自己）
 										px, py, pz, pw;
@@ -813,9 +813,9 @@ self.addEventListener("message", function(e){
 	switch (e.data.type){
 		// 初始化
 		case "init":
-			const {cols, rows, depth, lengthFour, D, N, mis} = e.data;
+			const {cols, rows, depth, width, D, N, mis} = e.data;
 			
-			pieces = new PiecesSystem({columns:cols, rows, depth, lengthFour, D, N});
+			pieces = new PiecesSystem({columns:cols, rows, depth, width, D, N});
 			mistake = mis;
 			
 			break;

@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
-		<title>人机对战 | 3D五子棋</title>
+		<title>联机对战 | 3D五子棋</title>
 		
 		<!--icon-->
 		<link href="./img/icon.png" rel="icon" type="image/x-icon"/>
@@ -307,6 +307,37 @@
 			background-color: #ccc;
 			border: 3px inset #ddd;
 		}
+		
+		/* info */
+		#info{
+			z-index: 1;
+			display: flex;
+			flex-direction: column;
+			margin: 8px;
+		}
+		#info > .output{
+			height: 160px;
+			overflow-y: auto;
+		}
+		#info > .output > p{
+			margin: 0;
+			font-size: 0.9em;
+		}
+		#info > .input{
+			display: flex;
+			margin-top: 0.5rem;
+		}
+		#info > .input > input{
+			width: 100%;
+			margin-right: 0.2rem;
+		}
+		#info > .input > input:focus{
+			border: 1px solid rgb(210, 210, 210);
+		}
+		#info > .input > button{
+			flex: none;
+			margin-left: 0.2rem;
+		}
 		</style>
 		
 		<!-- jquery -->
@@ -326,17 +357,7 @@
 		<!--<link rel="stylesheet" href="https://unpkg.com/layui@2.6.4/dist/css/layui.css">
 		<script src="https://unpkg.com/layui@2.6.8/dist/layui.js"></script>-->
 		<script src="./layui/layui.js"></script>
-		<link rel="stylesheet" href="./layui/css/layui.css">
-		
-		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
-		<script>
-		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
-			//手机
-			eruda.init();
-			new VConsole();
-		}
-		</script>
+		<link rel="stylesheet" href="./layui/css/layui.css" />
 		
 		<!-- PianoMusic Bgm -->
 		<script src="./js/acoustic_grand_piano-ogg.js"></script>
@@ -347,11 +368,23 @@
 		
 		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
 		
+		<script src="https://wzh656.github.io/gobang/js/count.js"></script>
+		<script src="https://wzh656.github.io/gobang/js/dynamic.js"></script>
+		<script>
+		var _hmt = _hmt || [];
+		(function() {
+		  var hm = document.createElement("script");
+		  hm.src = "https://hm.baidu.com/hm.js?c6b8f0ad7ec671e54d83e86a67280999";
+		  var s = document.getElementsByTagName("script")[0]; 
+		  s.parentNode.insertBefore(hm, s);
+		})();
+		</script>
+		
 	</head>
 	<body>
 		<header id="header">
 			<i id="back" class="layui-icon layui-icon-return"></i>
-			<h1>双人对战 3D</h1>
+			<h1>联机对战 3D</h1>
 			<i id="restart" class="layui-icon layui-icon-refresh"></i>
 		</header>
 		<p id="state" class="connecting">连接服务器中……</p>
@@ -413,7 +446,18 @@
 					</svg>
 				</div>
 			</div>
+			<form id="info" onsubmit="return chat();">
+				<div class="output layui-textarea" disabled></div>
+				<div class="input">
+					<input placeholder="要发送的消息" class="layui-input" />
+					<button class="send layui-btn layui-btn-primary layui-border-blue">发送</button>
+				</div>
+			</form>
 		</section>
+		
+		<footer style="display: none;">
+			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' type='text/javascript'%3E%3C/script%3E"));</script>
+		</footer>
 		
 <script>
 //生成任意维数组
@@ -459,12 +503,21 @@ $(window).resize(function(){
 	if (board.engine)
 		board.engine.resize(); //更新大小
 });
+
+document.addEventListener("plusready", function(){
+	plus.navigator.setStatusBarBackground("#aef");
+	plus.navigator.setStatusBarStyle("dark");
+}, false);
 </script>
 <script>
 $("html").addClass("fadeIn");
 function go(url){
 	$("html").addClass("outDown");
 	setTimeout(function(){
+		if (typeof plus != "undefined"){
+			plus.navigator.setStatusBarBackground("#aef");
+			plus.navigator.setStatusBarStyle("dark");
+		}
 		location.href = url;
 	}, 600);
 	layer.load(0);
@@ -500,27 +553,17 @@ class Board{
 		
 		this.spacing = spacing; //间隔
 		this.lines = { //划线
+			border: [], //棋盘边界
+			circle: [], //圆圈标记
 			win: [], //获胜
-			analyse: [], //分析
-			circle: [] //圆圈标记
+			analyse: [] //分析
 		};
 	}
 	
 	
 	/* 场景 */
 	//载入场景
-	loadScene(){
-		//stats.js
-		this.stats = new Stats();
-		this.stats.showPanel(0);
-		$("#main").append(
-			$(this.stats.dom)
-				.css("top", "calc(2em + 2 * 0.3rem)")
-				.css("left", "auto")
-				.css("right", "0")
-				.css("opacity", "0.5")
-		);
-		
+	loadScene(skyboxDisplay=true, moonDisplay=true, borderDisplay=true){
 		//引擎 场景 相机
 		this.engine = new BABYLON.Engine(this.canvas); //引擎
 		this.engine.enableOfflineSupport = false; //不支持离线 以减少内存
@@ -602,84 +645,185 @@ class Board{
 		this.materials.winLines = material;
 		
 		
+		//通用动画缓动函数
+		this.easingFunction = new BABYLON.CircleEase(); //缓动函数
+		this.easingFunction.setEasingMode( BABYLON.EasingFunction.EASINGMODE_EASEINOUT ); //模式
+		
+		
 		//生成所有占位符和棋子
 		this.places = Array.new(null, this.columns, this.depth);
 		this.pieces = Array.new(null, this.columns, this.rows, this.depth);
 		//this.clear();
 		
 		
-		//通用动画缓动函数
-		this.easingFunction = new BABYLON.CircleEase(); //缓动函数
-		this.easingFunction.setEasingMode( BABYLON.EasingFunction.EASINGMODE_EASEINOUT ); //模式
+		//生成棋盘边界
+		if (borderDisplay){ //允许显示
+			const paths = [];
+			paths[0] = [ //上面
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, 0, 0)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, 0, 0)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, 0, this.depth-1)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, 0, this.depth-1)
+				),
+				new BABYLON.Vector3( //闭合
+					...this.ijk2xyz(0, 0, 0)
+				)
+			];
+			paths[1] = [ //下面
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, this.rows-1, 0)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, this.rows-1, 0)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, this.rows-1, this.depth-1)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, this.rows-1, this.depth-1)
+				),
+				new BABYLON.Vector3( //闭合
+					...this.ijk2xyz(0, this.rows-1, 0)
+				)
+			];
+			paths[2] = [
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, 0, 0)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, this.rows-1, 0)
+				)
+			];
+			paths[3] = [
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, 0, 0)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, this.rows-1, 0)
+				),
+			];
+			paths[4] = [
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, 0, this.depth-1)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(this.columns-1, this.rows-1, this.depth-1)
+				),
+			];
+			paths[5] = [
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, 0, this.depth-1)
+				),
+				new BABYLON.Vector3(
+					...this.ijk2xyz(0, this.rows-1, this.depth-1)
+				)
+			];
+			const color = new BABYLON.Color4(0.8, 0.8, 0, 1); //黄色
+			for (const path of paths){
+				const colors = new Array(path.length).fill(color);
+				const line = BABYLON.MeshBuilder.CreateLines("lines", {points: path, colors}, this.scene);
+				line.isPickable = false; //禁止点击
+				this.lines.border.push(line);
+				this.sizeInAnimation(line, 100);
+			}
+		}
 		
 		
 		//天空盒
-		const skybox = BABYLON.Mesh.CreateBox("skyBox", 1000, this.scene);
-		const skyMaterial = new BABYLON.SkyMaterial("skyMaterial", this.scene);
-		skyMaterial.backFaceCulling = false;
-		skybox.material = skyMaterial;
-		skybox.isPickable = false; //禁止点击
-		this.skybox = skybox;
-		
-		//太阳倾斜角
-		const skyInclinationAnimation = new BABYLON.Animation(
-			"animation_sky_inclination",
-			"material.inclination",
-			30,
-			BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-			BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
-		);
-		skyInclinationAnimation.setKeys([
-			{frame: 0, value: -0.5},
-			{frame: 30*60, value: 0.5}
-		]);
-		//太阳浑浊度
-		const skyTurbidityAnimation = new BABYLON.Animation(
-			"animation_sky_turbidity",
-			"material.turbidity",
-			30,
-			BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-			BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
-		);
-		skyTurbidityAnimation.setKeys([
-			{frame: 0, value: 2},
-			{frame: 30*30, value: 5},
-			{frame: 30*60, value: 2}
-		]);
-		//天空亮度
-		const skyLuminanceAnimation = new BABYLON.Animation(
-			"animation_sky_luminance",
-			"material.luminance",
-			30,
-			BABYLON.Animation.ANIMATIONTYPE_FLOAT,
-			BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
-		);
-		skyLuminanceAnimation.setKeys([
-			{frame: 0, value: 1},
-			{frame: 30*30, value: 0.5},
-			{frame: 30*60, value: 1}
-		]);
-		skybox.animations = [skyInclinationAnimation, skyTurbidityAnimation, skyLuminanceAnimation];
-		this.scene.beginAnimation(skybox, 0, 30*60, true);
-		
-		setInterval(function(){
-			const x = (skyMaterial.inclination + 1) % 2,
-				y1 = 256/(1+Math.E**( -4*Math.E*(x-0.5) )),
-				y2 = 256/(1+Math.E**( 4*Math.E*(x-1.5) )),
-				min = ~~(256 - Math.min(y1, y2)),
-				color = `rgb(${min},${min},${min})`;
-			$("#main").css("color", color);
-			$("#layerControl, #heightControl, #layerControl > *, #heightControl > *")
-				.css("border-color", color);
-		}, 1000);
-		
+		if (skyboxDisplay){ //允许显示
+			const skybox = BABYLON.Mesh.CreateBox("skyBox", 1000, this.scene);
+			const skyMaterial = new BABYLON.SkyMaterial("skyMaterial", this.scene);
+			skyMaterial.backFaceCulling = false;
+			skybox.material = skyMaterial;
+			skybox.isPickable = false; //禁止点击
+			this.skybox = skybox;
+			
+			//太阳倾斜角
+			const skyInclinationAnimation = new BABYLON.Animation(
+				"animation_sky_inclination",
+				"material.inclination",
+				30,
+				BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+				BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
+			);
+			skyInclinationAnimation.setKeys([
+				{frame: 0, value: -0.5},
+				{frame: 30*60, value: 0.5}
+			]);
+			//太阳浑浊度
+			const skyTurbidityAnimation = new BABYLON.Animation(
+				"animation_sky_turbidity",
+				"material.turbidity",
+				30,
+				BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+				BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
+			);
+			skyTurbidityAnimation.setKeys([
+				{frame: 0, value: 2},
+				{frame: 30*30, value: 5},
+				{frame: 30*60, value: 2}
+			]);
+			//天空亮度
+			const skyLuminanceAnimation = new BABYLON.Animation(
+				"animation_sky_luminance",
+				"material.luminance",
+				30,
+				BABYLON.Animation.ANIMATIONTYPE_FLOAT,
+				BABYLON.Animation.ANIMATIONLOOPMODE_RELATIVE
+			);
+			skyLuminanceAnimation.setKeys([
+				{frame: 0, value: 1},
+				{frame: 30*30, value: 0.5},
+				{frame: 30*60, value: 1}
+			]);
+			skybox.animations = [skyInclinationAnimation, skyTurbidityAnimation, skyLuminanceAnimation];
+			this.scene.beginAnimation(skybox, 0, 30*60, true);
+			
+			setInterval(function(){
+				const x = (skyMaterial.inclination + 1) % 2,
+					y1 = 256/(1+Math.E**( -4*Math.E*(x-0.5) )),
+					y2 = 256/(1+Math.E**( 4*Math.E*(x-1.5) )),
+					min = ~~(256 - Math.min(y1, y2)),
+					color = `rgb(${min},${min},${min})`;
+				$("#main").css("color", color);
+				$("#layerControl, #heightControl, #layerControl > *, #heightControl > *")
+					.css("border-color", color);
+			}, 1000);
+			
+			//月亮
+			if (moonDisplay){
+				const spriteManager = new BABYLON.SpriteManager("moonManager", "./img/moon.png", 1, 1059, this.scene);
+				const moon = new BABYLON.Sprite("moon", spriteManager);
+				moon.size = 20;
+				this.moon = moon;
+				setInterval(function(){
+					if ((skyMaterial.inclination+0.5)%2 < 1)
+						return (moon.isVisible = false);
+					const radius = 400, //轨道距离
+						theta = (skyMaterial.inclination+1.5)%2 /2 *2*Math.PI;
+					moon.isVisible = true;
+					moon.position.set(
+						0,
+						radius * Math.sin(theta),
+						radius * Math.cos(theta)
+					);
+				}, 33);
+			}
+			
+		}
 		
 		//优化阻止dirty
 		this.scene.blockMaterialDirtyMechanism = true;
 		
 		//渲染循环
 		this.engine.runRenderLoop(()=>{
-			this.stats.update(); //stats.js更新
 			this.scene.render();
 		});
 	}
@@ -1223,7 +1367,7 @@ class Board{
 
 const N = +location.getQueryString("N"),
 	{cols, rows, depth} = JSON.parse(location.getQueryString("size")),
-	{mistake=true} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}");
+	{mistake=true, skybox=true, moon=true, border=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
 const board = new Board({ //棋盘
 	canvas: $("#board")[0],
 	background: [0xff/0xff, 0xfa/0xff, 0xe8/0xff],
@@ -1271,10 +1415,10 @@ let waiting = false; //未等待
 
 const loadingId = layer.load(2);
 setTimeout(()=>{
-	board.loadScene();
+	board.loadScene(skybox, moon, border);
 	layer.close(loadingId);
-	init();
-}, 1000);
+	//init();
+}, 600);
 
 
 let socket, //socket.io
@@ -1437,8 +1581,6 @@ let game = {
 		//下棋
 		play(i, j, k, mistake){
 			console.log("play", i, j, k, mistake)
-			if (waiting) return; //上次未响应
-			waiting = true; //开始等待
 			
 			request({
 				type: "play", //下棋
@@ -1502,25 +1644,28 @@ let game = {
 			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 			
 			if (win === true){
-				game.winner = this.first;
+				this.winner = +this.first;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "胜利！", icon: 6}
 				);
-				$("#state").html( text );
+				$("#state").html("胜利！");
+				output(`胜利：${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`, true);
 				
 			}else if (win === false){
-				game.winner = 1-this.first;
+				this.winner = 1-this.first;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "你失败了！", icon: 5}
 				);
-				$("#state").html( text );
+				$("#state").html("你失败了！");
+				output(`你失败了：${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`, true);
 				
 			}else{
-				game.winner = this.first;
+				this.winner = null;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
 					{title: "游戏结束"}
 				);
-				$("#state").html( text );
+				$("#state").html("游戏结束");
+				output(`游戏结束：${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`, true);
 				
 			}
 		},
@@ -1820,6 +1965,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		ID = data;
 		$("#main > div.self > div > p.name").html(oldID);
 		$("#state").html("等待对方加入中……");
+		output("id分配成功，等待对方加入中……", true);
 	});
 	
 	//准备好了
@@ -1836,6 +1982,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 			$("#main > div.opposite > div > p.name").html( "："+data.oldID[+TYPE] );
 			layer.msg("你执黑棋，对方执白棋");
 			$("#state").html("游戏开始，你执黑棋，对方执白棋");
+			output("游戏开始，你执黑棋，对方执白棋", true);
 			
 		}else{
 			$("#main > div.self").removeClass("black").addClass("white");
@@ -1844,6 +1991,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 			$("#main > div.opposite > div > p.name").html( "："+data.oldID[+TYPE] );
 			layer.msg("你执白棋，对方执黑棋");
 			$("#state").html("游戏开始，你执白棋，对方执黑棋");
+			output("游戏开始，你执白棋，对方执黑棋", true);
 		}
 		init();
 		game.set(1); //黑棋先下
@@ -1854,8 +2002,10 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_leave", function(old_id){
 		console.log("↓ gobang_game_leave", old_id)
 		
-		if (old_id != oldID)
+		if (old_id != oldID){
 			$("#state").html( `对方“${old_id}”退出了房间` );
+			output(`对方“${old_id}”退出了房间`, true);
+		}
 		
 		if (game.winner !== false) return; //游戏已结束
 		game.over(true, `对方“${old_id}”退出了房间，游戏结束！`);
@@ -1902,11 +2052,13 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 			btn1: function(index){
 				layer.close(index);
 				send("gobang_game_drawMatch_agree", ROOM, oldID);
+				output("你同意了对方的求和请求", true);
 				game.over(null, "求和成功，游戏结束");
 			},
 			btn2: function(index){
 				layer.close(index);
 				send("gobang_game_drawMatch_disagree", ROOM, oldID);
+				output("你拒绝了对方的求和请求", true);
 			}
 		});
 	});
@@ -1915,6 +2067,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_drawMatch_agree", function(old_id){
 		console.log("↓ gobang_game_drawMatch_agree", old_id)
 		
+		output("对方同意了你的求和请求", true);
 		game.over(null, "求和成功，游戏结束");
 	});
 	
@@ -1923,6 +2076,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_game_drawMatch_disagree", old_id)
 		
 		layer.msg("对方拒绝了你的求和请求");
+		output("对方拒绝了你的求和请求", true);
 	});
 	
 	//再来一局
@@ -1942,10 +2096,12 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 					type: TYPE,
 					first: FIRST
 				}); //加入游戏房间
+				output("你同意了对方的再来一局请求", true);
 			},
 			btn2: function(index){
 				layer.close(index);
 				send("gobang_game_replay_disagree", ROOM, oldID);
+				output("你拒绝了对方的再来一局请求", true);
 			}
 		});
 	});
@@ -1955,6 +2111,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_game_replay_agree", old_id)
 		
 		layer.msg("对方同意了你再来一局的请求");
+		output("对方同意了你再来一局的请求", true);
 		init();
 		send("gobang_game_room", {
 			oldID,
@@ -1969,6 +2126,20 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_game_replay_disagree", old_id)
 		
 		layer.msg("对方拒绝了你再来一局的请求");
+		output("对方拒绝了你再来一局的请求", true);
+	});
+	
+	//聊天
+	socket.on("gobang_game_chat", function(old_id, msg){
+		console.log("↓ gobang_game_chat", old_id, msg)
+		
+		output(`${old_id}：${msg}`);
+		
+		if (old_id == oldID){ //自己发送
+			layer.tips(msg, $("#main > .self > i")[0], {tips: 1}); //上方
+		}else{ //对方发送
+			layer.tips(msg, $("#main > .opposite > i")[0], {tips: 1}); //上方
+		}
 	});
 	
 	
@@ -1976,6 +2147,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_play_failed", function(){
 		console.log("↓ gobang_game_play_failed", room)
 		layer.msg("下棋失败，房间已被关闭", {icon: 5});
+		output("下棋失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -1985,6 +2157,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_timeout_failed", function(){
 		console.log("↓ gobang_game_timeout_failed", room)
 		layer.msg("发送超时失败，房间已被关闭", {icon: 5});
+		output("发送超时失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败（超时）
@@ -1994,6 +2167,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_giveUp_failed", function(){
 		console.log("↓ gobang_game_giveUp_failed", room)
 		layer.msg("发送认输失败，房间已被关闭", {icon: 5});
+		output("发送认输失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败（认输）
@@ -2003,6 +2177,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_drawMatch_failed", function(){
 		console.log("↓ gobang_game_drawMatch_failed", room)
 		layer.msg("发送求和失败，房间已被关闭", {icon: 5});
+		output("发送求和失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -2012,6 +2187,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_drawMatch_agree_failed", function(){
 		console.log("↓ gobang_game_drawMatch_agree_failed", room)
 		layer.msg("同意求和失败，房间已被关闭", {icon: 5});
+		output("同意求和失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -2021,6 +2197,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_drawMatch_disagree_failed", function(){
 		console.log("↓ gobang_game_drawMatch_disagree_failed", room)
 		layer.msg("拒绝求和失败，房间已被关闭", {icon: 5});
+		output("拒绝求和失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -2030,6 +2207,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_replay_failed", function(){
 		console.log("↓ gobang_game_replay_failed", room)
 		layer.msg("发送求和失败，房间已被关闭", {icon: 5});
+		output("发送求和失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -2039,6 +2217,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_replay_agree_failed", function(){
 		console.log("↓ gobang_game_replay_agree_failed", room)
 		layer.msg("同意再来一局失败，房间已被关闭", {icon: 5});
+		output("同意再来一局失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -2048,6 +2227,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_replay_disagree_failed", function(){
 		console.log("↓ gobang_game_replay_disagree_failed", room)
 		layer.msg("拒绝再来一局失败，房间已被关闭", {icon: 5});
+		output("拒绝再来一局失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -2079,12 +2259,13 @@ $("#board").click(function(e){
 	if (!pickResult.hit) return; //未点击到物体
 	if ( !board.isBlock(pickResult.pickedMesh) ) return; //不是占位符和防误触
 	
+	playEffect(); //播放音效
+	
 	const pos = pickResult.pickedMesh.position,
 		[i, j, k] = board.xyz2ijk(pos.x, pos.y, pos.z);
 	console.log("click", pickResult, pos, [i, j, k])
 	
-	playEffect(); //播放音效
-	
+	waiting = true; //开始等待
 	game.play(i, j, k, pickResult.pickedMesh);
 });
 
@@ -2104,6 +2285,7 @@ $("#restart").click(function(){
 		layer.close(index);
 		send("gobang_game_replay", ROOM, oldID);
 		layer.msg("请求再来一局中……");
+		output("你发送了再来一局请求", true);
 	});
 });
 
@@ -2143,6 +2325,7 @@ $("#toolBtn > .drawMatch").click(function(){
 		layer.close(index);
 		send("gobang_game_drawMatch", ROOM, oldID);
 		layer.msg("请求求和中……");
+		output("你发送了求和请求", true);
 	})
 });
 
@@ -2216,6 +2399,7 @@ $("#toolBtn > .review").click(function(){
 			board.clear(); //清空棋子
 			board.visibleLines(false, "win"); //隐藏获胜划线
 			board.clearLines("analyse"); //删除分析划线
+			const position = board.lines.circle[0].position.clone(); //记录最后棋子位置
 			
 			let index = -1;
 			
@@ -2257,6 +2441,7 @@ $("#toolBtn > .review").click(function(){
 							}
 						}
 				board.visibleLines(true, "win"); //显示获胜划线
+				board.moveCircle(board.xyz2ijk(position.x, position.y, position.z), 5, [0,1,0]); //还原最后棋子位置
 			};
 			
 			next();
@@ -2298,6 +2483,21 @@ $("#toolBtn > .review").click(function(){
 		$("#tools > .review").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
 	}
 });
+
+
+/* 发送消息 */
+$("#info > .input > button").click(chat);
+function chat(){
+	send("gobang_game_chat", ROOM, oldID, $("#info > .input > input").val());
+	$("#info > .input > input").val(""); //清空输入
+	return false;
+}
+function output(text, center=false){
+	$("#info > .output").append(
+		$("<p></p>").html( text )
+			.css("text-align", center? "center": "")
+	);
+}
 </script>
 		
 	</body>

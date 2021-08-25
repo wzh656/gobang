@@ -1,3 +1,49 @@
+//url播放
+class Player{
+	constructor(url, volume=1){
+		const audio = $("<audio></audio>")[0];
+		audio.src = url;
+		audio.volume = volume;
+		
+		$("body").append( audio );
+		this.audio = audio;
+	}
+	
+	play(){
+		console.log("play", this.audio.src, this.audio.volume)
+		this.audio.play().catch((err)=>{
+			console.error(err)
+			const play = ()=>{
+				if (this.audio.paused)
+					this.audio.play();
+			};
+			document.addEventListener("plusready", function plusready(){
+				play();
+				console.log("plusready -> play", url, volume)
+				document.removeEventListener("plusready", plusready);
+			});
+			document.addEventListener("click", function click(){
+				play();
+				console.log("click -> play", url, volume)
+				document.removeEventListener("click", click);
+			});
+			document.addEventListener("touchstart", function touchstart(){
+				play();
+				console.log("touchstart -> play", url, volume)
+				document.removeEventListener("touchstart", touchstart);
+			});
+		});
+		return this;
+	}
+	
+	stop(){
+		this.audio.stop();
+		return this;
+	}
+}
+
+
+//钢琴音符播放
 class PianoMusic{
 	constructor(audioNum=2, speed=60){
 		this.audios = [];
@@ -36,7 +82,7 @@ class PianoMusic{
 }
 
 
-
+//钢琴曲播放
 class Music{
 	constructor(score, audioNum=2, speed=60){
 		this.audioNum = audioNum; //声道数量

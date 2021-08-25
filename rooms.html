@@ -329,8 +329,8 @@
 		
 		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
 		
-		<script src="https://wzh656.github.io/js/count.js"></script>
-		<script src="https://wzh656.github.io/js/dynamic.js"></script>
+		<script src="https://wzh656.github.io/gobang/js/count.js"></script>
+		<script src="https://wzh656.github.io/gobang/js/dynamic.js"></script>
 		<script>
 		var _hmt = _hmt || [];
 		(function() {
@@ -442,13 +442,14 @@ $("html").addClass("fadeIn");
 function go(url){
 	$("html").addClass(url == "index.html"? "outDown": "outHeight");
 	setTimeout(function(){
-		if (url == "index.html"){
-			plus.navigator.setStatusBarBackground("#000");
-			plus.navigator.setStatusBarStyle("light");
-		}else{
-			plus.navigator.setStatusBarBackground("#aef");
-			plus.navigator.setStatusBarStyle("dark");
-		}
+		if (typeof plus != "undefined")
+			if (url == "index.html"){
+				plus.navigator.setStatusBarBackground("#000");
+				plus.navigator.setStatusBarStyle("light");
+			}else{
+				plus.navigator.setStatusBarBackground("#aef");
+				plus.navigator.setStatusBarStyle("dark");
+			}
 		location.href = url;
 	}, 600);
 	layer.load(0);
