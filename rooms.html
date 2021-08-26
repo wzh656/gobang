@@ -960,4 +960,312 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_setFirst_failed", room)
 		layer.msg("设置先手失败，房间已被关闭", {icon: 5});
 		ROOM = null;
-		roomOutAnimation
+		roomOutAnimation();
+	});
+
+	//setD失败
+	socket.on("gobang_setD_failed", function(room){
+		console.log("↓ gobang_setD_failed", room)
+		layer.msg("设置维数失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		roomOutAnimation();
+	});
+
+	//setN失败
+	socket.on("gobang_setN_failed", function(room){
+		console.log("↓ gobang_setN_failed", room)
+		layer.msg("设置连子数失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		roomOutAnimation();
+	});
+
+	//setSize失败
+	socket.on("gobang_setSize_failed", function(room){
+		console.log("↓ gobang_setSize_failed", room)
+		layer.msg("设置棋盘大小失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		roomOutAnimation();
+	});
+
+	//setPlace失败
+	socket.on("gobang_setPlace_failed", function(room){
+		console.log("↓ gobang_setPlace_failed", room)
+		layer.msg("设置下棋位置失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		roomOutAnimation();
+	});
+
+	//chat失败
+	socket.on("gobang_chat_failed", function(room){
+		console.log("↓ gobang_chat_failed", room)
+		layer.msg("发送消息失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		roomOutAnimation();
+	});
+
+	//roomStart失败
+	socket.on("gobang_roomStart_failed", function(room){
+		console.log("↓ gobang_roomStart_failed", room)
+		layer.close( startRoomLoader );
+		layer.msg("开始游戏失败，房间已被关闭或人数不足", {icon: 5});
+	});
+
+	//chat失败
+	socket.on("gobang_chat_failed", function(room){
+		console.log("↓ gobang_chat_failed", room)
+		layer.msg("发送聊天失败，房间已被关闭", {icon: 5});
+		ROOM = null;
+		roomOutAnimation();
+	});
+
+}
+
+
+
+/* 返回 */
+$("body > header > .back").click(function(){
+	go("index.html");
+});
+
+/* 新建房间 */
+$("body > header > .new").click(function(){
+	if (socket.disconnected) //未连接
+		return layer.msg("请等待连接到服务器", {icon: 5});
+
+	if (ROOM)
+		return layer.msg(`您已加入房间“${ROOM}”，请先退出房间再创建`, {icon: 5});
+
+	layer.prompt({
+		title: "请输入房间名",
+		maxlength: 10
+	}, function(value, index, elem){
+		value = value && (value + "").trim();
+
+		if (!value)
+			return layer.msg("请输入房间名", {icon: 5});
+
+		if ( ROOMLIST[value] )
+			return layer.msg(`房间“${value}”已存在`, {icon: 5});
+
+		layer.close(index);
+
+		send("gobang_newRoom", value);
+		ROOM = value; //默认加入房间
+
+		//初始化设置
+		updateRoomSetting({name: value, first: null, owner: true});
+		$("#player").empty().html("加载中……");
+		const setting = JSON.parse( localStorage.getItem("五子棋_游戏设置") || "{}" );
+		updateRoomSetting(setting);
+
+		console.log("setting", setting)
+		if (setting.D)
+			send("gobang_setD", ROOM, setting.D);
+		if (setting.N)
+			send("gobang_setN", ROOM, setting.N);
+		if (setting.cols && setting.rows)
+			send("gobang_setSize", ROOM, {
+				cols: setting.cols,
+				rows: setting.rows,
+				depth: setting.depth,
+				width: setting.width
+			});
+		if (setting.place)
+			send("gobang_setPlace", ROOM, setting.place);
+
+		//进入动画
+		roomIntoAnimation();
+	});
+});
+
+/* 进入房间 */
+function intoRoom(name){
+	if (socket.disconnected) //未连接
+		return layer.msg("请等待连接到服务器", {icon: 5});
+
+	roomIntoAnimation();
+
+	//初始化设置
+	if (ROOMLIST[name].people.indexOf(ID) != -1){ //本在房间内
+		ROOM = name;
+		updateRoomSetting({
+			name,
+			people: ROOMLIST[name].people,
+			owner: ROOMLIST[name].people[0] == ID
+		});
+
+	}else{ //新房间
+		ROOM = name;
+		send("gobang_intoRoom", name);
+		console.log(ROOMLIST[name].people)
+		$("#player").empty().html("加载中……");
+		updateRoomSetting({
+			name,
+			people: ROOMLIST[name].people,
+			owner: null
+		});
+	}
+}
+
+/* 加入房间 */
+$("#room > .join").click(function(){
+	if (ROOMLIST[ROOM].people.slice(0,2).indexOf(ID) != -1){ //房主或成员
+		$(this).hide();
+		layer.msg("你已加入了本房间");
+
+	}else{ //加入游戏
+		for (const [name, room] of Object.entries(ROOMLIST))
+			if (room.people.slice(0,2).indexOf(ID) != -1)
+				return layer.msg(`您已加入房间“${name}”，请先退出房间再加入`, {icon: 5});
+
+		if (ROOMLIST[ROOM].state != false)
+			return layer.msg("当前房间已开始游戏", {icon: 5});
+
+		send("gobang_joinRoom", ROOM);
+
+		//初始化设置
+		updateRoomSetting({
+			name: ROOM,
+			people: ROOMLIST[ROOM].people,
+			owner: false
+		});
+	}
+});
+
+/* 发送消息 */
+$("#info > .input > button").click(chat);
+function chat(){
+	send("gobang_chat", ROOM, $("#info > .input > input").val());
+	$("#info > .input > input").val(""); //清空输入
+	return false;
+}
+
+/* 返回 */
+$("#room > header >  .back").click(function(){
+	if ( ROOMLIST[ROOM].people[0] != ID &&
+		ROOMLIST[ROOM].people[1] != ID
+	){ //不是房主和成员 退出房间
+		send("gobang_exitRoom", ROOM);
+		ROOM = null;
+	}
+	roomOutAnimation();
+});
+
+/* 解散房间 */
+$("#room > header >  .exit").click(function(){
+	if (ROOMLIST[ROOM].people[0] == ID){ //自己为房主
+		layer.confirm(`真的要关闭房间“${ROOM}”吗？`, {
+			icon:3,
+			title:"是否关闭房间"
+		}, function(index){
+			layer.close(index);
+
+			send("gobang_closeRoom", ROOM);
+			ROOM = null;
+			roomOutAnimation();
+		});
+
+	}else if (ROOMLIST[ROOM].people[1] == ID){ //自己为成员
+		layer.confirm(`真的要退出房间“${ROOM}”吗？`, {
+			icon:3,
+			title:"是否退出房间"
+		}, function(index){
+			layer.close(index);
+
+			send("gobang_exitRoom", ROOM);
+			ROOM = null;
+			roomOutAnimation();
+		});
+
+	}else{ //自己为游客
+		send("gobang_exitRoom", ROOM);
+		ROOM = null;
+		roomOutAnimation();
+	}
+});
+
+
+/* 设置 */
+//先手
+$("#room > form .random").click(function(){
+	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
+	send("gobang_setFirst", ROOM, null);
+	ROOMLIST[ROOM].first = null;
+	setFirst(null);
+});
+$("#room > form .first").click(function(){
+	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
+	send("gobang_setFirst", ROOM, true);
+	ROOMLIST[ROOM].first = true;
+	setFirst(true);
+});
+$("#room > form .last").click(function(){
+	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
+	send("gobang_setFirst", ROOM, false);
+	ROOMLIST[ROOM].first = false;
+	setFirst(false);
+});
+
+//维数
+$("#room > form .two").click(function(){
+	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
+	send("gobang_setD", ROOM, 2);
+	ROOMLIST[ROOM].D = 2;
+	setD(2);
+});
+$("#room > form .three").click(function(){
+	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
+	send("gobang_setD", ROOM, 3);
+	ROOMLIST[ROOM].D = 3;
+	setD(3);
+});
+$("#room > form .four").click(function(){
+	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
+	send("gobang_setD", ROOM, 4);
+	ROOMLIST[ROOM].D = 4;
+	setD(4);
+});
+
+//输入改变
+$("#room > form input[type='number']").change(function(){
+	if (this.value == "")
+		return (this.value = this.init); //初始值
+	this.value = Math.limitRange(+this.value, +this.min, +this.max);
+});
+
+//连子数
+$("#room > form input[name='n']").change(function(){
+	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
+	send("gobang_setN", ROOM, +this.value);
+});
+
+//棋盘大小
+$("#room > form input[name='cols'], #room > form input[name='rows']").change(function(){
+	if (ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
+	send("gobang_setSize", ROOM, {
+		cols: +$("#room > form input[name='cols']").val(),
+		rows: +$("#room > form input[name='rows']").val(),
+		depth: +$("#room > form input[name='depth']").val(),
+		width: +$("#room > form input[name='width']").val()
+	});
+});
+
+//下棋位置
+$("#room > form input[name='place']").parent().click(function(){
+	if (ROOMLIST[ROOM] && ROOMLIST[ROOM].people[0] != ID) return; //非房主无法操作
+	send("gobang_setPlace", ROOM, +$("#room > form input[name='place']")[1].checked);
+});
+
+
+//开始游戏
+$("#room > .start").click(function(){
+	if (ROOMLIST[ROOM].people.length < 2)
+		return layer.msg("人数不足，无法开始游戏", {icon: 5});
+
+	send("gobang_roomStart", ROOM);
+	startRoomLoader = layer.load(1);
+});
+</script>
+
+	</body>
+</html>

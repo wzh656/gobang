@@ -92,6 +92,14 @@
         "Geolocation" : {}
     },
     "plus" : {
+        "confusion" : {
+            "description" : "JS原生混淆",
+            "resources" : {
+                "js/bgm.js" : {},
+                "js/music.js" : {},
+                "js/worker.js" : {}
+            }
+        },
         "splashscreen" : {
             "autoclose" : true, /*是否自动关闭程序启动界面，true表示应用加载应用入口页面后自动关闭；false则需调plus.navigator.closeSplashscreen()关闭*/
             "waiting" : true /*是否在程序启动界面显示等待雪花，true表示显示，false表示不显示。*/
@@ -222,7 +230,8 @@
                     "xhdpi" : "", /*720P高分屏启动图片，分辨率：720x1242*/
                     "xxhdpi" : "" /*1080P高分屏启动图片，分辨率：1080x1882*/
                 },
-                "androidStyle" : "common"
+                "androidStyle" : "common",
+                "useOriginalMsgbox" : false
             },
             "plugins" : {
                 "speech" : {
