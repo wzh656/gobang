@@ -345,8 +345,8 @@
 		
 		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
 		
-		<script src="https://wzh656.github.io/gobang/js/count.js"></script>
-		<script src="https://wzh656.github.io/gobang/js/dynamic.js"></script>
+		<script src="https://wzh656.github.io/gobang/js/count.js" async></script>
+		<script src="https://wzh656.github.io/gobang/js/dynamic.js" async></script>
 		<script>
 		var _hmt = _hmt || [];
 		(function() {
@@ -630,6 +630,7 @@ function saveSetting(){
 	localStorage.setItem("五子棋_游戏设置", JSON.stringify(setting_game));
 	localStorage.setItem("五子棋_个性化设置", JSON.stringify(setting_personal));
 	localStorage.setItem("五子棋_音乐设置", JSON.stringify(setting_music));
+	console.log("saveSetting", setting_music)
 }
 //加载设置
 function readSetting(){

@@ -19,17 +19,17 @@ class Player{
 			};
 			document.addEventListener("plusready", function plusready(){
 				play();
-				console.log("plusready -> play", url, volume)
+				console.log("plusready -> play", this.audio.src, this.audio.volume)
 				document.removeEventListener("plusready", plusready);
 			});
 			document.addEventListener("click", function click(){
 				play();
-				console.log("click -> play", url, volume)
+				console.log("click -> play", this.audio.src, this.audio.volume)
 				document.removeEventListener("click", click);
 			});
 			document.addEventListener("touchstart", function touchstart(){
 				play();
-				console.log("touchstart -> play", url, volume)
+				console.log("touchstart -> play", this.audio.src, this.audio.volume)
 				document.removeEventListener("touchstart", touchstart);
 			});
 		});
