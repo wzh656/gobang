@@ -9,7 +9,7 @@ if (location.pathname.indexOf("index.html") != -1){ //仅主页
 	const updateFunc = function(){
 		const latest = Math.max(Object.keys(updateInfo));
 		if (plus.runtime.versionCode < latest){
-			const text = "";
+			let text = "";
 			for (const [code, value] of Object.entries(updateInfo))
 				if (+code > plus.runtime.versionCode)
 					text += `==================<br>v${value.version}(${code}) ${value.date}<br>${value.info}`;
