@@ -296,7 +296,6 @@
 		
 		<script src="https://wzh656.github.io/gobang/js/dynamic.js" async></script>
 		<script src="https://wzh656.github.io/gobang/js/count.js" async></script>
-		<script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/c17090af.js","daovoice")</script>
 		<script>
 		var _hmt = _hmt || [];
 		(function() {
@@ -373,6 +372,10 @@
 			</form>
 		</section>
 		
+		<footer style="display: none;">
+			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' type='text/javascript'%3E%3C/script%3E"));</script>
+		</footer>
+		
 <script>
 let WIDTH;
 function resize(){
@@ -398,8 +401,10 @@ $("html").addClass("fadeIn");
 function go(url){
 	$("html").addClass("outDown");
 	setTimeout(function(){
-		plus.navigator.setStatusBarBackground("#aef");
-		plus.navigator.setStatusBarStyle("dark");
+		if (typeof plus != "undefined"){
+			plus.navigator.setStatusBarBackground("#aef");
+			plus.navigator.setStatusBarStyle("dark");
+		}
 		location.href = url;
 	}, 600);
 	layer.load(0);
@@ -540,7 +545,7 @@ class Board{
 const N = +location.getQueryString("N"),
 	{cols, rows} = JSON.parse(location.getQueryString("size")),
 	place = +location.getQueryString("place"),
-	{mistake=true} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}");
+	{mistake=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
 $("#board").css("height", WIDTH *rows/cols + "px")
 	.attr("height", 2*WIDTH *rows/cols);
 const board = new Board({ //棋盘

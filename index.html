@@ -41,6 +41,16 @@
 			body {font-size: calc(0.018 * 960px + 6px) !important;}
 		} */
 		
+		/* layui */
+		.layui-btn-group .layui-btn:not(:first-child){
+			border-left-style: none !important;
+		}
+		
+		/* daovoice */
+		.daodream-container.daodream-reset{
+			position: absolute;
+		}
+		
 		/* element */
 		*{
 			outline: none; /* 无点击线 */
@@ -61,11 +71,6 @@
 		html.outUp{
 			background-image: none;
 			background-color: #fffae8;
-		}
-		
-		/* layui */
-		.layui-btn-group .layui-btn:not(:first-child){
-			border-left-style: none !important;
 		}
 		
 		/* 初始页 */
@@ -347,7 +352,13 @@
 		
 		<script src="https://wzh656.github.io/gobang/js/dynamic.js" async></script>
 		<script src="https://wzh656.github.io/gobang/js/count.js" async></script>
-		<script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/c17090af.js","daovoice")</script>
+		<script>
+		(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/c17090af.js","daovoice")
+		daovoice('init', {
+		  app_id: "c17090af"
+		});
+		daovoice('update');
+		</script>
 		<script>
 		var _hmt = _hmt || [];
 		(function() {
@@ -525,6 +536,10 @@
 			<button class="back">确定</button>
 		</section>
 		
+		<footer style="display: none;">
+			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' type='text/javascript'%3E%3C/script%3E"));</script>
+		</footer>
+		
 <script>
 let device;
 if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
@@ -546,8 +561,10 @@ function go(url){
 	layer.load(0);
 	$("html").addClass("outUp");
 	setTimeout(function(){
-		plus.navigator.setStatusBarBackground("#aef");
-		plus.navigator.setStatusBarStyle("dark");
+		if (typeof plus != "undefined"){
+			plus.navigator.setStatusBarBackground("#aef");
+			plus.navigator.setStatusBarStyle("dark");
+		}
 		location.href = url;
 	}, 600);
 }
