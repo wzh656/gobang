@@ -247,7 +247,6 @@
 		
 		<script src="https://wzh656.github.io/gobang/js/dynamic.js" async></script>
 		<script src="https://wzh656.github.io/gobang/js/count.js" async></script>
-		<script>(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/c17090af.js","daovoice")</script>
 		<script>
 		var _hmt = _hmt || [];
 		(function() {
@@ -340,8 +339,10 @@ $("html").addClass("fadeIn");
 function go(url){
 	$("html").addClass("outDown");
 	setTimeout(function(){
-		plus.navigator.setStatusBarBackground("#000");
-		plus.navigator.setStatusBarStyle("light");
+		if (typeof plus != "undefined"){
+			plus.navigator.setStatusBarBackground("#000");
+			plus.navigator.setStatusBarStyle("light");
+		}
 		location.href = url;
 	}, 600);
 	layer.load(0);
@@ -480,7 +481,8 @@ class Board{
 }
 
 
-const {N=5, cols=19, rows=19, place=0, mistake=true} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}");
+const {N=5, cols=19, rows=19, place=0} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
+	{mistake=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
 $("#board").css("height", WIDTH *rows/cols + "px")
 	.attr("height", 2*WIDTH *rows/cols);
 const board = new Board({ //棋盘
