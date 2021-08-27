@@ -1162,7 +1162,15 @@ $("#one").click(function(){
 
 //多人联机
 $("#online").click(function(){
-	go("rooms.html");
+	if (typeof plus != "undefined"){
+		layer.confirm("灰常抱歉，由于游戏木有版号，只能发布测试版，故无法联网进行联机服务，若需要联机请打开网页版游戏：<br>https://wzh656.github.io/gobang/rooms.html<br>提示：免费服务器5分钟无请求自动休眠，加载时等待服务器开启可能较慢，请耐心等待", {
+			btn: ["浏览器打开", "取消"]
+		}, function(){
+			plus.runtime.openURL("https://wzh656.github.io/gobang/rooms.html");
+		});
+	}else{
+		layer.msg("模块加载中，请稍后再试");
+	}
 });
 
 
