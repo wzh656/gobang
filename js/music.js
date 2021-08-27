@@ -37,7 +37,7 @@ class Player{
 	}
 	
 	stop(){
-		this.audio.stop();
+		this.audio.pause();
 		return this;
 	}
 }

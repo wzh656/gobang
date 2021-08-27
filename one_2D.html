@@ -223,6 +223,35 @@
 			background-color: #ccc;
 			border: 3px inset #ddd;
 		}
+		
+		
+		/* info */
+		#info{
+			z-index: 1;
+			display: flex;
+			flex-direction: column;
+			margin: 8px;
+		}
+		#info > .output{
+			height: 160px;
+			overflow-y: auto;
+		}
+		#info > .output > p{
+			margin: 0;
+			font-size: 0.9em;
+		}
+		#info > .input{
+			display: flex;
+			margin-top: 0.5rem;
+		}
+		#info > .input > input{
+			width: 100%;
+			margin-right: 0.2rem;
+		}
+		#info > .input > button{
+			flex: none;
+			margin-left: 0.2rem;
+		}
 		</style>
 		
 		<!-- jquery -->
@@ -314,6 +343,15 @@
 					</svg>
 				</div>
 			</div>
+			<form id="info" onsubmit="return chat();">
+				<form id="info" onsubmit="return chat();">
+				<div class="input">
+					<input placeholder="要发送的消息" class="layui-input" />
+					<button class="send layui-btn layui-btn-primary layui-border-blue">发送</button>
+				</div>
+				<div class="output layui-textarea" disabled></div>
+			</form>
+			</form>
 		</section>
 		
 <script>
@@ -700,7 +738,7 @@ let game = {
 				saveGameRecord();
 				if (gameOverMusic)
 					gameOverMusic.stop();
-				gameOverMusic = new Player("./music/好运来.m4a").play();
+				gameOverMusic = new Player("./music/win.m4a").play();
 				
 			}else if (win === false){
 				this.winner = 1-this.first;
@@ -716,7 +754,7 @@ let game = {
 				saveGameRecord();
 				if (gameOverMusic)
 					gameOverMusic.stop();
-				gameOverMusic = new Player("./music/凉凉.mp3").play();
+				gameOverMusic = new Player("./music/fail.mp3").play();
 				
 			}else{
 				this.winner = null;
@@ -905,6 +943,10 @@ let game = {
 
 //初始化
 function init(){
+	//游戏结束音乐
+	if (gameOverMusic)
+		gameOverMusic.stop();
+	
 	//棋盘
 	board.updateCallback = ()=>{};
 	board.clear()
@@ -1236,6 +1278,36 @@ $("#toolBtn > .review").click(function(){
 		$("#tools > .review").slideToggle("slow", ()=>$(this).removeAttr("disabled"));
 	}
 });
+
+
+//发送消息
+$("#info > .input > button").click(chat);
+function chat(){
+	const msg = $("#info > .input > input").val();
+	layer.tips(msg, $("#main > .self > i")[0], {tips: 1}); //上方
+	$("#info > .input > input").val(""); //清空输入
+	output("你：" + msg);
+	
+	setTimeout(function(){
+		$.get("http://api.qingyunke.com/api.php?key=free&appid=0&msg="+encodeURIComponent(msg), function(data, status){
+			const json = JSON.parse(data);
+			if (json.result == 0){
+				const content = json.content.replace(/\{br\}/g, "<br>");
+				layer.tips(content, $("#main > .opposite > i")[0], {tips: 1}); //上方
+				output("AI：" + content);
+			}else{
+				output("错误："+json.result, true);
+			}
+		});
+	}, 600+800*Math.random());
+	return false;
+}
+function output(text, center=false){
+	$("#info > .output").append(
+		$("<p></p>").html( text )
+			.css("text-align", center? "center": "")
+	);
+}
 </script>
 		
 	</body>
