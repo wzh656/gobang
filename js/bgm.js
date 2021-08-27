@@ -89,7 +89,7 @@ MUSICS.stars = `
 	循环
 `.trim().split("\n").map(v => v.trim()).join("\n");
 let {bgm, playEffect} = (function(){
-	let setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}");
+	const setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}");
 	setting_music.bgm = setting_music.bgm || "piano";
 	setting_music.effect = setting_music.effect || "stars";
 	
@@ -106,7 +106,6 @@ let {bgm, playEffect} = (function(){
 	let playEffect; //播放音效
 	if (setting_music.effect == "stars"){
 		playEffect = function(){
-			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			const music = new Music(MUSICS.stars),
 				sounds = music.getSounds(), //所有音符
 				speed = music.speed, //速度
@@ -121,7 +120,6 @@ let {bgm, playEffect} = (function(){
 		};
 	}else if (setting_music.effect != "none"){ //自定义
 		playEffect = function(){
-			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			const music = new Music(setting_music.effect),
 				sounds = music.getSounds(), //所有音符
 				speed = music.speed, //速度
