@@ -503,17 +503,6 @@ class Board{
 	/* 场景 */
 	//载入场景
 	loadScene(skyboxDisplay=true, moonDisplay=true, borderDisplay=true){
-		//stats.js
-		this.stats = new Stats();
-		this.stats.showPanel(0);
-		$("#main").append(
-			$(this.stats.dom)
-				.css("top", "calc(2em + 2 * 0.3rem)")
-				.css("left", "auto")
-				.css("right", "0")
-				.css("opacity", "0.5")
-		);
-		
 		//引擎 场景 相机
 		this.engine = new BABYLON.Engine(this.canvas); //引擎
 		this.engine.enableOfflineSupport = false; //不支持离线 以减少内存
@@ -774,7 +763,6 @@ class Board{
 		
 		//渲染循环
 		this.engine.runRenderLoop(()=>{
-			this.stats.update(); //stats.js更新
 			this.scene.render();
 		});
 	}
