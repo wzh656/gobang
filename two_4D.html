@@ -491,7 +491,7 @@
 		</section>
 		
 		<footer style="display: none;">
-			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' type='text/javascript'%3E%3C/script%3E"));</script>
+			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' async type='text/javascript'%3E%3C/script%3E"));</script>
 		</footer>
 		
 <script>
@@ -2218,10 +2218,10 @@ $("#axis").on("touchend", function(e){
 		dy = y - touch.y;
 	console.log("touchend", x, y, dx, dy);
 	
-	if (Math.abs(dx) < 20){
-		if (dy > 50){
+	if (Math.abs(dx) < 30){
+		if (dy > 40){
 			board.widthAdd();
-		}else if (dy < -50){
+		}else if (dy < -40){
 			board.widthSub();
 		}else if (dx == 0 && dy == 0 && e.target.tagName == "LI"){ //点击
 			console.log(e.target, e.target.tagName, $(e.target).prevAll().length)
