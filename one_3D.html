@@ -310,24 +310,22 @@
 		<script src="./layui/layui.js"></script>
 		<link rel="stylesheet" href="./layui/css/layui.css" />
 		
+		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
+		<script>
+		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
+			//手机
+			eruda.init();
+			new VConsole();
+		}
+		</script>
+		
 		<!-- PianoMusic Bgm -->
 		<script src="./js/acoustic_grand_piano-ogg.js"></script>
 		<script src="./js/music.js"></script>
 		<script src="./js/bgm.js"></script>
 		
 		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
-		
-		<script src="https://wzh656.github.io/gobang/js/count.js" async></script>
-		<script src="https://wzh656.github.io/gobang/js/dynamic.js" async></script>
-		<script>
-		var _hmt = _hmt || [];
-		(function() {
-		  var hm = document.createElement("script");
-		  hm.src = "https://hm.baidu.com/hm.js?c6b8f0ad7ec671e54d83e86a67280999";
-		  var s = document.getElementsByTagName("script")[0]; 
-		  s.parentNode.insertBefore(hm, s);
-		})();
-		</script>
 		
 	</head>
 	<body>
@@ -395,10 +393,6 @@
 			</div>
 		</section>
 		
-		<footer style="display: none;">
-			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' type='text/javascript'%3E%3C/script%3E"));</script>
-		</footer>
-		
 <script>
 //生成任意维数组
 Array.new = function(value, len, ...num){
@@ -453,10 +447,8 @@ $("html").addClass("fadeIn");
 function go(url){
 	$("html").addClass("outDown");
 	setTimeout(function(){
-		if (typeof plus != "undefined"){
-			plus.navigator.setStatusBarBackground("#000");
-			plus.navigator.setStatusBarStyle("light");
-		}
+		plus.navigator.setStatusBarBackground("#000");
+		plus.navigator.setStatusBarStyle("light");
 		location.href = url;
 	}, 600);
 	layer.load(0);
@@ -503,6 +495,17 @@ class Board{
 	/* 场景 */
 	//载入场景
 	loadScene(skyboxDisplay=true, moonDisplay=true, borderDisplay=true){
+		//stats.js
+		this.stats = new Stats();
+		this.stats.showPanel(0);
+		$("#main").append(
+			$(this.stats.dom)
+				.css("top", "calc(2em + 2 * 0.3rem)")
+				.css("left", "auto")
+				.css("right", "0")
+				.css("opacity", "0.5")
+		);
+		
 		//引擎 场景 相机
 		this.engine = new BABYLON.Engine(this.canvas); //引擎
 		this.engine.enableOfflineSupport = false; //不支持离线 以减少内存
@@ -763,6 +766,7 @@ class Board{
 		
 		//渲染循环
 		this.engine.runRenderLoop(()=>{
+			this.stats.update(); //stats.js更新
 			this.scene.render();
 		});
 	}
@@ -1305,7 +1309,7 @@ class Board{
 
 
 const {N=5, cols=10, rows=10, depth=10} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
-	{mistake=true, skybox=true, moon=true, border=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
+	{mistake=true, skybox=true, moon=true, moon=true, border=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
 const board = new Board({ //棋盘
 	canvas: $("#board")[0],
 	background: [0xff/0xff, 0xfa/0xff, 0xe8/0xff],
@@ -1561,7 +1565,7 @@ let game = {
 				saveGameRecord();
 				if (gameOverMusic)
 					gameOverMusic.stop();
-				gameOverMusic = new Player("./music/win.mp3").play();
+				gameOverMusic = new Player("./music/好运来.m4a").play();
 				
 			}else if (win === false){
 				this.winner = 1-this.first;
@@ -1576,7 +1580,7 @@ let game = {
 				saveGameRecord();
 				if (gameOverMusic)
 					gameOverMusic.stop();
-				gameOverMusic = new Player("./music/fail.mp3").play();
+				gameOverMusic = new Player("./music/凉凉.mp3").play();
 				
 			}else{
 				this.winner = null;

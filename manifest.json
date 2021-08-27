@@ -3,10 +3,10 @@
     "id" : "H504276D9", /*应用的标识*/
     "name" : "4D五子棋", /*应用名称，程序桌面图标名称*/
     "version" : {
-        "name" : "4.3.1", /*应用版本名称*/
-        "code" : 12
+        "name" : "4.3.2", /*应用版本名称*/
+        "code" : 13
     },
-    "description" : "", /*应用描述信息*/
+    "description" : "创新与经典的烧脑结合，体验与众不同的五子棋玩法", /*应用描述信息*/
     "icons" : {
         "72" : "icon.png"
     },
@@ -74,9 +74,6 @@
         "Barcode" : {
             "description" : "管理二维码扫描插件"
         },
-        "Speech" : {
-            "description" : "管理语音识别插件"
-        },
         "Webview" : {
             "description" : "窗口管理"
         },
@@ -88,8 +85,7 @@
         },
         "NativeObj" : {
             "description" : "原生对象"
-        },
-        "Geolocation" : {}
+        }
     },
     "plus" : {
         "confusion" : {
@@ -126,21 +122,14 @@
                     "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
                     "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
                     "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
-                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
-                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
                     "<uses-permission android:name=\"android.permission.CALL_PHONE\"/>",
                     "<uses-permission android:name=\"android.permission.CAMERA\"/>",
-                    "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
                     "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
                     "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
-                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
                     "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\"/>",
                     "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>",
-                    "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>",
-                    "<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>",
                     "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
                     "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
-                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
                     "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>"
                 ]
             },

@@ -4,7 +4,6 @@
 		return new Promise((resolve, reject)=>{
 			// console.log(method, data)
 			$.ajax({
-				async: true,
 				url: "https://wzh.glitch.me/count/" + method,
 				data,
 				type: "GET",
