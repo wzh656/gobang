@@ -541,7 +541,7 @@ class Board{
 const N = +location.getQueryString("N"),
 	{cols, rows} = JSON.parse(location.getQueryString("size")),
 	place = +location.getQueryString("place"),
-	{mistake=true} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}");
+	{mistake=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
 $("#board").css("height", WIDTH *rows/cols + "px")
 	.attr("height", 2*WIDTH *rows/cols);
 const board = new Board({ //棋盘
