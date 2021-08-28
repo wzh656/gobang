@@ -152,6 +152,17 @@
 			color: white;
 		}
 		
+		/* people */
+		.people{
+			display: block;
+			position: absolute;
+			bottom: 0;
+			width: 100%;
+			text-align: center;
+			background-color: #aaa;
+			color: #fff;
+		}
+		
 		/* rooms */
 		#rooms{
 			margin: 1rem;
@@ -321,7 +332,7 @@
 		<link rel="stylesheet" href="./layui/css/layui.css">
 		
 		<!-- 调试工具 -->
-		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+		<!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
 		<script>
 		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
@@ -329,7 +340,7 @@
 			eruda.init();
 			new VConsole();
 		}
-		</script>
+		</script> -->
 		
 		<!-- PianoMusic Bgm -->
 		<script src="./js/acoustic_grand_piano-ogg.js"></script>
@@ -341,7 +352,7 @@
 		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
 		
 		<script src="https://wzh656.github.io/gobang/js/dynamic.js" async></script>
-		<script src="https://wzh656.github.io/gobang/js/count.js" async></script>
+		<!-- <script src="https://wzh656.github.io/gobang/js/count.js" async></script> -->
 		
 	</head>
 	<body>
@@ -429,6 +440,7 @@
 			<button class="start layui-btn layui-btn-normal layui-btn-radius layui-btn-disabled" style="display: none;">开始游戏</button>
 		</section>
 		
+		<footer class="people">当前在线人数：<span></span></footer>
 		<footer style="display: none;">
 			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' async type='text/javascript'%3E%3C/script%3E"));</script>
 		</footer>
@@ -720,6 +732,12 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_assignID", data)
 		ID = data;
 		$(".state").html("你的分配ID：" + ID);
+	});
+	
+	//当前在线人数
+	socket.on("gobang_people", function(num){
+		console.log("↓ gobang_people", num)
+		$(".people > span").html(num);
 	});
 	
 	//房间列表
