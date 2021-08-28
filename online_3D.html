@@ -331,9 +331,6 @@
 			width: 100%;
 			margin-right: 0.2rem;
 		}
-		#info > .input > input:focus{
-			border: 1px solid rgb(210, 210, 210);
-		}
 		#info > .input > button{
 			flex: none;
 			margin-left: 0.2rem;
@@ -357,6 +354,17 @@
 		<script src="./layui/layui.js"></script>
 		<link rel="stylesheet" href="./layui/css/layui.css" />
 		
+		<!-- 调试工具 -->
+		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
+		<script>
+		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
+			//手机
+			eruda.init();
+			new VConsole();
+		}
+		</script>
+		
 		<!-- PianoMusic Bgm -->
 		<script src="./js/acoustic_grand_piano-ogg.js"></script>
 		<script src="./js/music.js"></script>
@@ -368,15 +376,6 @@
 		
 		<script src="https://wzh656.github.io/gobang/js/dynamic.js" async></script>
 		<script src="https://wzh656.github.io/gobang/js/count.js" async></script>
-		<script>
-		var _hmt = _hmt || [];
-		(function() {
-			var hm = document.createElement("script");
-			hm.src = "https://hm.baidu.com/hm.js?c6b8f0ad7ec671e54d83e86a67280999";
-			var s = document.getElementsByTagName("script")[0]; 
-			s.parentNode.insertBefore(hm, s);
-		})();
-		</script>
 		
 	</head>
 	<body>
@@ -1421,7 +1420,9 @@ const board = new Board({ //棋盘
 	},
 	spacing: {x: 10, y: 10, z: 10}
 });
-let waiting = false; //未等待
+let waiting = false, //未等待
+	gameOverMusic, //游戏结束音乐
+	lastMistake = null; //上次防误触物体
 
 const loadingId = layer.load(2);
 setTimeout(()=>{
@@ -1437,8 +1438,7 @@ let socket, //socket.io
 	oldID = location.getQueryString("id"), //上次分配的ID
 	ROOM = location.getQueryString("room"), //房间
 	TYPE = !!+location.getQueryString("type"), //房主: true, 成员: false
-	FIRST = JSON.parse( location.getQueryString("first") ), //先手
-	lastMistake = null; //上次防误触物体
+	FIRST = JSON.parse( location.getQueryString("first") ); //先手
 $("body > header > h1").html(ROOM);
 
 
@@ -1661,6 +1661,10 @@ let game = {
 				$("#state").html("胜利！");
 				output(`胜利：${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`, true);
 				
+				if (gameOverMusic)
+					gameOverMusic.stop();
+				gameOverMusic = new Player("./music/好运来.mp3").play();
+				
 			}else if (win === false){
 				this.winner = 1-this.first;
 				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
@@ -1668,6 +1672,10 @@ let game = {
 				);
 				$("#state").html("你失败了！");
 				output(`你失败了：${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`, true);
+				
+				if (gameOverMusic)
+					gameOverMusic.stop();
+				gameOverMusic = new Player("./music/凉凉.mp3").play();
 				
 			}else{
 				this.winner = null;
@@ -1833,6 +1841,10 @@ let game = {
 
 //初始化
 function init(){
+	//游戏结束音乐
+	if (gameOverMusic)
+		gameOverMusic.stop();
+	
 	//棋盘
 	board.clearLines(); //删除所有划线
 	waiting = true; //禁止点击
