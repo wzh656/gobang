@@ -2641,7 +2641,7 @@ function chat(){
 				const content = json.content.replace(/\{br\}/g, "<br>");
 				layer.tips(content, $("#main > .opposite > i")[0], {tips: 1}); //上方
 				output("AI：" + content);
-				new Player("http://tts.baidu.com/text2audio?lan=zh&ie=UTF-8&spd=7&text="+encodeURIComponent(content)).play();
+				new Player("http://tts.baidu.com/text2audio?lan=zh&ie=UTF-8&spd=7&text="+encodeURIComponent( json.content.replace(/\{br\}/g, "") )).play();
 			}else{
 				output("错误："+json.result, true);
 			}
