@@ -417,6 +417,7 @@
 		<!-- babylon.js -->
 		<script src="./js/babylon.min.js"></script>
 		<script src="./js/babylonjs.materials.min.js"></script>
+		<script src="./js/babylon.meshwriter.min.js"></script>
 		
 		<!-- layui -->
 		<!--<link rel="stylesheet" href="https://unpkg.com/layui@2.6.4/dist/css/layui.css">
@@ -425,7 +426,7 @@
 		<link rel="stylesheet" href="./layui/css/layui.css" />
 		
 		<!-- 调试工具 -->
-		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+		<!--<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
 		<script>
 		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
@@ -433,7 +434,7 @@
 			eruda.init();
 			new VConsole();
 		}
-		</script>
+		</script>-->
 		
 		<!-- PianoMusic Bgm -->
 		<script src="./js/acoustic_grand_piano-ogg.js"></script>
@@ -444,6 +445,15 @@
 		
 		<script src="https://wzh656.github.io/gobang/js/dynamic.js" async></script>
 		<script src="https://wzh656.github.io/gobang/js/count.js" async></script>
+		<script>
+		var _hmt = _hmt || [];
+		(function() {
+			var hm = document.createElement("script");
+			hm.src = "https://hm.baidu.com/hm.js?c6b8f0ad7ec671e54d83e86a67280999";
+			var s = document.getElementsByTagName("script")[0]; 
+			s.parentNode.insertBefore(hm, s);
+		})();
+		</script>
 		
 	</head>
 	<body>
@@ -635,6 +645,11 @@ class Board{
 			},
 			win: [], //获胜
 			analyse: [] //分析
+		};
+		
+		this.text = { //游戏结束字体
+			win: null,
+			fail: null
 		};
 	}
 	
@@ -896,6 +911,8 @@ class Board{
 			}
 		}
 		
+		//游戏结束字体
+		this.Writer = BABYLON.MeshWriter(this.scene);
 		
 		//优化阻止dirty
 		this.scene.blockMaterialDirtyMechanism = true;
@@ -1418,6 +1435,48 @@ class Board{
 	}
 	
 	
+	/* 字体 */
+	//添加字体
+	addText(text, type, color="#ff0000", rotation){
+		this.clearText(type); //如果有 删除
+		const sps = new this.Writer( 
+			text,
+			{
+				anchor: "center",
+				"letter-height": 30,
+				"letter-thickness": 5,
+				color,
+				"font-family": "xs",
+				position: {
+					y: this.ijk2xyz(0, this.rows, 0)[1]
+				}
+			}
+		);
+		const mesh = sps.getMesh();
+		mesh.rotation.x = rotation;
+		this.sizeInAnimation(mesh, 100);
+		this.text[type] = sps;
+		return this;
+	}
+	
+	//删除字体
+	clearText(type){
+		if (type){
+			const sps = this.text[type];
+			if (this.text[type])
+				this.sizeOutAnimation(sps.getMesh(), 100)
+					.then(()=>{
+						if (sps.getMesh().mesh.goalVisible != true)
+							sps.dispose();
+					});
+		}else{
+			this.clearText("win");
+			this.clearText("fail");
+		}
+		return this;
+	}
+	
+	
 	/* 占位符控制 */
 	//层增大
 	layerAdd(){
@@ -1895,6 +1954,7 @@ let game = {
 					{title: "胜利！", icon: 6}
 				);
 				
+				board.addText("You Win!", "win", "#ff0000", -Math.PI/2);
 				game_record.four.win++;
 				game_record.four[N].win++;
 				game_record.four[N][+this.first].win++;
@@ -1910,6 +1970,7 @@ let game = {
 					{title: "你失败了！", icon: 5}
 				);
 				
+				board.addText("You Failed!", "win", "#ff0000", Math.PI/2);
 				game_record.four.fail++;
 				game_record.four[N].fail++;
 				game_record.four[N][+this.first].fail++;
@@ -2146,7 +2207,7 @@ function init(){
 	//棋盘
 	board.clearLines(); //删除所有划线
 	waiting = true; //禁止点击
-	board.clear().clearLines().intoAnimation().then(()=>{
+	board.clear().clearLines().clearText().intoAnimation().then(()=>{
 		// game.set(1); //黑棋先下
 		// game.startTime = +new Date(); //开始计时
 		waiting = false; //允许点击
@@ -2567,6 +2628,8 @@ $("#toolBtn > .review").click(function(){
 $("#info > .input > button").click(chat);
 function chat(){
 	const msg = $("#info > .input > input").val();
+	if (msg.length <= 0) return; //无输入
+	
 	layer.tips(msg, $("#main > .self > i")[0], {tips: 1}); //上方
 	$("#info > .input > input").val(""); //清空输入
 	output("你：" + msg);
@@ -2578,6 +2641,7 @@ function chat(){
 				const content = json.content.replace(/\{br\}/g, "<br>");
 				layer.tips(content, $("#main > .opposite > i")[0], {tips: 1}); //上方
 				output("AI：" + content);
+				new Player("http://tts.baidu.com/text2audio?lan=zh&ie=UTF-8&spd=7&text="+encodeURIComponent(content)).play();
 			}else{
 				output("错误："+json.result, true);
 			}
