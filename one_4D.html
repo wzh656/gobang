@@ -598,6 +598,7 @@ class Board{
 		this.winLines = winLines; //获胜划线材质
 		
 		this.spacing = spacing; //间隔
+		
 		this.lines = { //划线
 			border: [], //棋盘边界
 			circle: [], //圆圈标记
@@ -609,23 +610,16 @@ class Board{
 			win: [], //获胜
 			analyse: [] //分析
 		};
+		this.text = { //游戏结束字体
+			win: null,
+			fail: null
+		};
 	}
 	
 	
 	/* 场景 */
 	//载入场景
 	loadScene(skyboxDisplay=true, moonDisplay=true, borderDisplay=true){
-		//stats.js
-		this.stats = new Stats();
-		this.stats.showPanel(0);
-		$("#main").append(
-			$(this.stats.dom)
-				.css("top", "calc(2em + 2 * 0.3rem)")
-				.css("left", "auto")
-				.css("right", "0")
-				.css("opacity", "0.5")
-		);
-		
 		//引擎 场景 相机
 		this.engine = new BABYLON.Engine(this.canvas); //引擎
 		this.engine.enableOfflineSupport = false; //不支持离线 以减少内存
@@ -880,13 +874,14 @@ class Board{
 			}
 		}
 		
+		//游戏结束字体
+		this.Writer = BABYLON.MeshWriter(this.scene);
 		
 		//优化阻止dirty
 		this.scene.blockMaterialDirtyMechanism = true;
 		
 		//渲染循环
 		this.engine.runRenderLoop(()=>{
-			this.stats.update(); //stats.js更新
 			this.scene.render();
 		});
 	}
@@ -1403,6 +1398,48 @@ class Board{
 	}
 	
 	
+	/* 字体 */
+	//添加字体
+	addText(text, type, color="#ff0000", rotation){
+		this.clearText(type); //如果有 删除
+		const sps = new this.Writer( 
+			text,
+			{
+				anchor: "center",
+				"letter-height": 30,
+				"letter-thickness": 5,
+				color,
+				"font-family": "xs",
+				position: {
+					y: this.ijk2xyz(0, this.rows, 0)[1]
+				}
+			}
+		);
+		const mesh = sps.getMesh();
+		mesh.rotation.x = rotation;
+		this.sizeInAnimation(mesh, 100);
+		this.text[type] = sps;
+		return this;
+	}
+	
+	//删除字体
+	clearText(type){
+		if (type){
+			const sps = this.text[type];
+			if (this.text[type])
+				this.sizeOutAnimation(sps.getMesh(), 100)
+					.then(()=>{
+						if (sps.getMesh().mesh.goalVisible != true)
+							sps.dispose();
+					});
+		}else{
+			this.clearText("win");
+			this.clearText("fail");
+		}
+		return this;
+	}
+	
+	
 	/* 占位符控制 */
 	//层增大
 	layerAdd(){
@@ -1880,6 +1917,7 @@ let game = {
 					{title: "胜利！", icon: 6}
 				);
 				
+				board.addText("You Win!", "win", "#ff0000", -Math.PI/2);
 				game_record.four.win++;
 				game_record.four[N].win++;
 				game_record.four[N][+this.first].win++;
@@ -1895,6 +1933,7 @@ let game = {
 					{title: "你失败了！", icon: 5}
 				);
 				
+				board.addText("You Failed!", "win", "#ff0000", Math.PI/2);
 				game_record.four.fail++;
 				game_record.four[N].fail++;
 				game_record.four[N][+this.first].fail++;
@@ -2131,7 +2170,7 @@ function init(){
 	//棋盘
 	board.clearLines(); //删除所有划线
 	waiting = true; //禁止点击
-	board.clear().clearLines().intoAnimation().then(()=>{
+	board.clear().clearLines().clearText().intoAnimation().then(()=>{
 		// game.set(1); //黑棋先下
 		// game.startTime = +new Date(); //开始计时
 		waiting = false; //允许点击
