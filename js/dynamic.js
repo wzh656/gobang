@@ -1,5 +1,10 @@
-if (location.pathname.indexOf("index.html") != -1){ //仅主页
+if (sessionStorage.getItem("update_showed") != 1){
 	const updateInfo = {
+		14: {
+			version: "v4.3.2",
+			date: "2021.8.29",
+			info: "解决了很狗的特性：凉凉一直播放到下一局<br>增加了游戏结束文字和AI聊天功能<br>（taptap员工竟然星期五下午就开始周末休假不审核了，故想先更新的可以先在蓝奏云更新）"
+		},
 		13: {
 			version: "v4.3.2",
 			date: "2021.8.27",
@@ -12,8 +17,8 @@ if (location.pathname.indexOf("index.html") != -1){ //仅主页
 			let text = "";
 			for (const [code, value] of Object.entries(updateInfo))
 				if (+code > plus.runtime.versionCode)
-					text += `==================<br>v${value.version}(${code}) ${value.date}<br>${value.info}`;
-			layer.confirm(`v${plus.runtime.version}(${plus.runtime.versionCode})->v${updateInfo[latest].version}(${latest})<br>${text}`, {
+					text += `==================<br>${value.version}(${code}) ${value.date}<br>${value.info}`;
+			layer.confirm(`v${plus.runtime.version}(${plus.runtime.versionCode})->${updateInfo[latest].version}(${latest})<br>${text}`, {
 				title:"检测到新版本",
 				btn: ["更新（密码wzh）","取消"]
 			}, function(index){
@@ -21,6 +26,7 @@ if (location.pathname.indexOf("index.html") != -1){ //仅主页
 				layer.close(index);
 			});
 		}
+		sessionStorage.setItem("update_showed", 1);
 	}
 	if (typeof plus != "undefined"){
 		updateFunc();
