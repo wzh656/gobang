@@ -3,8 +3,8 @@
     "id" : "H504276D9", /*应用的标识*/
     "name" : "4D五子棋", /*应用名称，程序桌面图标名称*/
     "version" : {
-        "name" : "4.3.2", /*应用版本名称*/
-        "code" : 13
+        "name" : "4.4.0", /*应用版本名称*/
+        "code" : 14
     },
     "description" : "创新与经典的烧脑结合，体验与众不同的五子棋玩法", /*应用描述信息*/
     "icons" : {
@@ -118,12 +118,7 @@
                 "password" : "", /*Android应用打包使用密钥库中证书的密码*/
                 "aliasname" : "", /*Android应用打包使用密钥库中证书的别名*/
                 "permissions" : [
-                    "<uses-feature android:name=\"android.hardware.camera\"/>",
-                    "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
-                    "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
-                    "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
                     "<uses-permission android:name=\"android.permission.CALL_PHONE\"/>",
-                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
                     "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
                     "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
                     "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\"/>",
