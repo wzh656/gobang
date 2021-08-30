@@ -1,9 +1,9 @@
-if (sessionStorage.getItem("update_showed") != 1){
+if (sessionStorage.getItem("update_info_showed") != 1){
 	const updateInfo = {
 		14: {
 			version: "v4.3.2",
 			date: "2021.8.29",
-			info: "解决了很狗的特性：凉凉一直播放到下一局<br>增加了游戏结束文字和AI聊天功能<br>（taptap员工竟然星期五下午就开始周末休假不审核了，故想先更新的可以先在蓝奏云更新）"
+			info: "解决了很狗的特性：凉凉一直播放到下一局<br>增加了游戏结束文字和AI聊天功能"
 		},
 		13: {
 			version: "v4.3.2",
@@ -26,7 +26,7 @@ if (sessionStorage.getItem("update_showed") != 1){
 				layer.close(index);
 			});
 		}
-		sessionStorage.setItem("update_showed", 1);
+		sessionStorage.setItem("update_info_showed", 1);
 	}
 	if (typeof plus != "undefined"){
 		updateFunc();
