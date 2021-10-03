@@ -1,4 +1,4 @@
-if (+new Date() >= +new Date(2021,9,1) && +new Date() <= +new Date(2021,9,7)){
+if (location.href.indexOf("index.html") != -1 && +new Date() >= +new Date(2021,9,1) && +new Date() <= +new Date(2021,9,7)){
 	$("body").css("background-image", "url('https://img2.baidu.com/it/u=771782317,2119761893&fm=26&fmt=auto')");
 	$("body > h1").append($("<small>国庆节快乐！</small>").css("font-size", "0.3em"));
 	if (localStorage.getItem("国庆节礼包弹窗-2021-10-01") != 1){
