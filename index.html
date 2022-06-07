@@ -416,37 +416,51 @@
 						<div class="layui-form-item">
 							<label class="layui-form-label">连子数</label>
 							<div class="layui-input-inline">
-								<input type="number" name="n" min="3" max="10" value="5" class="layui-input" />
+								<input type="number" name="n" min="3" max="19" value="5" class="layui-input" />
 							</div>
 							<div class="layui-form-mid layui-word-aux">指获胜需要的连续棋子数</div>
 						</div>
 						<div class="layui-form-item">
 							<label class="layui-form-label">棋盘行数</label>
 							<div class="layui-input-inline">
-								<input type="number" name="rows" min="3" max="30" init="19" value="19" class="layui-input" />
+								<input type="number" name="rows" min="1" max="30" init="19" value="19" class="layui-input" />
 							</div>
 							<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
 						</div>
 						<div class="layui-form-item">
 							<label class="layui-form-label">棋盘列数</label>
 							<div class="layui-input-inline">
-								<input type="number" name="cols" min="3" max="30" init="19" value="19" class="layui-input" />
+								<input type="number" name="cols" min="1" max="30" init="19" value="19" class="layui-input" />
 							</div>
 							<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
 						</div>
 						<div class="layui-form-item" style="display: none;">
 							<label class="layui-form-label">棋盘深度</label>
 							<div class="layui-input-inline">
-								<input type="number" name="depth" min="3" max="30" init="10" value="10" class="layui-input" />
+								<input type="number" name="depth" min="1" max="30" init="10" value="10" class="layui-input" />
 							</div>
 							<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
 						</div>
 						<div class="layui-form-item" style="display: none;">
 							<label class="layui-form-label">四维厚度</label>
 							<div class="layui-input-inline">
-								<input type="number" name="width" min="3" max="30" init="10" value="10" class="layui-input" />
+								<input type="number" name="width" min="1" max="30" init="10" value="10" class="layui-input" />
 							</div>
 							<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
+						</div>
+						<div class="layui-form-item">
+							<label class="layui-form-label">局时</label>
+							<div class="layui-input-inline">
+								<input type="number" name="totalTime" min="60" max="Infinity" init="300" value="300" class="layui-input" />
+							</div>
+							<div class="layui-form-mid layui-word-aux">单位：秒(s)</div>
+						</div>
+						<div class="layui-form-item">
+							<label class="layui-form-label">步时</label>
+							<div class="layui-input-inline">
+								<input type="number" name="stepTime" min="5" max="Infinity" init="30" value="30" class="layui-input" />
+							</div>
+							<div class="layui-form-mid layui-word-aux">单位：秒(s)</div>
 						</div>
 						<div class="layui-form-item">
 							<label class="layui-form-label">下棋位置</label>
@@ -494,6 +508,8 @@
 								<select name="bgm" lay-filter="bgm">
 									<option value="none">无</option>
 									<option value="piano" checked>纯音乐钢琴曲(deskgood作曲)</option>
+									<option value="piano2">纯音乐钢琴曲2</option>
+									<option value="LonelyWarrior">孤勇者</option>
 									<option value="random">网抑云随机热歌</option>
 									<option value="custom">自定义</option>
 								</select>
@@ -511,6 +527,9 @@
 								<select name="effect" lay-filter="effect">
 									<option value="none">无</option>
 									<option value="stars" checked>小星星钢琴曲</option>
+									<option value="piano">纯音乐钢琴曲(deskgood作曲)</option>
+									<option value="piano2">纯音乐钢琴曲2</option>
+									<option value="LonelyWarrior">孤勇者</option>
 									<option value="custom">自定义</option>
 								</select>
 							</div>
@@ -609,6 +628,10 @@ function setD(D){
 				.html("2D：回归传统，品味经典游戏");
 			form_game.cols.init = form_game.rows.init = 19; //初始值为19
 			form_game.cols.value = form_game.rows.value = 19; //值为19
+			form_game.totalTime.init = 300; //初始值为300
+			form_game.totalTime.value = 300; //值为300
+			form_game.stepTime.init = 30; //初始值为30
+			form_game.stepTime.value = 30; //值为30
 			$(form_game.depth).parent().parent().hide("slow");
 			$(form_game.width).parent().parent().hide("slow");
 			$(form_game.place).parent().parent().show("slow");
@@ -623,6 +646,10 @@ function setD(D){
 				.html("3D：创意之作，体味烧脑乐趣");
 			form_game.cols.init = form_game.rows.init = form_game.depth.init = 10; //初始值为10
 			form_game.cols.value = form_game.rows.value = form_game.depth.value = 10; //值为10
+			form_game.totalTime.init = 600; //初始值为600
+			form_game.totalTime.value = 600; //值为600
+			form_game.stepTime.init = 45; //初始值为45
+			form_game.stepTime.value = 45; //值为45
 			$(form_game.depth).parent().parent().show("slow");
 			$(form_game.width).parent().parent().hide("slow");
 			$(form_game.place).parent().parent().hide("slow");
@@ -637,6 +664,10 @@ function setD(D){
 				.html("4D：四维空间，挑战最强大脑");
 			form_game.cols.init = form_game.rows.init = form_game.depth.init = form_game.width.init = 10; //初始值为10
 			form_game.cols.value = form_game.rows.value = form_game.depth.value = form_game.width.value = 10; //值为10
+			form_game.totalTime.init = 900; //初始值为900
+			form_game.totalTime.value = 900; //值为900
+			form_game.stepTime.init = 60; //初始值为60
+			form_game.stepTime.value = 60; //值为60
 			$(form_game.depth).parent().parent().show("slow");
 			$(form_game.width).parent().parent().show("slow");
 			$(form_game.place).parent().parent().hide("slow");
@@ -660,6 +691,8 @@ function readSetting(){
 	setting_game.depth = setting_game.depth || 10;
 	setting_game.width = setting_game.width || 10;
 	setting_game.place = setting_game.place || 0;
+	setting_game.totalTime = setting_game.totalTime || 300;
+	setting_game.stepTime = setting_game.stepTime || 30;
 	
 	setting_personal.skybox = OR(setting_personal.skybox, true);
 	setting_personal.moon = OR(setting_personal.moon, true);
@@ -676,6 +709,8 @@ function readSetting(){
 	form_game.depth.value = setting_game.depth;
 	form_game.width.value = setting_game.width;
 	form_game.place[+setting_game.place].checked = true;
+	form_game.totalTime.value = setting_game.totalTime;
+	form_game.stepTime.value = setting_game.stepTime;
 	
 	if ( setting_personal.mistake !== undefined ){ //有设置
 		$(form_personal).find("input.mistake")[0].checked = !!setting_personal.mistake;
@@ -693,7 +728,7 @@ function readSetting(){
 	
 	form_music.bgm_custom.value = MUSICS.piano; //默认：deskgood作曲钢琴曲
 	form_music.effect_custom.value = MUSICS.stars; //默认：小星星
-	if (["none", "piano", "random"].indexOf(setting_music.bgm) == -1){ //自定义
+	if (["none", "piano", "piano2", "LonelyWarrior", "random"].indexOf(setting_music.bgm) == -1){ //自定义
 		form_music.bgm.value = "custom";
 		form_music.bgm_custom.value = setting_music.bgm;
 		$(form_music.bgm_custom).parent().parent().show();
@@ -701,7 +736,7 @@ function readSetting(){
 		form_music.bgm.value = setting_music.bgm;
 		$(form_music.bgm_custom).parent().parent().hide();
 	}
-	if (["none", "stars"].indexOf(setting_music.effect) == -1){ //自定义
+	if (["none", "stars", "piano", "piano2", "LonelyWarrior"].indexOf(setting_music.effect) == -1){ //自定义
 		form_music.effect.value = "custom";
 		form_music.effect_custom.value = setting_music.effect;
 		$(form_music.effect_custom).parent().parent().show();
@@ -1085,6 +1120,12 @@ layui.use("form", function(){
 		if (data.value == "piano"){ //测试播放
 			if (!bgm) //未播放bgm
 				bgmTest = new Music(MUSICS.piano, 6, 72).play();
+		}else if (data.value == "piano2"){ //测试播放
+			if (!bgm)
+				bgmTest = new Music(MUSICS.piano2, 6, 72).play();
+		}else if (data.value == "LonelyWarrior"){ //测试播放
+			if (!bgm)
+				bgmTest = new Music(MUSICS.LonelyWarrior, 6, 72).play();
 		}else if (data.value == "random"){ //测试播放
 			if (!bgm)
 				bgmTest = new Player("https://api.vvhan.com/api/rand.music?sort=热歌榜");
@@ -1105,6 +1146,18 @@ layui.use("form", function(){
 			if (effectTest)
 				effectTest.setStop(true);
 			effectTest = new Music(MUSICS.stars, 6, 72).play();
+		}else if (data.value == "piano"){ //测试播放
+			if (effectTest)
+				effectTest.setStop(true);
+			effectTest = new Music(MUSICS.piano, 6, 72).play();
+		}else if (data.value == "piano2"){ //测试播放
+			if (effectTest)
+				effectTest.setStop(true);
+			effectTest = new Music(MUSICS.piano2, 6, 72).play();
+		}else if (data.value == "LonelyWarrior"){ //测试播放
+			if (effectTest)
+				effectTest.setStop(true);
+			effectTest = new Music(MUSICS.LonelyWarrior, 6, 72).play();
 		}else if (data.value == "none"){ //无 停止播放
 			if (effectTest)
 				effectTest.setStop(true); //停止音效测试
@@ -1171,6 +1224,15 @@ $("#one").click(function(){
 //多人联机
 $("#online").click(function(){
 	go("rooms.html");
+	/*if (typeof plus != "undefined"){
+		layer.confirm("灰常抱歉，由于<del>可恶的</del>国家政策，木有版号的游戏只能发布测试版，故无法联网进行联机服务，若需要联机请打开网页版游戏：<br>https://wzh656.github.io/gobang/rooms.html<br>提示：免费服务器5分钟无请求自动休眠，加载时等待服务器开启可能较慢，请耐心等待", {
+			btn: ["浏览器打开", "取消"]
+		}, function(){
+			plus.runtime.openURL("https://wzh656.github.io/gobang/rooms.html");
+		});
+	}else{
+		layer.msg("模块加载中，请稍后再试");
+	}*/
 });
 
 
@@ -1199,6 +1261,8 @@ $("#settings button.save").click(function(){
 	setting_game.depth = +form_game.depth.value;
 	setting_game.width = +form_game.width.value;
 	setting_game.place = +form_game.place[1].checked;
+	setting_game.totalTime = +form_game.totalTime.value;
+	setting_game.stepTime = +form_game.stepTime.value;
 	
 	setting_personal.mistake = form_personal.mistake.checked;
 	setting_personal.skybox = form_personal.skybox.checked;
@@ -1237,10 +1301,11 @@ $("#record > .back").click(function(){
 
 //双击
 $("body > h1").on("dblclick",function(){
-	for (let i=0; i<36*Math.random()+36; i++){
+	const num = Math.random(36, 72);
+	for (let i=0; i<num; i++){
 		$("body").animate({
-			left: (Math.random()*6-3)+"%",
-			top: (Math.random()*6-3)+"%",
+			left: Math.random(-3, 3)+"%",
+			top: Math.random(-3, 3)+"%",
 			opacity: 1
 		},10);
 	}

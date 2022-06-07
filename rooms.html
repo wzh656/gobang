@@ -155,7 +155,7 @@
 		/* people */
 		.people{
 			display: block;
-			position: absolute;
+			position: fixed;
 			bottom: 0;
 			width: 100%;
 			text-align: center;
@@ -447,6 +447,7 @@
 			</form>
 			<button class="join layui-btn layui-btn-normal layui-btn-radius" style="display: none;">加入游戏</button>
 			<button class="start layui-btn layui-btn-normal layui-btn-radius layui-btn-disabled" style="display: none;">开始游戏</button>
+			<br/>
 		</section>
 		
 		<footer class="people">当前在线人数：<span></span></footer>
@@ -1149,6 +1150,9 @@ $("#room > .join").click(function(){
 		
 		if (ROOMLIST[ROOM].state != false)
 			return layer.msg("当前房间已开始游戏", {icon: 5});
+		
+		if (ROOMLIST[ROOM].people[1] != null)
+			return layer.msg("已有人加入游戏", {icon: 5});
 		
 		send("gobang_joinRoom", ROOM);
 		

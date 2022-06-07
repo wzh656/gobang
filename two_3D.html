@@ -457,6 +457,9 @@ $(window).resize(function(){
 document.addEventListener("plusready", function(){
 	plus.navigator.setStatusBarBackground("#aef");
 	plus.navigator.setStatusBarStyle("dark");
+	plus.key.addEventListener("backbutton", function(){
+		go("index.html");
+	});
 }, false);
 </script>
 <script>
@@ -688,7 +691,7 @@ class Board{
 		
 		//天空盒
 		if (skyboxDisplay){ //允许显示
-			const skybox = BABYLON.Mesh.CreateBox("skyBox", 1000, this.scene);
+			const skybox = BABYLON.Mesh.CreateBox("skyBox", 3000, this.scene);
 			const skyMaterial = new BABYLON.SkyMaterial("skyMaterial", this.scene);
 			skyMaterial.backFaceCulling = false;
 			skybox.material = skyMaterial;
@@ -756,7 +759,7 @@ class Board{
 				setInterval(function(){
 					if ((skyMaterial.inclination+0.5)%2 < 1)
 						return (moon.isVisible = false);
-					const radius = 400, //轨道距离
+					const radius = 500, //轨道距离
 						theta = (skyMaterial.inclination+1.5)%2 /2 *2*Math.PI;
 					moon.isVisible = true;
 					moon.position.set(
@@ -1315,7 +1318,7 @@ class Board{
 }
 
 
-const {N=5, cols=10, rows=10, depth=10} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
+const {N=5, cols=10, rows=10, depth=10, totalTime=600, stepTime=45} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
 	{mistake=true, skybox=true, moon=true, border=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
 const board = new Board({ //棋盘
 	canvas: $("#board")[0],
@@ -1378,19 +1381,19 @@ let game = {
 		t0: [null, null], //上次时间
 		ids: [null, null], //计时器id
 		time: [
-			{total: 600, step: 45}, //0: 白
-			{total: 600, step: 45} //1: 黑
+			{total: totalTime, step: stepTime}, //0: 白
+			{total: totalTime, step: stepTime} //1: 黑
 		], //剩余时间
 		timeWarning: { //时间警告
 			total: {
 				60: ["#f00", 1.2],
 				180: ["#fa0", 1.1],
-				600: ["inherit", 1]
+				Infinity: ["inherit", 1]
 			},
 			step: {
 				10: ["#f00", 1.5],
 				20: ["#fa0", 1.1],
-				45: ["inherit", 1]
+				Infinity: ["inherit", 1]
 			}
 		},
 		scores: {
@@ -1487,7 +1490,7 @@ let game = {
 			if (this.time[this.turn].total <= 0){ //超出局时
 				this.time[this.turn].step += 5;
 			}else{
-				this.time[this.turn].step = 45; //重置步时
+				this.time[this.turn].step = stepTime; //重置步时
 				//this.time[this.turn].total += 5; //增加局时
 			}
 			this.updateTime(this.turn);
@@ -1694,10 +1697,10 @@ function init(){
 	clearInterval( game.ids[0] );
 	clearInterval( game.ids[1] ); //时间暂停
 	game.t0[0] = game.t0[1] = game.ids[0] = game.ids[1] = null;
-	game.time[0].total = 600;
-	game.time[0].step = 45;
-	game.time[1].total = 600;
-	game.time[1].step = 45;
+	game.time[0].total = totalTime;
+	game.time[0].step = stepTime;
+	game.time[1].total = totalTime;
+	game.time[1].step = stepTime;
 	game.scores.now[0] = game.scores.now[1] =
 		game.scores.goal[0] = game.scores.goal[1] = 0;
 	game.scores.t0 = +new Date();
@@ -1901,6 +1904,8 @@ $("#toolBtn > .review").click(function(){
 		$("#tools > .review > .stop").hide();
 		$("#tools > .review > .play").show(); //暂停
 		
+		if ( !board.lines.circle[0] ) return; //未下棋 跳过
+		
 		request({
 			type: "review" //重放
 		}).then((data)=>{
@@ -1984,7 +1989,8 @@ $("#toolBtn > .review").click(function(){
 	}else{
 		clearInterval(review_id);
 		review_id = null;
-		reviewRestore(); //重置
+		if (reviewRestore) //可能被跳过
+			reviewRestore(); //重置
 		
 		$("#tools > .review > .stop").hide();
 		$("#tools > .review > .play").show();

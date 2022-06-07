@@ -99,7 +99,11 @@ class Music{
 				( sound == "0" ||
 					( sound.length == 2 &&
 						"CDEFGAB".indexOf( sound[0] ) != -1 &&
-						"123456789".indexOf( sound[1] ) != -1 )
+						"123456789".indexOf( sound[1] ) != -1 ) ||
+					( sound.length == 3 &&
+						"CDEFGAB".indexOf( sound[0] ) != -1 &&
+						sound[1] == "b" &&
+						"123456789".indexOf( sound[2] ) != -1 )
 				)
 			){
 				this.sounds.push([sound, time, volume]);
