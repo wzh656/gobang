@@ -988,26 +988,36 @@ MUSICS.LonelyWarrior = `
 	0 12
 	循环
 `.trim().split("\n").map(v => v.trim()).join("\n");
-let {bgm, playEffect} = (function(){
+let bgm,
+	playEffect = ()=>{}; //播放音效;
+(function(){
 	let setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}");
 	setting_music.bgm = setting_music.bgm || "piano";
 	setting_music.effect = setting_music.effect || "stars";
 	
-	let bgm;
 	if (setting_music.bgm == "piano"){ //deskgood作曲钢琴曲
-		bgm = new Music(MUSICS.piano, 6, 72).play();
+		bgm = new Music(MUSICS.piano, 72).play();
 	}else if (setting_music.bgm == "piano2"){ //钢琴曲2
-		bgm = new Music(MUSICS.piano2, 6, 72).play();
+		bgm = new Music(MUSICS.piano2, 72).play();
+	}else if (setting_music.bgm == "youth"){ //lyz
+		bgm = new Player("./music/piano.mp3").play();
 	}else if (setting_music.bgm == "LonelyWarrior"){ //孤勇者
-		bgm = new Music(MUSICS.LonelyWarrior, 6, 72).play();
+		bgm = new Music(MUSICS.LonelyWarrior, 72).play();
 	}else if (setting_music.bgm == "random"){ //网易云随机音乐
 		bgm = new Player("https://api.vvhan.com/api/rand.music?sort=热歌榜").play();
+	}else if (setting_music.bgm == "local"){ //本地音频
+		if (typeof plus != "undefined"){
+			bgm = new Player( plus.storage.getItem("本地音频") ).play();
+		}else{
+			document.addEventListener("plusready", function(){
+				bgm = new Player( plus.storage.getItem("本地音频") ).play();
+			}, false);
+		}
 	}else if (setting_music.bgm != "none"){ //自定义
-		bgm = new Music(setting_music.bgm, 6, 72).play();
+		bgm = null;
 	}
 	
 	const effect = new PianoMusic(2, 60);
-	let playEffect = ()=>{}; //播放音效
 	if (setting_music.effect == "stars"){
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置

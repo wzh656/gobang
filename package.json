@@ -1,0 +1,26 @@
+{
+  "name": "4d-gobang",
+  "version": "5.0.0",
+  "description": "Combine Innovation with Brain Burning, Experience the Distinctive Art of Gobang",
+  "main": "index.js",
+  "scripts": {
+    "test": "electron .",
+		"package": "electron-packager . 4D-Gobnag --platform=win32 --arch=ia32 --out=./out --asar --icon=img/icon.png --app-version=5.0.0 --overwrite --ignore=node_modules --electron-version 11.0.3 --registry=https://registry.npm.taobao.org/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wzh656/gobang.git"
+  },
+  "keywords": [
+    "gobang",
+    "chess",
+    "game",
+    "4d"
+  ],
+  "author": "wzh656",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/wzh656/gobang/issues"
+  },
+  "homepage": "https://github.com/wzh656/gobang#readme"
+}

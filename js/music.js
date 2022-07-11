@@ -3,6 +3,7 @@ class Player{
 	constructor(url, volume=1){
 		const audio = $("<audio></audio>")[0];
 		audio.src = url;
+		audio.loop = "loop";
 		audio.volume = volume;
 		
 		$("body").append( audio );
@@ -10,7 +11,7 @@ class Player{
 	}
 	
 	play(){
-		console.log("play", this.audio.src, this.audio.volume)
+		console.log("play", this.audio.src.substr(0,100), this.audio.volume)
 		this.audio.play().catch((err)=>{
 			console.error(err)
 			const play = ()=>{
@@ -19,17 +20,17 @@ class Player{
 			};
 			document.addEventListener("plusready", function plusready(){
 				play();
-				console.log("plusready -> play", this.audio.src, this.audio.volume)
+				console.log("plusready -> play")
 				document.removeEventListener("plusready", plusready);
 			});
 			document.addEventListener("click", function click(){
 				play();
-				console.log("click -> play", this.audio.src, this.audio.volume)
+				console.log("click -> play")
 				document.removeEventListener("click", click);
 			});
 			document.addEventListener("touchstart", function touchstart(){
 				play();
-				console.log("touchstart -> play", this.audio.src, this.audio.volume)
+				console.log("touchstart -> play")
 				document.removeEventListener("touchstart", touchstart);
 			});
 		});

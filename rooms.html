@@ -153,7 +153,7 @@
 		}
 		
 		/* people */
-		.people{
+		footer{
 			display: block;
 			position: fixed;
 			bottom: 0;
@@ -325,6 +325,9 @@
 			window.$ = window.jQuery = require("./js/jquery.min.js");
 		</script>
 		
+		<!-- 语言包 -->
+		<script src="./lang/lang.js" defer></script>
+		
 		<!-- layui -->
 		<!--<link rel="stylesheet" href="https://unpkg.com/layui@2.6.4/dist/css/layui.css">
 		<script src="https://unpkg.com/layui@2.6.8/dist/layui.js"></script>-->
@@ -424,7 +427,7 @@
 					</div>
 				</div>
 				<div class="layui-form-item" style="display: none;">
-					<label class="layui-form-label">四维长度</label>
+					<label class="layui-form-label">四维厚度</label>
 					<div class="layui-input-inline">
 						<input type="number" name="width" min="3" max="30" init="10" value="10" class="layui-input" />
 					</div>
@@ -450,10 +453,7 @@
 			<br/>
 		</section>
 		
-		<footer class="people">当前在线人数：<span></span></footer>
-		<footer style="display: none;">
-			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' async type='text/javascript'%3E%3C/script%3E"));</script>
-		</footer>
+		<footer><span>当前在线人数：</span><span class="people"></span></footer>
 		
 <script>
 document.addEventListener("plusready", function(){
@@ -602,7 +602,7 @@ function updateRoomSetting(settings={}){
 		
 		for (const [i,v] of Object.entries(people))
 			$("#room > ul").append(
-				$("<li></li>").html((i==0? "房主：": i==1? "成员：": "") + (v||"（无）") + (v==ID? "（我）": ""))
+				$("<li></li>").html((i==0? "<span>房主：</span>": i==1? "<span>成员：</span>": "") + (v||"<span>（无）</span>") + (v==ID? "<span>（我）</span>": ""))
 			);
 		
 		if (people[1] && people[0]){ //可以开始游戏
@@ -675,7 +675,7 @@ let socket, //socket.io
 	ROOM = null, //加入的房间
 	startRoomLoader; //开始游戏等待
 if (typeof io == "undefined"){ //未加载socket.io.js
-	$(".state").html("网络错误，请检查网络连接再刷新页面！")
+	$(".state").html("网络错误或服务器繁忙，请检查网络连接再刷新页面！")
 		.removeClass().addClass("state failed");
 	
 }else{
@@ -697,19 +697,19 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		send("gobang_roomList"); //房间列表
 		$(".state").html("服务器连接成功")
 			.removeClass().addClass("state success");
-		layer.msg("服务器连接成功", {icon:1});
+		layer.msg("<span>服务器连接成功</span>", {icon:1});
 	});
 	socket.on("connect_failed", function(data){
 		$(".state").html("服务器连接失败")
 			.removeClass().addClass("state failed");
-		layer.msg("服务器连接失败", {icon:2});
+		layer.msg("<span>服务器连接失败</span>", {icon:2});
 	});
 	socket.on("disconnect", function(data){
 		ROOM = null;
 		roomOutAnimation();
 		$(".state").html("与服务器连接断开")
 			.removeClass().addClass("state failed");
-		layer.msg("与服务器连接断开", {icon:2});
+		layer.msg("<span>与服务器连接断开</span>", {icon:2});
 	});
 	socket.on("reconnecting", function(data){
 		$(".state").html("重连中……")
@@ -722,18 +722,18 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		send("gobang_roomList"); //房间列表
 		$(".state").html("服务器重连成功")
 			.removeClass().addClass("state success");
-		layer.msg("服务器重连成功", {icon:1});
+		layer.msg("<span>服务器重连成功</span>", {icon:1});
 	});
 	socket.on("reconnect_failed", function(data){
 		$(".state").html("服务器重连失败")
 			.removeClass().addClass("state failed");
-		layer.msg("服务器重连失败", {icon:2});
+		layer.msg("<span>服务器重连失败</span>", {icon:2});
 	});
 	socket.on("error", function(data){
 		console.error(data);
 		$(".state").html("服务器连接错误！")
 			.removeClass().addClass("state failed");
-		layer.msg("服务器连接错误！", {icon:2});
+		layer.msg("<span>服务器连接错误！</span>", {icon:2});
 	});
 	
 	
@@ -741,13 +741,13 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_assignID", function(data){
 		console.log("↓ gobang_assignID", data)
 		ID = data;
-		$(".state").html("你的分配ID：" + ID);
+		$(".state").html("<span>你的分配ID：</span>" + ID);
 	});
 	
 	//当前在线人数
 	socket.on("gobang_people", function(num){
 		console.log("↓ gobang_people", num)
-		$(".people > span").html(num);
+		$(".people").html(num);
 	});
 	
 	//房间列表
@@ -772,13 +772,13 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 						$("<h3></h3>").html(name)
 					)
 					.append(
-						$("<p></p>").html("房主：" + v.people[0])
+						$("<p></p>").html("<span>房主：</span>" + v.people[0])
 					)
 					.append(
-						$("<p></p>").html("人数：" + v.people.filter(v => v).length)
+						$("<p></p>").html("<span>人数：</span>" + v.people.filter(v => v).length)
 					)
 					.append(
-						$("<p></p>").html("状态：" + (v.state? "已开始游戏": "等待开始游戏"))
+						$("<p></p>").html("<span>状态：</span>" + (v.state? "<span>已开始游戏</span>": "<span>等待开始游戏</span>"))
 					)
 					.addClass(v.state? "unable": "able")
 					.click( ()=>intoRoom(name) )
@@ -819,7 +819,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//房间关闭
 	socket.on("gobang_closeRoom", function(room){
 		console.log("↓ gobang_closeRoom", room)
-		layer.msg(`“${room}”房间已关闭`);
+		layer.msg(`“${room}”<span>房间已关闭</span>`);
 		ROOM = null;
 		roomOutAnimation();
 	});
@@ -875,7 +875,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_intoRoom", id)
 		
 		$("#info > .output").append(
-			$("<p></p>").html(`“${id}”进入了房间`)
+			$("<p></p>").html(`“${id}”<span>进入了房间</span>`)
 				.css("text-align", "center")
 		);
 	});
@@ -885,7 +885,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_joinRoom", id)
 		
 		$("#info > .output").append(
-			$("<p></p>").html(`“${id}”加入了游戏`)
+			$("<p></p>").html(`“${id}”<span>加入了游戏</span>`)
 				.css("text-align", "center")
 		);
 	});
@@ -895,7 +895,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_exitRoom", id)
 		
 		$("#info > .output").append(
-			$("<p></p>").html(`“${id}”退出了房间`)
+			$("<p></p>").html(`“${id}”<span>退出了房间</span>`)
 				.css("text-align", "center")
 		);
 	});
@@ -940,7 +940,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//newRoom失败 有同名房间
 	socket.on("gobang_newRoom_failed", function(room){
 		console.log("↓ gobang_newRoom_failed", room)
-		layer.msg("创建房间失败，已有同名房间", {icon: 5});
+		layer.msg("<span>创建房间失败，已有同名房间</span>", {icon: 5});
 		ROOM = null;
 		roomOutAnimation();
 	});
@@ -948,7 +948,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//closeRoom失败 房间关闭
 	socket.on("gobang_closeRoom_failed", function(room){
 		console.log("↓ gobang_closeRoom_failed", room)
-		layer.msg("关闭房间失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>关闭房间失败，房间已被关闭</span>", {icon: 5});
 		ROOM = null;
 		roomOutAnimation();
 	});
@@ -956,7 +956,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//exitRoom失败 房间关闭
 	socket.on("gobang_exitRoom_failed", function(room){
 		console.log("↓ gobang_exitRoom_failed", room)
-		layer.msg("退出房间失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>退出房间失败，房间已被关闭</span>", {icon: 5});
 		ROOM = null;
 		roomOutAnimation();
 	});
@@ -964,7 +964,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//roomSettings失败 房间关闭
 	socket.on("gobang_roomSettings_failed", function(room){
 		console.log("↓ gobang_roomSettings_failed", room)
-		layer.msg("获取房间设置失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>获取房间设置失败，房间已被关闭</span>", {icon: 5});
 		ROOM = null;
 		roomOutAnimation();
 	});
@@ -972,7 +972,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//intoRoom失败
 	socket.on("gobang_intoRoom_failed", function(room){
 		console.log("↓ gobang_intoRoom_failed", room)
-		layer.msg("进入房间失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>进入房间失败，房间已被关闭</span>", {icon: 5});
 		ROOM = null;
 		roomOutAnimation();
 	});
@@ -980,7 +980,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//joinRoom失败
 	socket.on("gobang_joinRoom_failed", function(room){
 		console.log("↓ gobang_joinRoom_failed", room)
-		layer.msg("加入房间失败，已有人加入游戏或房间已被关闭", {icon: 5});
+		layer.msg("<span>加入房间失败，已有人加入游戏或房间已被关闭</span>", {icon: 5});
 		/*ROOM = null;
 		roomOutAnimation();*/
 	});
@@ -988,7 +988,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//setFirst失败
 	socket.on("gobang_setFirst_failed", function(room){
 		console.log("↓ gobang_setFirst_failed", room)
-		layer.msg("设置先手失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>设置先手失败，房间已被关闭</span>", {icon: 5});
 		ROOM = null;
 		roomOutAnimation();
 	});
@@ -996,7 +996,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//setD失败
 	socket.on("gobang_setD_failed", function(room){
 		console.log("↓ gobang_setD_failed", room)
-		layer.msg("设置维数失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>设置维数失败，房间已被关闭</span>", {icon: 5});
 		ROOM = null;
 		roomOutAnimation();
 	});
@@ -1004,7 +1004,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//setN失败
 	socket.on("gobang_setN_failed", function(room){
 		console.log("↓ gobang_setN_failed", room)
-		layer.msg("设置连子数失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>设置连子数失败，房间已被关闭</span>", {icon: 5});
 		ROOM = null;
 		roomOutAnimation();
 	});
@@ -1012,7 +1012,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//setSize失败
 	socket.on("gobang_setSize_failed", function(room){
 		console.log("↓ gobang_setSize_failed", room)
-		layer.msg("设置棋盘大小失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>设置棋盘大小失败，房间已被关闭</span>", {icon: 5});
 		ROOM = null;
 		roomOutAnimation();
 	});
@@ -1020,7 +1020,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//setPlace失败
 	socket.on("gobang_setPlace_failed", function(room){
 		console.log("↓ gobang_setPlace_failed", room)
-		layer.msg("设置下棋位置失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>设置下棋位置失败，房间已被关闭</span>", {icon: 5});
 		ROOM = null;
 		roomOutAnimation();
 	});
@@ -1028,7 +1028,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//chat失败
 	socket.on("gobang_chat_failed", function(room){
 		console.log("↓ gobang_chat_failed", room)
-		layer.msg("发送消息失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>发送消息失败，房间已被关闭</span>", {icon: 5});
 		ROOM = null;
 		roomOutAnimation();
 	});
@@ -1037,15 +1037,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_roomStart_failed", function(room){
 		console.log("↓ gobang_roomStart_failed", room)
 		layer.close( startRoomLoader );
-		layer.msg("开始游戏失败，房间已被关闭或人数不足", {icon: 5});
-	});
-	
-	//chat失败
-	socket.on("gobang_chat_failed", function(room){
-		console.log("↓ gobang_chat_failed", room)
-		layer.msg("发送聊天失败，房间已被关闭", {icon: 5});
-		ROOM = null;
-		roomOutAnimation();
+		layer.msg("<span>开始游戏失败，人数不足或房间已被关闭</span>", {icon: 5});
 	});
 	
 }
@@ -1060,11 +1052,11 @@ $("body > header > .back").click(function(){
 /* 新建房间 */
 $("body > header > .new").click(function(){
 	if (socket.disconnected) //未连接
-		return layer.msg("请等待连接到服务器", {icon: 5});
+		return layer.msg("<span>请等待连接到服务器</span>", {icon: 5});
 	
 	if (ROOM)
-		return layer.msg(`您已加入房间“${ROOM}”，请先退出房间再创建`, {icon: 5});
-
+		return layer.msg(`<span>您已加入房间</span>“${ROOM}”<span>，请先退出房间再创建</span>`, {icon: 5});
+	
 	layer.prompt({
 		title: "请输入房间名",
 		maxlength: 10
@@ -1072,10 +1064,10 @@ $("body > header > .new").click(function(){
 		value = value && (value + "").trim();
 		
 		if (!value)
-			return layer.msg("请输入房间名", {icon: 5});
+			return layer.msg("<span>请输入房间名</span>", {icon: 5});
 			
 		if ( ROOMLIST[value] )
-			return layer.msg(`房间“${value}”已存在`, {icon: 5});
+			return layer.msg(`“${value}”<span>房间已存在</span>`, {icon: 5});
 		
 		layer.close(index);
 		
@@ -1111,7 +1103,7 @@ $("body > header > .new").click(function(){
 /* 进入房间 */
 function intoRoom(name){
 	if (socket.disconnected) //未连接
-		return layer.msg("请等待连接到服务器", {icon: 5});
+		return layer.msg("<span>请等待连接到服务器</span>", {icon: 5});
 	
 	roomIntoAnimation();
 	
@@ -1141,18 +1133,18 @@ function intoRoom(name){
 $("#room > .join").click(function(){
 	if (ROOMLIST[ROOM].people.slice(0,2).indexOf(ID) != -1){ //房主或成员
 		$(this).hide();
-		layer.msg("你已加入了本房间");
+		layer.msg("您已加入房间");
 		
 	}else{ //加入游戏
 		for (const [name, room] of Object.entries(ROOMLIST))
 			if (room.people.slice(0,2).indexOf(ID) != -1)
-				return layer.msg(`您已加入房间“${name}”，请先退出房间再加入`, {icon: 5});
+				return layer.msg(`<span>您已加入房间</span>“${name}”<span>，请先退出房间再加入</span>`, {icon: 5});
 		
 		if (ROOMLIST[ROOM].state != false)
-			return layer.msg("当前房间已开始游戏", {icon: 5});
+			return layer.msg("<span>当前房间已开始游戏</span>", {icon: 5});
 		
 		if (ROOMLIST[ROOM].people[1] != null)
-			return layer.msg("已有人加入游戏", {icon: 5});
+			return layer.msg("<span>已有人加入游戏</span>", {icon: 5});
 		
 		send("gobang_joinRoom", ROOM);
 		
@@ -1187,9 +1179,9 @@ $("#room > header >  .back").click(function(){
 /* 解散房间 */
 $("#room > header >  .exit").click(function(){
 	if (ROOMLIST[ROOM].people[0] == ID){ //自己为房主
-		layer.confirm(`真的要关闭房间“${ROOM}”吗？`, {
-			icon:3,
-			title:"是否关闭房间"
+		layer.confirm(`<span>真的要关闭房间</span>“${ROOM}”<span>吗？</span>`, {
+			icon: 3,
+			title: "是否关闭房间"
 		}, function(index){
 			layer.close(index);
 			
@@ -1199,9 +1191,9 @@ $("#room > header >  .exit").click(function(){
 		});
 		
 	}else if (ROOMLIST[ROOM].people[1] == ID){ //自己为成员
-		layer.confirm(`真的要退出房间“${ROOM}”吗？`, {
-			icon:3,
-			title:"是否退出房间"
+		layer.confirm(`<span>真的要退出房间</span>“${ROOM}”<span>吗？</span>`, {
+			icon: 3,
+			title: "是否退出房间"
 		}, function(index){
 			layer.close(index);
 			
@@ -1293,7 +1285,7 @@ $("#room > form input[name='place']").parent().click(function(){
 //开始游戏
 $("#room > .start").click(function(){
 	if (ROOMLIST[ROOM].people.length < 2)
-		return layer.msg("人数不足，无法开始游戏", {icon: 5});
+		return layer.msg("<span>人数不足，无法开始游戏</span>", {icon: 5});
 	
 	send("gobang_roomStart", ROOM);
 	startRoomLoader = layer.load(1);

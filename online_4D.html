@@ -4,7 +4,7 @@
 	<head>
 		<meta charset="UTF-8" />
 		<meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" name="viewport" />
-		<title>人机对战 | 4D五子棋</title>
+		<title>联机对战 | 4D五子棋</title>
 		
 		<!--icon-->
 		<link href="./img/icon.png" rel="icon" type="image/x-icon"/>
@@ -431,11 +431,14 @@
 		</style>
 		
 		<!-- jquery -->
-		<script src="./js/jquery.min.js"></script>
+		<!--<script src="./js/jquery.min.js"></script>
 		<script>
 		if (typeof require != "undefined") //electron
 			window.$ = window.jQuery = require("./js/jquery.min.js");
-		</script>
+		</script>-->
+		
+		<!-- 语言包 -->
+		<script src="./lang/lang.js" defer></script>
 		
 		<!-- babylon.js -->
 		<script src="./js/babylon.min.js"></script>
@@ -493,8 +496,8 @@
 				<div>
 					<p class="name"></p>
 					<p class="time">
-						局时：<span class="total">15:00</span> &nbsp;
-						步时：<span class="step">60s</span>
+						<span>局时：</span><span class="total">15:00</span> &nbsp;
+						<span>步时：</span><span class="step">60s</span>
 					</p>
 				</div>
 			</div>
@@ -521,8 +524,8 @@
 				<div>
 					<p class="name"></p>
 					<p class="time">
-						局时：<span class="total">15:00</span> &nbsp;
-						步时：<span class="step">60s</span>
+						<span>局时：</span><span class="total">15:00</span> &nbsp;
+						<span>步时：</span><span class="step">60s</span>
 					</p>
 				</div>
 				<i></i>
@@ -696,6 +699,11 @@ class Board{
 			this.scene
 		);
 		this.camera.attachControl(this.canvas, false);
+		//删除默认按键
+		this.camera.inputs.attached.keyboard.keysUp = [];
+		this.camera.inputs.attached.keyboard.keysDown = [];
+		this.camera.inputs.attached.keyboard.keysLeft = [];
+		this.camera.inputs.attached.keyboard.keysRight = [];
 		
 		//添加光
 		this.hemisphericLight = new BABYLON.HemisphericLight( //模拟环境光
@@ -938,7 +946,7 @@ class Board{
 		
 		//渲染循环
 		this.engine.runRenderLoop(()=>{
-			this.stats.update(); //stats.js更新
+			//this.stats.update(); //stats.js更新
 			this.scene.render();
 		});
 	}
@@ -1792,7 +1800,7 @@ let game = {
 			step = Math.max(this.time[1].step, 0);
 			
 			totalElem = $("#main > .black > div > .time > .total"),
-			stepElem = totalElem.next(".step");
+			stepElem = totalElem.nextAll(".step");
 			
 			totalElem.html(
 				( ~~(total/60) +"").padStart(2,"0") + ":" + ( ~~total%60 +"").padStart(2, "0")
@@ -1822,7 +1830,7 @@ let game = {
 			step = Math.max(this.time[0].step, 0);
 			
 			totalElem = $("#main > .white > div > .time > .total"),
-			stepElem = totalElem.next(".step");
+			stepElem = totalElem.nextAll(".step");
 			
 			totalElem.html(
 				( ~~(total/60) +"").padStart(2,"0") + ":" + ( ~~total%60 +"").padStart(2, "0")
@@ -1959,33 +1967,36 @@ let game = {
 			
 			if (win === true){
 				this.winner = +this.first;
-				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+				layer.alert(`<span>${text}</span><br><span>历时</span>${~~(t/60)}<span>分</span>${~~t%60}<span>秒</span><br>${game.steps}<span>步</span><span>（</span>${game.steps/2}<span>回合</span><span>）<span>`,
 					{title: "胜利！", icon: 6}
 				);
 				$("#state").html("胜利！");
-				output(`胜利：${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`, true);
+				output(`<span>胜利：</span><span>${text}</span><br><span>历时</span>${~~(t/60)}<span>分</span>${~~t%60}<span>秒</span><br>${game.steps}<span>步</span><span>（</span>${game.steps/2}<span>回合</span><span>）</span>`, true);
 				
 				if (gameOverMusic)
 					gameOverMusic.stop();
-				gameOverMusic = new Player("./music/win.m4a").play();
+				gameOverMusic = new Player("./music/好运来.mp3").play();
 				
 			}else if (win === false){
 				this.winner = 1-this.first;
-				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+				layer.alert(`<span>${text}</span><br><span>历时</span>${~~(t/60)}<span>分</span>${~~t%60}<span>秒</span><br>${game.steps}<span>步</span><span>（</span>${game.steps/2}<span>回合</span><span>）<span>`,
 					{title: "你失败了！", icon: 5}
 				);
 				$("#state").html("你失败了！");
-				output(`你失败了：${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`, true);
+				output(`<span>你失败了：</span><span>${text}</span><br><span>历时</span>${~~(t/60)}<span>分</span>${~~t%60}<span>秒</span><br>${game.steps}<span>步</span><span>（</span>${game.steps/2}<span>回合</span><span>）</span>`, true);
 				
 				if (gameOverMusic)
 					gameOverMusic.stop();
-				gameOverMusic = new Player("./music/fail.mp3").play();
+				gameOverMusic = new Player("./music/凉凉.mp3").play();
 				
 			}else{
 				this.winner = null;
-				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+				layer.alert(`<span>${text}</span><br><span>历时</span>${~~(t/60)}<span>分</span>${~~t%60}<span>秒</span><br>${game.steps}<span>步</span><span>（</span>${game.steps/2}<span>回合</span><span>）<span>`,
 					{title: "游戏结束"}
 				);
+				$("#state").html("游戏结束");
+				output(`<span>游戏结束：</span><span>${text}</span><br><span>历时</span>${~~(t/60)}<span>分</span>${~~t%60}<span>秒</span><br>${game.steps}<span>步</span><span>（</span>${game.steps/2}<span>回合</span><span>）</span>`, true);
+				
 			}
 		},
 		
@@ -2295,26 +2306,26 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 			type: TYPE,
 			first: FIRST
 		}); //加入游戏房间
-		$("#state").html("服务器连接成功")
+		$(".state").html("服务器连接成功")
 			.removeClass().addClass("state success");
-		layer.msg("服务器连接成功", {icon:1});
+		layer.msg("<span>服务器连接成功</span>", {icon:1});
 	});
 	socket.on("connect_failed", function(data){
-		$("#state").html("服务器连接失败")
+		$(".state").html("服务器连接失败")
 			.removeClass().addClass("state failed");
-		layer.msg("服务器连接失败", {icon:2});
+		layer.msg("<span>服务器连接失败</span>", {icon:2});
 	});
 	socket.on("disconnect", function(data){
-		$("#state").html("与服务器连接断开")
+		$(".state").html("与服务器连接断开")
 			.removeClass().addClass("state failed");
-		layer.msg("与服务器连接断开", {icon:2});
+		layer.msg("<span>与服务器连接断开</span>", {icon:2});
 		
 		if (game.winner !== false) return; //游戏已结束
 		if (game.first === null) return; //未开始游戏
 		game.over(false, "与服务器连接断开，游戏失败");
 	});
 	socket.on("reconnecting", function(data){
-		$("#state").html("重连中……")
+		$(".state").html("重连中……")
 			.removeClass().addClass("state connecting");
 	});
 	socket.on("reconnect", function(data){
@@ -2325,20 +2336,20 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 			type: TYPE,
 			first: FIRST
 		}); //加入游戏房间
-		$("#state").html("服务器重连成功")
+		$(".state").html("服务器重连成功")
 			.removeClass().addClass("state success");
-		layer.msg("服务器重连成功", {icon:1});
+		layer.msg("<span>服务器重连成功</span>", {icon:1});
 	});
 	socket.on("reconnect_failed", function(data){
-		$("#state").html("服务器重连失败")
+		$(".state").html("服务器重连失败")
 			.removeClass().addClass("state failed");
-		layer.msg("服务器重连失败", {icon:2});
+		layer.msg("<span>服务器重连失败</span>", {icon:2});
 	});
 	socket.on("error", function(data){
 		console.error(data);
-		$("#state").html("服务器连接错误！")
+		$(".state").html("服务器连接错误！")
 			.removeClass().addClass("state failed");
-		layer.msg("服务器连接错误！", {icon:2});
+		layer.msg("<span>服务器连接错误！</span>", {icon:2});
 	});
 	
 	
@@ -2347,8 +2358,8 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_assignID", data)
 		ID = data;
 		$("#main > div.self > div > p.name").html(oldID);
-		$("#state").html("等待对方加入中……");
-		output("id分配成功，等待对方加入中……", true);
+		$("#state").html("<span>等待对方加入中……</span>");
+		output("<span>id分配成功，等待对方加入中……</span>", true);
 	});
 	
 	//准备好了
@@ -2386,12 +2397,12 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_game_leave", old_id)
 		
 		if (old_id != oldID){
-			$("#state").html( `对方“${old_id}”退出了房间` );
-			output(`对方“${old_id}”退出了房间`, true);
+			$("#state").html(`<span>对方</span>“${old_id}”<span>退出了房间</span>`);
+			output(`<span>对方</span>“${old_id}”<span>退出了房间</span>`, true);
 		}
 		
 		if (game.winner !== false) return; //游戏已结束
-		game.over(true, `对方“${old_id}”退出了房间，游戏结束！`);
+		game.over(true, `<span>对方</span>“${old_id}”<span>退出了房间，游戏结束！</span>`);
 	});
 	
 	//下棋
@@ -2403,7 +2414,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		game.time[game.turn].total = totalTime; //局时
 		game.time[game.turn].step += delay;
 		
-		$("#state").html("下棋延时：" + delay*1000 + "ms")
+		$("#state").html("<span>下棋延时：</span>" + delay*1000 + "ms")
 		if (side != game.first+1)
 			game.play(pos.i, pos.j, pos.k, pos.l, false); //直接下 跳过防误触
 	});
@@ -2413,7 +2424,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_game_timeout", old_id)
 		
 		if (game.winner !== false) return; //游戏已结束
-		game.over(true, `对方“${old_id}”超时，游戏结束`);
+		game.over(true, `<span>对方</span>“${old_id}”<span>超时，游戏结束！</span>`);
 	});
 	
 	//认输
@@ -2421,7 +2432,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		console.log("↓ gobang_game_giveUp", old_id)
 		
 		if (game.winner !== false) return; //游戏已结束
-		game.over(true, `对方“${old_id}”认输，游戏结束`);
+		game.over(true, `<span>对方</span>“${old_id}”<span>认输，游戏结束！</span>`);
 	});
 	
 	//求和
@@ -2430,7 +2441,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 		
 		if (game.winner !== false) return; //游戏已结束
 		
-		layer.confirm(`对方“${old_id}”请求求和，是否同意？`, {
+		layer.confirm(`<span>对方</span>“${old_id}”<span>请求求和，是否同意？</span>`, {
 			btn: ["同意", "拒绝"],
 			btn1: function(index){
 				layer.close(index);
@@ -2466,7 +2477,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	socket.on("gobang_game_replay", function(old_id){
 		console.log("↓ gobang_game_replay", old_id)
 		
-		layer.confirm(`对方“${old_id}”请求再来一局，是否同意？`, {
+		layer.confirm(`<span>对方</span>“${old_id}”<span>请求再来一局，是否同意？</span>`, {
 			btn: ["同意", "拒绝"],
 			btn1: function(index){
 				layer.close(index);
@@ -2529,7 +2540,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//下棋失败
 	socket.on("gobang_game_play_failed", function(){
 		console.log("↓ gobang_game_play_failed", room)
-		layer.msg("下棋失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>下棋失败，房间已被关闭</span>", {icon: 5});
 		output("下棋失败，房间已被关闭", true);
 		
 		if (game.winner === false)
@@ -2539,7 +2550,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//超时失败
 	socket.on("gobang_game_timeout_failed", function(){
 		console.log("↓ gobang_game_timeout_failed", room)
-		layer.msg("发送超时失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>发送超时失败，房间已被关闭</span>", {icon: 5});
 		output("发送超时失败，房间已被关闭", true);
 		
 		if (game.winner === false)
@@ -2549,7 +2560,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//认输失败
 	socket.on("gobang_game_giveUp_failed", function(){
 		console.log("↓ gobang_game_giveUp_failed", room)
-		layer.msg("发送认输失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>发送认输失败，房间已被关闭</span>", {icon: 5});
 		output("发送认输失败，房间已被关闭", true);
 		
 		if (game.winner === false)
@@ -2559,7 +2570,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//求和失败
 	socket.on("gobang_game_drawMatch_failed", function(){
 		console.log("↓ gobang_game_drawMatch_failed", room)
-		layer.msg("发送求和失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>发送求和失败，房间已被关闭</span>", {icon: 5});
 		output("发送求和失败，房间已被关闭", true);
 		
 		if (game.winner === false)
@@ -2569,7 +2580,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//同意求和失败
 	socket.on("gobang_game_drawMatch_agree_failed", function(){
 		console.log("↓ gobang_game_drawMatch_agree_failed", room)
-		layer.msg("同意求和失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>同意求和失败，房间已被关闭</span>", {icon: 5});
 		output("同意求和失败，房间已被关闭", true);
 		
 		if (game.winner === false)
@@ -2579,7 +2590,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//拒绝求和失败
 	socket.on("gobang_game_drawMatch_disagree_failed", function(){
 		console.log("↓ gobang_game_drawMatch_disagree_failed", room)
-		layer.msg("拒绝求和失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>拒绝求和失败，房间已被关闭</span>", {icon: 5});
 		output("拒绝求和失败，房间已被关闭", true);
 		
 		if (game.winner === false)
@@ -2589,8 +2600,8 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//再来一局失败
 	socket.on("gobang_game_replay_failed", function(){
 		console.log("↓ gobang_game_replay_failed", room)
-		layer.msg("发送求和失败，房间已被关闭", {icon: 5});
-		output("发送求和失败，房间已被关闭", true);
+		layer.msg("<span>发送再来一局失败，房间已被关闭</span>", {icon: 5});
+		output("发送再来一局失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
@@ -2599,7 +2610,7 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//同意再来一局失败
 	socket.on("gobang_game_replay_agree_failed", function(){
 		console.log("↓ gobang_game_replay_agree_failed", room)
-		layer.msg("同意再来一局失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>同意再来一局失败，房间已被关闭</span>", {icon: 5});
 		output("同意再来一局失败，房间已被关闭", true);
 		
 		if (game.winner === false)
@@ -2609,12 +2620,20 @@ if (typeof io == "undefined"){ //未加载socket.io.js
 	//拒绝再来一局失败
 	socket.on("gobang_game_replay_disagree_failed", function(){
 		console.log("↓ gobang_game_replay_disagree_failed", room)
-		layer.msg("拒绝再来一局失败，房间已被关闭", {icon: 5});
+		layer.msg("<span>拒绝再来一局失败，房间已被关闭</span>", {icon: 5});
 		output("拒绝再来一局失败，房间已被关闭", true);
 		
 		if (game.winner === false)
 			game.winner = 1-game.first; //自己失败
 	});
+	
+	//chat失败
+	socket.on("gobang_chat_failed", function(room){
+		console.log("↓ gobang_chat_failed", room)
+		layer.msg("<span>发送聊天失败，房间已被关闭</span>", {icon: 5});
+		output("发送聊天失败，房间已被关闭");
+	});
+	
 }
 
 
@@ -2631,7 +2650,21 @@ function request(data){
 }
 
 
+let validClick = true; //是否有效点击
+setTimeout(()=>{ //等待loadScene
+	board.scene.onPointerObservable.add(function(e){
+		if (e.type == 1){ //mousedown
+			validClick = true; //新一次点击
+			console.log("mousedown", validClick)
+		}else if (e.type == 4){ //mousemove
+			validClick = false; //不允许移动
+			console.log("mousemove", validClick)
+		}
+	});
+}, 600);
 $("#board").click(function(e){
+	console.log("click", validClick)
+	if (!validClick) return; //无效点击
 	if (!worker) return; //未初始化线程
 	if (game.first != game.turn) return; //未轮到自己
 	if (game.winner !== false) return; //已结束
@@ -2932,6 +2965,38 @@ function output(text, center=false){
 			.css("text-align", center? "center": "")
 	);
 }
+
+
+/* 电脑版按键 */
+document.onkeydown = function(e){
+	console.log(e.key)
+	if (e.key == "F2"){ //评分
+		if (!$("#toolBtn > .scores").attr("disabled"))
+			scores();
+	}else if (e.key == "F3"){ //分析
+		if (!$("#toolBtn > .analyse").attr("disabled"))
+			analyse();
+	}else if (e.key == "F4"){ //复盘
+		if (!$("#toolBtn > .review").attr("disabled"))
+			review();
+	}else if (e.key == "F5"){ //再来一局
+		init();
+	}else if (e.key == "ArrowUp"){ //棋盘向上
+		board.heightAdd();
+	}else if (e.key == "ArrowDown"){ //棋盘向下
+		board.heightSub();
+	}else if (e.key == "ArrowLeft"){ //棋盘缩小
+		board.layerSub();
+	}else if (e.key == "ArrowRight"){ //棋盘放大
+		board.layerAdd();
+	}else if (e.key == "PageUp"){ //W轴向上
+		board.widthSub();
+	}else if (e.key == "PageDown"){ //W轴向下
+		board.widthAdd();
+	}
+	e.preventDefault();
+	return false;
+};
 </script>
 		
 	</body>
