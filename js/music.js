@@ -1,35 +1,41 @@
 //url播放
 class Player{
-	constructor(url, volume=1){
+	constructor(url, loop=true, volume=1){
 		const audio = $("<audio></audio>")[0];
 		audio.src = url;
+		if (loop)
+			audio.loop = "loop";
 		audio.volume = volume;
 		
 		$("body").append( audio );
 		this.audio = audio;
 	}
 	
-	play(){
-		console.log("play", this.audio.src, this.audio.volume)
-		this.audio.play().catch((err)=>{
+	play(time=0){
+		console.log("play", this.audio.src.substr(0,100), this.audio.volume)
+		this.audio.currentTime = time;
+		let played = false;
+		this.audio.play().then(()=>{
+			played = true;
+		}).catch((err)=>{
 			console.error(err)
 			const play = ()=>{
 				if (this.audio.paused)
 					this.audio.play();
 			};
 			document.addEventListener("plusready", function plusready(){
-				play();
-				console.log("plusready -> play", this.audio.src, this.audio.volume)
+				if (!played) play();
+				console.log("plusready -> play")
 				document.removeEventListener("plusready", plusready);
 			});
 			document.addEventListener("click", function click(){
-				play();
-				console.log("click -> play", this.audio.src, this.audio.volume)
+				if (!played) play();
+				console.log("click -> play")
 				document.removeEventListener("click", click);
 			});
 			document.addEventListener("touchstart", function touchstart(){
-				play();
-				console.log("touchstart -> play", this.audio.src, this.audio.volume)
+				if (!played) play();
+				console.log("touchstart -> play")
 				document.removeEventListener("touchstart", touchstart);
 			});
 		});
@@ -99,7 +105,11 @@ class Music{
 				( sound == "0" ||
 					( sound.length == 2 &&
 						"CDEFGAB".indexOf( sound[0] ) != -1 &&
-						"123456789".indexOf( sound[1] ) != -1 )
+						"123456789".indexOf( sound[1] ) != -1 ) ||
+					( sound.length == 3 &&
+						"CDEFGAB".indexOf( sound[0] ) != -1 &&
+						sound[1] == "b" &&
+						"123456789".indexOf( sound[2] ) != -1 )
 				)
 			){
 				this.sounds.push([sound, time, volume]);

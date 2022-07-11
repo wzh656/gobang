@@ -300,6 +300,9 @@
 			window.$ = window.jQuery = require("./js/jquery.min.js");
 		</script>
 		
+		<!-- 语言包 -->
+		<script src="./lang/lang.js" defer></script>
+		
 		<!-- babylon.js -->
 		<script src="./js/babylon.min.js"></script>
 		<script src="./js/babylonjs.materials.min.js"></script>
@@ -340,6 +343,16 @@
 		})();
 		</script>
 		
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-WTWJEHK1C2"></script>
+		<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+		
+		gtag('config', 'G-WTWJEHK1C2');
+		</script>
+		
 	</head>
 	<body>
 		<header id="header">
@@ -354,8 +367,8 @@
 				<div>
 					<p class="name"></p>
 					<p class="time">
-						局时：<span class="total">10:00</span> &nbsp;
-						步时：<span class="step">45s</span>
+						<span>局时：</span><span class="total">10:00</span> &nbsp;
+						<span>步时：</span><span class="step">45s</span>
 					</p>
 				</div>
 			</div>
@@ -373,8 +386,8 @@
 				<div>
 					<p class="name"></p>
 					<p class="time">
-						局时：<span class="total">10:00</span> &nbsp;
-						步时：<span class="step">45s</span>
+						<span>局时：</span><span class="total">10:00</span> &nbsp;
+						<span>步时：</span><span class="step">45s</span>
 					</p>
 				</div>
 				<i></i>
@@ -405,10 +418,6 @@
 				</div>
 			</div>
 		</section>
-		
-		<footer style="display: none;">
-			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' async type='text/javascript'%3E%3C/script%3E"));</script>
-		</footer>
 		
 <script>
 //生成任意维数组
@@ -1412,7 +1421,7 @@ let game = {
 			step = Math.max(this.time[1].step, 0);
 			
 			totalElem = $("#main > .black > div > .time > .total"),
-			stepElem = totalElem.next(".step");
+			stepElem = totalElem.nextAll(".step");
 			
 			totalElem.html(
 				( ~~(total/60) +"").padStart(2,"0") + ":" + ( ~~total%60 +"").padStart(2, "0")
@@ -1442,7 +1451,7 @@ let game = {
 			step = Math.max(this.time[0].step, 0);
 			
 			totalElem = $("#main > .white > div > .time > .total"),
-			stepElem = totalElem.next(".step");
+			stepElem = totalElem.nextAll(".step");
 			
 			totalElem.html(
 				( ~~(total/60) +"").padStart(2,"0") + ":" + ( ~~total%60 +"").padStart(2, "0")
@@ -1521,7 +1530,7 @@ let game = {
 			$("#toolBtn > .review").removeAttr("disabled"); //解除禁用
 			
 			const t = (new Date() - this.startTime) / 1000;
-			layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+			layer.alert(`<span>${text}</span><br><span>历时</span>${~~(t/60)}<span>分</span>${~~t%60}<span>秒</span><br>${game.steps}<span>步</span><span>（</span>${game.steps/2}<span>回合</span><span>）<span>`,
 				{title: "游戏结束"}
 			);
 		},

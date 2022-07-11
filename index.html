@@ -200,10 +200,15 @@
 		}
 		
 		/* form表单 */
+		#settings .layui-tab-title{
+			overflow-x: auto;
+			overflow-y: hidden;
+		}
 		#settings form{
 			padding-right: 0.6rem;
 		}
 		#settings form label{
+			word-break: break-word;
 			text-overflow: clip;
 		}
 		/*#settings > form > div{
@@ -337,6 +342,9 @@
 			window.$ = window.jQuery = require("./js/jquery.min.js");
 		</script>
 		
+		<!-- 语言包 -->
+		<script src="./lang/lang.js"></script>
+		
 		<!-- layui -->
 		<!--<link rel="stylesheet" href="https://unpkg.com/layui@2.6.4/dist/css/layui.css">
 		<script src="https://unpkg.com/layui@2.6.8/dist/layui.js"></script>-->
@@ -372,13 +380,24 @@
 			s.parentNode.insertBefore(hm, s);
 		})();
 		</script>
+		
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-WTWJEHK1C2"></script>
 		<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+		
+		gtag('config', 'G-WTWJEHK1C2');
+		</script>
+		
+		<!--<script>
 		(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/c17090af.js","daovoice")
 		daovoice('init', {
 		  app_id: "c17090af"
 		});
 		daovoice('update');
-		</script>
+		</script>-->
 		
 	</head>
 	<body>
@@ -401,6 +420,7 @@
 					<li class="game layui-this">游戏设置</li>
 					<li class="personal">个性化设置</li>
 					<li class="music">音乐设置</li>
+					<li class="language">语言设置(Language)</li>
 				</ul>
 				<div class="layui-tab-content">
 					<form class="game layui-tab-item layui-show layui-form" onsubmit="return false;">
@@ -416,37 +436,51 @@
 						<div class="layui-form-item">
 							<label class="layui-form-label">连子数</label>
 							<div class="layui-input-inline">
-								<input type="number" name="n" min="3" max="10" value="5" class="layui-input" />
+								<input type="number" name="n" min="3" max="19" value="5" class="layui-input" />
 							</div>
 							<div class="layui-form-mid layui-word-aux">指获胜需要的连续棋子数</div>
 						</div>
 						<div class="layui-form-item">
 							<label class="layui-form-label">棋盘行数</label>
 							<div class="layui-input-inline">
-								<input type="number" name="rows" min="3" max="30" init="19" value="19" class="layui-input" />
+								<input type="number" name="rows" min="1" max="30" init="19" value="19" class="layui-input" />
 							</div>
 							<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
 						</div>
 						<div class="layui-form-item">
 							<label class="layui-form-label">棋盘列数</label>
 							<div class="layui-input-inline">
-								<input type="number" name="cols" min="3" max="30" init="19" value="19" class="layui-input" />
+								<input type="number" name="cols" min="1" max="30" init="19" value="19" class="layui-input" />
 							</div>
 							<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
 						</div>
 						<div class="layui-form-item" style="display: none;">
 							<label class="layui-form-label">棋盘深度</label>
 							<div class="layui-input-inline">
-								<input type="number" name="depth" min="3" max="30" init="10" value="10" class="layui-input" />
+								<input type="number" name="depth" min="1" max="30" init="10" value="10" class="layui-input" />
 							</div>
 							<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
 						</div>
 						<div class="layui-form-item" style="display: none;">
 							<label class="layui-form-label">四维厚度</label>
 							<div class="layui-input-inline">
-								<input type="number" name="width" min="3" max="30" init="10" value="10" class="layui-input" />
+								<input type="number" name="width" min="1" max="30" init="10" value="10" class="layui-input" />
 							</div>
 							<div class="layui-form-mid layui-word-aux">单位：棋子个数</div>
+						</div>
+						<div class="layui-form-item">
+							<label class="layui-form-label">局时</label>
+							<div class="layui-input-inline">
+								<input type="number" name="totalTime" min="60" max="Infinity" init="300" value="300" class="layui-input" />
+							</div>
+							<div class="layui-form-mid layui-word-aux">单位：秒(s)</div>
+						</div>
+						<div class="layui-form-item">
+							<label class="layui-form-label">步时</label>
+							<div class="layui-input-inline">
+								<input type="number" name="stepTime" min="5" max="Infinity" init="30" value="30" class="layui-input" />
+							</div>
+							<div class="layui-form-mid layui-word-aux">单位：秒(s)</div>
 						</div>
 						<div class="layui-form-item">
 							<label class="layui-form-label">下棋位置</label>
@@ -484,7 +518,7 @@
 							<div class="layui-input-inline">
 								<input type="checkbox" name="border" class="border" lay-skin="switch" lay-text="显示|关闭" />
 							</div>
-							<div class="layui-form-mid layui-word-aux">（针对3D/4D五子棋）将在棋盘边界显示立方体边框，以标注提醒</div>
+							<div class="layui-form-mid layui-word-aux">（针对3D/4D五子棋）开启后将在棋盘边界显示立方体边框，以标注提醒</div>
 						</div>
 					</form>
 					<form class="music layui-tab-item layui-form" onsubmit="return false;">
@@ -494,9 +528,19 @@
 								<select name="bgm" lay-filter="bgm">
 									<option value="none">无</option>
 									<option value="piano" checked>纯音乐钢琴曲(deskgood作曲)</option>
+									<option value="piano2">纯音乐钢琴曲2</option>
+									<option value="youth">无题（纯音乐未作词）</option>
+									<option value="LonelyWarrior">孤勇者</option>
 									<option value="random">网抑云随机热歌</option>
+									<option value="local">本地音频</option>
 									<option value="custom">自定义</option>
 								</select>
+							</div>
+						</div>
+						<div class="layui-form-item layui-form-text" style="display: none;">
+							<label class="layui-form-label">本地音频</label>
+							<div class="layui-input-block">
+								<input name="bgm_local" type="file" class="layui-input"></input>
 							</div>
 						</div>
 						<div class="layui-form-item layui-form-text" style="display: none;">
@@ -510,7 +554,11 @@
 							<div class="layui-input-block">
 								<select name="effect" lay-filter="effect">
 									<option value="none">无</option>
-									<option value="stars" checked>小星星钢琴曲</option>
+									<option value="voice" checked>人声配音</option>
+									<option value="stars">小星星钢琴曲</option>
+									<option value="piano">纯音乐钢琴曲(deskgood作曲)</option>
+									<option value="piano2">纯音乐钢琴曲2</option>
+									<option value="LonelyWarrior">孤勇者</option>
 									<option value="custom">自定义</option>
 								</select>
 							</div>
@@ -523,6 +571,19 @@
 						</div>
 						<div class="layui-word-aux">提示：音乐设置需重启页面生效</div>
 					</form>
+					<form class="language layui-tab-item layui-form" onsubmit="return false;">
+						<div class="layui-form-item">
+							<label class="layui-form-label">语言(Language)</label>
+							<div class="layui-input-block">
+								<select name="language" lay-filter="language">
+									<option value="zh-CN">Simplified Chinese (简体中文)</option>
+									<option value="zh-TW">Traditional Chinese (繁体中文)</option>
+									<option value="en-US">English (英语)</option>
+								</select>
+							</div>
+						</div>
+						<div class="layui-word-aux">提示：语言设置会自动重启页面生效</div>
+					</form>
 				</div>
 			</div>
 			<div class="btn">
@@ -534,22 +595,18 @@
 			<h2>战绩</h2>
 			<h3>2D人机对战</h3>
 			<table class="two" border="2">
-				<tr><th>连子数</th><th>先行</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率</th></tr>
+				<tr><th>连子数</th><th>先手</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率</th></tr>
 			</table>
 			<h3>3D人机对战</h3>
 			<table class="three" border="2">
-				<tr><th>连子数</th><th>先行</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率</th></tr>
+				<tr><th>连子数</th><th>先手</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率</th></tr>
 			</table>
 			<h3>4D人机对战</h3>
 			<table class="four" border="2">
-				<tr><th>连子数</th><th>先行</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率</th></tr>
+				<tr><th>连子数</th><th>先手</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率</th></tr>
 			</table>
 			<button class="back">确定</button>
 		</section>
-		
-		<footer style="display: none;">
-			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' async type='text/javascript'%3E%3C/script%3E"));</script>
-		</footer>
 		
 <script>
 let device;
@@ -596,6 +653,7 @@ const setting_game = JSON.parse(localStorage.getItem("五子棋_游戏设置") |
 	form_game = $("#settings form.game")[0],
 	form_personal = $("#settings form.personal")[0],
 	form_music = $("#settings form.music")[0];
+	form_language = $("#settings form.language")[0];
 
 let inputD = 2;
 function setD(D){
@@ -609,6 +667,10 @@ function setD(D){
 				.html("2D：回归传统，品味经典游戏");
 			form_game.cols.init = form_game.rows.init = 19; //初始值为19
 			form_game.cols.value = form_game.rows.value = 19; //值为19
+			form_game.totalTime.init = 300; //初始值为300
+			form_game.totalTime.value = 300; //值为300
+			form_game.stepTime.init = 30; //初始值为30
+			form_game.stepTime.value = 30; //值为30
 			$(form_game.depth).parent().parent().hide("slow");
 			$(form_game.width).parent().parent().hide("slow");
 			$(form_game.place).parent().parent().show("slow");
@@ -623,6 +685,10 @@ function setD(D){
 				.html("3D：创意之作，体味烧脑乐趣");
 			form_game.cols.init = form_game.rows.init = form_game.depth.init = 10; //初始值为10
 			form_game.cols.value = form_game.rows.value = form_game.depth.value = 10; //值为10
+			form_game.totalTime.init = 600; //初始值为600
+			form_game.totalTime.value = 600; //值为600
+			form_game.stepTime.init = 45; //初始值为45
+			form_game.stepTime.value = 45; //值为45
 			$(form_game.depth).parent().parent().show("slow");
 			$(form_game.width).parent().parent().hide("slow");
 			$(form_game.place).parent().parent().hide("slow");
@@ -637,6 +703,10 @@ function setD(D){
 				.html("4D：四维空间，挑战最强大脑");
 			form_game.cols.init = form_game.rows.init = form_game.depth.init = form_game.width.init = 10; //初始值为10
 			form_game.cols.value = form_game.rows.value = form_game.depth.value = form_game.width.value = 10; //值为10
+			form_game.totalTime.init = 900; //初始值为900
+			form_game.totalTime.value = 900; //值为900
+			form_game.stepTime.init = 60; //初始值为60
+			form_game.stepTime.value = 60; //值为60
 			$(form_game.depth).parent().parent().show("slow");
 			$(form_game.width).parent().parent().show("slow");
 			$(form_game.place).parent().parent().hide("slow");
@@ -650,9 +720,11 @@ function saveSetting(){
 	localStorage.setItem("五子棋_游戏设置", JSON.stringify(setting_game));
 	localStorage.setItem("五子棋_个性化设置", JSON.stringify(setting_personal));
 	localStorage.setItem("五子棋_音乐设置", JSON.stringify(setting_music));
+	localStorage.setItem("五子棋_语言", LANG_TYPE);
 }
 //加载设置
 function readSetting(){
+	//初始化设置
 	setting_game.D = setting_game.D || 2;
 	setting_game.N = setting_game.N || 5;
 	setting_game.cols = setting_game.cols || 19;
@@ -660,15 +732,18 @@ function readSetting(){
 	setting_game.depth = setting_game.depth || 10;
 	setting_game.width = setting_game.width || 10;
 	setting_game.place = setting_game.place || 0;
+	setting_game.totalTime = setting_game.totalTime || 300;
+	setting_game.stepTime = setting_game.stepTime || 30;
 	
 	setting_personal.skybox = OR(setting_personal.skybox, true);
 	setting_personal.moon = OR(setting_personal.moon, true);
 	setting_personal.border = OR(setting_personal.border, true);
 	
 	setting_music.bgm = setting_music.bgm || "piano";
-	setting_music.effect = setting_music.effect || "stars";
+	setting_music.effect = setting_music.effect || "voice";
 	
 	
+	//游戏设置
 	setD(setting_game.D);
 	form_game.n.value = setting_game.N;
 	form_game.cols.value = setting_game.cols;
@@ -676,7 +751,10 @@ function readSetting(){
 	form_game.depth.value = setting_game.depth;
 	form_game.width.value = setting_game.width;
 	form_game.place[+setting_game.place].checked = true;
+	form_game.totalTime.value = setting_game.totalTime;
+	form_game.stepTime.value = setting_game.stepTime;
 	
+	//个性化设置
 	if ( setting_personal.mistake !== undefined ){ //有设置
 		$(form_personal).find("input.mistake")[0].checked = !!setting_personal.mistake;
 	}else{ //无设置 自动
@@ -691,17 +769,24 @@ function readSetting(){
 	$(form_personal).find("input.moon")[0].checked = setting_personal.moon;
 	$(form_personal).find("input.border")[0].checked = setting_personal.border;
 	
+	//音乐设置
 	form_music.bgm_custom.value = MUSICS.piano; //默认：deskgood作曲钢琴曲
 	form_music.effect_custom.value = MUSICS.stars; //默认：小星星
-	if (["none", "piano", "random"].indexOf(setting_music.bgm) == -1){ //自定义
+	if (setting_music.bgm == "local"){ //本地文件
+		form_music.bgm.value = "local";
+		$(form_music.bgm_local).parent().parent().show();
+		$(form_music.bgm_custom).parent().parent().hide();
+	}else if (["none", "piano", "piano2", "youth", "LonelyWarrior", "random"].indexOf(setting_music.bgm) == -1){ //自定义
 		form_music.bgm.value = "custom";
+		$(form_music.bgm_local).parent().parent().hide();
 		form_music.bgm_custom.value = setting_music.bgm;
 		$(form_music.bgm_custom).parent().parent().show();
-	}else{
+	}else{ //内置音乐
 		form_music.bgm.value = setting_music.bgm;
+		$(form_music.bgm_local).parent().parent().hide();
 		$(form_music.bgm_custom).parent().parent().hide();
 	}
-	if (["none", "stars"].indexOf(setting_music.effect) == -1){ //自定义
+	if (["none", "voice", "stars", "piano", "piano2", "LonelyWarrior"].indexOf(setting_music.effect) == -1){ //自定义
 		form_music.effect.value = "custom";
 		form_music.effect_custom.value = setting_music.effect;
 		$(form_music.effect_custom).parent().parent().show();
@@ -710,6 +795,10 @@ function readSetting(){
 		$(form_music.effect_custom).parent().parent().hide();
 	}
 	
+	//语言设置
+	form_language.language.value = LANG_TYPE;
+	
+	//更新显示
 	layui.use("form", function(){
 		const form = layui.form;
 		form.render(); //重绘
@@ -1077,6 +1166,11 @@ layui.use("form", function(){
 	//背景音乐自定义
 	form.on("select(bgm)", function(data){
 		console.log("bgm change", data.value)
+		if (data.value == "local"){
+			$(form_music.bgm_local).parent().parent().show("slow");
+		}else{
+			$(form_music.bgm_local).parent().parent().hide("slow");
+		}
 		if (data.value == "custom"){
 			$(form_music.bgm_custom).parent().parent().show("slow");
 		}else{
@@ -1085,12 +1179,23 @@ layui.use("form", function(){
 		if (data.value == "piano"){ //测试播放
 			if (!bgm) //未播放bgm
 				bgmTest = new Music(MUSICS.piano, 6, 72).play();
+		}else if (data.value == "piano2"){ //测试播放
+			if (!bgm)
+				bgmTest = new Music(MUSICS.piano2, 6, 72).play();
+		}else if (data.value == "youth"){ //测试播放
+			if (!bgm)
+				bgmTest = new Player("./music/piano.mp3");
+		}else if (data.value == "LonelyWarrior"){ //测试播放
+			if (!bgm)
+				bgmTest = new Music(MUSICS.LonelyWarrior, 6, 72).play();
 		}else if (data.value == "random"){ //测试播放
 			if (!bgm)
 				bgmTest = new Player("https://api.vvhan.com/api/rand.music?sort=热歌榜");
 		}else if (data.value == "none"){ //无 停止播放
-			if (bgmTest)
-				bgmTest.setStop(true); //停止bgm测试
+			if (bgmTest){ //停止bgm测试
+				if (bgmTest.stop) bgmTest.stop();
+				if (bgmTest.setStop) bgmTest.setStop(true);
+			}
 		}
 	});
 	//音效自定义
@@ -1101,30 +1206,77 @@ layui.use("form", function(){
 		}else{
 			$(form_music.effect_custom).parent().parent().hide("slow");
 		}
-		if (data.value == "stars"){ //测试播放
-			if (effectTest)
-				effectTest.setStop(true);
+		if (data.value == "voice"){ //测试播放
+			if (effectTest){ //停止音效测试
+				if (effectTest.stop) effectTest.stop();
+				if (effectTest.setStop) effectTest.setStop(true);
+			}
+			effectTest = new Player("./music/effect.m4a", false, 0.8).play();
+		}else if (data.value == "stars"){ //测试播放
+			if (effectTest){ //停止音效测试
+				if (effectTest.stop) effectTest.stop();
+				if (effectTest.setStop) effectTest.setStop(true);
+			}
 			effectTest = new Music(MUSICS.stars, 6, 72).play();
+		}else if (data.value == "piano"){ //测试播放
+			if (effectTest){ //停止音效测试
+				if (effectTest.stop) effectTest.stop();
+				if (effectTest.setStop) effectTest.setStop(true);
+			}
+			effectTest = new Music(MUSICS.piano, 6, 72).play();
+		}else if (data.value == "piano2"){ //测试播放
+			if (effectTest){ //停止音效测试
+				if (effectTest.stop) effectTest.stop();
+				if (effectTest.setStop) effectTest.setStop(true);
+			}
+			effectTest = new Music(MUSICS.piano2, 6, 72).play();
+		}else if (data.value == "LonelyWarrior"){ //测试播放
+			if (effectTest){ //停止音效测试
+				if (effectTest.stop) effectTest.stop();
+				if (effectTest.setStop) effectTest.setStop(true);
+			}
+			effectTest = new Music(MUSICS.LonelyWarrior, 6, 72).play();
 		}else if (data.value == "none"){ //无 停止播放
-			if (effectTest)
-				effectTest.setStop(true); //停止音效测试
+			if (effectTest){ //停止音效测试
+				if (effectTest.stop) effectTest.stop();
+				if (effectTest.setStop) effectTest.setStop(true);
+			}
 		}
 	});
+});
+
+//本地bgm改变 测试播放
+$(form_music.bgm_local).change(async function(file){
+	console.log("bgm local change")
+	const url = await URL.blob2base64(file.target.files[0]);
+	if (!bgm)
+		bgmTest = new Player(url).play();
+	//存储为临时音频
+	if (typeof plus != "undefined"){
+		plus.storage.setItem("_本地音频", url);
+		layer.msg("存储成功");
+	}else{
+		document.addEventListener("plusready", function(){
+			plus.storage.setItem("_本地音频", url);
+			layer.msg("存储成功");
+		}, false);
+	}
 });
 
 //自定义bgm改变 测试播放
 $(form_music.bgm_custom).change(function(){
 	console.log("bgm custom change")
-	if (bgm)
-		bgm.setStop(true);
-	bgm = new Music(form_music.bgm_custom.value, 6, 72).play();
+	if (!bgm)
+		bgmTest = new Music(form_music.bgm_custom.value, 6, 72).play();
 });
 
 //自定义音效改变 测试播放
 $(form_music.effect_custom).change(function(){
 	console.log("effect custom change")
-	if (effectTest)
-		effectTest.setStop(true);
+	if (effectTest){
+		if (effectTest.stop) effectTest.stop();
+		if (effectTest.setStop) effectTest.setStop(true);
+	}
 	effectTest = new Music(form_music.effect_custom.value, 6, 72).play();
 });
 
@@ -1170,7 +1322,17 @@ $("#one").click(function(){
 
 //多人联机
 $("#online").click(function(){
-	go("rooms.html");
+	go("unlock.html");
+	//go("rooms.html");
+	/*if (typeof plus != "undefined"){
+		layer.confirm("灰常抱歉，由于<del>可恶的</del>国家政策，木有版号的游戏只能发布测试版，故无法联网进行联机服务，若需要联机请打开网页版游戏：<br>https://wzh656.github.io/gobang/rooms.html<br>提示：免费服务器5分钟无请求自动休眠，加载时等待服务器开启可能较慢，请耐心等待", {
+			btn: ["浏览器打开", "取消"]
+		}, function(){
+			plus.runtime.openURL("https://wzh656.github.io/gobang/rooms.html");
+		});
+	}else{
+		layer.msg("模块加载中，请稍后再试");
+	}*/
 });
 
 
@@ -1182,15 +1344,19 @@ $("#set").click(function(){
 
 //取消
 $("#settings button.cancel").click(function(){
-	if (effectTest)
-		effectTest.setStop(true); //停止音效测试
+	if (effectTest){ //停止音效测试
+		if (effectTest.stop) effectTest.stop();
+		if (effectTest.setStop) effectTest.setStop(true);
+	}
 	$("#settings").slideUp("slow");
 });
 
 //保存
 $("#settings button.save").click(function(){
-	if (effectTest)
-		effectTest.setStop(true); //停止音效测试
+	if (effectTest){ //停止音效测试
+		if (effectTest.stop) effectTest.stop();
+		if (effectTest.setStop) effectTest.setStop(true);
+	}
 	
 	setting_game.D = inputD;
 	setting_game.N = +form_game.n.value;
@@ -1199,12 +1365,31 @@ $("#settings button.save").click(function(){
 	setting_game.depth = +form_game.depth.value;
 	setting_game.width = +form_game.width.value;
 	setting_game.place = +form_game.place[1].checked;
+	setting_game.totalTime = +form_game.totalTime.value;
+	setting_game.stepTime = +form_game.stepTime.value;
 	
 	setting_personal.mistake = form_personal.mistake.checked;
 	setting_personal.skybox = form_personal.skybox.checked;
 	setting_personal.moon = form_personal.moon.checked;
 	setting_personal.border = form_personal.border.checked;
 	
+	if (form_music.bgm.value == "local"){ //设置音频
+		if (typeof plus != "undefined"){
+			plus.storage.setItem("本地音频", plus.storage.getItem("_本地音频"));
+		}else{
+			document.addEventListener("plusready", function(){
+				plus.storage.setItem("本地音频", plus.storage.getItem("_本地音频"));
+			}, false);
+		}
+	}else{ //删除音频
+		if (typeof plus != "undefined"){
+			plus.storage.removeItem("本地音频");
+		}else{
+			document.addEventListener("plusready", function(){
+				plus.storage.removeItem("本地音频");
+			}, false);
+		}
+	}
 	if (form_music.bgm.value == "custom"){
 		setting_music.bgm = form_music.bgm_custom.value
 	}else{
@@ -1214,6 +1399,25 @@ $("#settings button.save").click(function(){
 		setting_music.effect = form_music.effect_custom.value
 	}else{
 		setting_music.effect = form_music.effect.value;
+	}
+	
+	//删除临时音频
+	if (typeof plus != "undefined"){
+		plus.storage.removeItem("_本地音频");
+	}else{
+		document.addEventListener("plusready", function(){
+			plus.storage.removeItem("_本地音频");
+		}, false);
+	}
+	
+	if (form_language.language.value != LANG_TYPE){
+		LANG_TYPE = form_language.language.value;
+		saveSetting();
+		if (typeof plus != "undefined"){
+			plus.runtime.restart();
+		}else{
+			location.reload();
+		}
 	}
 	
 	saveSetting();
@@ -1237,10 +1441,11 @@ $("#record > .back").click(function(){
 
 //双击
 $("body > h1").on("dblclick",function(){
-	for (let i=0; i<36*Math.random()+36; i++){
+	const num = Math.random(36, 72);
+	for (let i=0; i<num; i++){
 		$("body").animate({
-			left: (Math.random()*6-3)+"%",
-			top: (Math.random()*6-3)+"%",
+			left: Math.random(-3, 3)+"%",
+			top: Math.random(-3, 3)+"%",
 			opacity: 1
 		},10);
 	}

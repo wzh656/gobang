@@ -232,6 +232,9 @@
 			window.$ = window.jQuery = require("./js/jquery.min.js");
 		</script>
 		
+		<!-- 语言包 -->
+		<script src="./lang/lang.js" defer></script>
+		
 		<!-- layui -->
 		<!--<link rel="stylesheet" href="https://unpkg.com/layui@2.6.4/dist/css/layui.css">
 		<script src="https://unpkg.com/layui@2.6.8/dist/layui.js"></script>-->
@@ -268,6 +271,16 @@
 		})();
 		</script>
 		
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-WTWJEHK1C2"></script>
+		<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+		
+		gtag('config', 'G-WTWJEHK1C2');
+		</script>
+		
 	</head>
 	<body>
 		<header id="header">
@@ -282,8 +295,8 @@
 				<div>
 					<p class="name"></p>
 					<p class="time">
-						局时：<span class="total">10:00</span> &nbsp;
-						步时：<span class="step">30s</span>
+						<span>局时：</span><span class="total">10:00</span> &nbsp;
+						<span>步时：</span><span class="step">30s</span>
 					</p>
 				</div>
 			</div>
@@ -292,8 +305,8 @@
 				<div>
 					<p class="name"></p>
 					<p class="time">
-						局时：<span class="total">10:00</span> &nbsp;
-						步时：<span class="step">30s</span>
+						<span>局时：</span><span class="total">10:00</span> &nbsp;
+						<span>步时：</span><span class="step">30s</span>
 					</p>
 				</div>
 				<i></i>
@@ -301,7 +314,7 @@
 			<div id="toolBtn">
 				<button class="scores">棋局<br>评分</button>
 				<button class="analyse">棋局<br>分析</button>
-				<button class="review">棋盘<br>重放</button>
+				<button class="review" disabled>复盘<br>回放</button>
 			</div>
 			<div id="tools">
 				<canvas class="scores" height="36" style="display: none;"></canvas>
@@ -324,10 +337,6 @@
 				</div>
 			</div>
 		</section>
-		
-		<footer style="display: none;">
-			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' async type='text/javascript'%3E%3C/script%3E"));</script>
-		</footer>
 		
 <script>
 let WIDTH;
@@ -592,7 +601,7 @@ let game = {
 			step = Math.max(this.time[1].step, 0);
 			
 			totalElem = $("#main > .black > div > .time > .total"),
-			stepElem = totalElem.next(".step");
+			stepElem = totalElem.nextAll(".step");
 			
 			totalElem.html(
 				( ~~(total/60) +"").padStart(2,"0") + ":" + ( ~~total%60 +"").padStart(2, "0")
@@ -622,7 +631,7 @@ let game = {
 			step = Math.max(this.time[0].step, 0);
 			
 			totalElem = $("#main > .white > div > .time > .total"),
-			stepElem = totalElem.next(".step");
+			stepElem = totalElem.nextAll(".step");
 			
 			totalElem.html(
 				( ~~(total/60) +"").padStart(2,"0") + ":" + ( ~~total%60 +"").padStart(2, "0")
@@ -702,7 +711,7 @@ let game = {
 			
 			if (win === true){
 				this.winner = +this.first;
-				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+				layer.alert(`<span>${text}</span><br><span>历时</span>${~~(t/60)}<span>分</span>${~~t%60}<span>秒</span><br>${game.steps}<span>步</span><span>（</span>${game.steps/2}<span>回合</span><span>）<span>`,
 					{title: "胜利！", icon: 6}
 				);
 				
@@ -717,7 +726,7 @@ let game = {
 				
 			}else if (win === false){
 				this.winner = 1-this.first;
-				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+				layer.alert(`<span>${text}</span><br><span>历时</span>${~~(t/60)}<span>分</span>${~~t%60}<span>秒</span><br>${game.steps}<span>步</span><span>（</span>${game.steps/2}<span>回合</span><span>）<span>`,
 					{title: "你失败了！", icon: 5}
 				);
 				
@@ -733,7 +742,7 @@ let game = {
 				
 			}else{
 				this.winner = null;
-				layer.alert(`${text}<br>历时${~~(t/60)}分${~~t%60}秒<br>${game.steps}步（${game.steps/2}回合）`,
+				layer.alert(`<span>${text}</span><br><span>历时</span>${~~(t/60)}<span>分</span>${~~t%60}<span>秒</span><br>${game.steps}<span>步</span><span>（</span>${game.steps/2}<span>回合</span><span>）<span>`,
 					{title: "游戏结束"}
 				);
 			}
