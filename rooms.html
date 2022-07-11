@@ -1156,6 +1156,9 @@ $("#room > .join").click(function(){
 		if (ROOMLIST[ROOM].people[1] != null)
 			return layer.msg("<span>已有人加入游戏</span>", {icon: 5});
 		
+		if (ROOMLIST[ROOM].people[1] != null)
+			return layer.msg("已有人加入游戏", {icon: 5});
+		
 		send("gobang_joinRoom", ROOM);
 		
 		//初始化设置

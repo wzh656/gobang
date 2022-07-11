@@ -1017,10 +1017,10 @@ let bgm,
 		bgm = null;
 	}
 	
-	const effect = new PianoMusic(2, 60);
+	let playEffect = ()=>{}; //播放音效
 	if (setting_music.effect == "voice"){
 		playEffect = function(){
-			new Player("./music/effect.m4a", false, 0.8).play(0.1);
+			new Player("./music/effect.m4a", false, 0.8).play();
 		};
 	}else if (setting_music.effect == "stars"){
 		playEffect = function(){
