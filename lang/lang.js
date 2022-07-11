@@ -52,10 +52,12 @@ const LANG = {
 		"自定义": "Custom",
 		"bgm乐谱": "Music <wbr>Score <wbr>of <wbr>BGM",
 		"音效": "Sound <wbr>Effect",
+		"人声配音": "Voice by human",
 		"小星星钢琴曲": "Twinkle Twinkle Little Star",
 		"音效乐谱": "Music <wbr>Score <wbr>of <wbr>Sound <wbr>Effect",
 		"提示：音乐设置需重启页面生效": "Tip: Music Settings need to Restart the page to take effect",
 		"语言设置(Language)": "Language(语言)",
+		"提示：语言设置会自动重启页面生效": "Tip: Language Settings need to Restart the page automatically to take effect",
 		"保存": "Save",
 		"取消": "Cancel",
 		"设置成功": "Success!",
@@ -245,7 +247,13 @@ const LANG = {
 		"游戏已结束，无法求和": "the Game has been Over, Cannot to Draw a Match",
 		"确定请求求和吗？": "Are you Sure to Request to Draw a Match?",
 		"请求求和中……": "Requesting to Draw a Match…",
-		"你发送了求和请求": "You Send the Request to Draw a Match"
+		"你发送了求和请求": "You Send the Request to Draw a Match",
+		
+		"联机 - 未解锁 | 五子棋": "Online - Unlocked | Gobang",
+		"联机 - 未解锁": "Online - Unlocked",
+		"您当前使用的是4D五子棋单机版（免费），由于服务器维护需要一定费用，请购买后使用联机功能。开发不易，感谢大家的谅解与支持。": "You are currently using the 4D Gobang stand-alone version (free). Since the server maintenance requires a certain fee, please use the online function after purchase. Development is not easy, thank you for your understanding and support.",
+		"购买链接：": "Purchase link: ",
+		"返回": "Back"
 	},
 	"zh-TW":{
 		"五子棋": "五子棋",
@@ -300,10 +308,12 @@ const LANG = {
 		"自定义": "自定義",
 		"bgm乐谱": "bgm樂譜",
 		"音效": "音效",
+		"人声配音": "人聲配音",
 		"小星星钢琴曲": "小星星鋼琴曲",
 		"音效乐谱": "音效樂譜",
 		"提示：音乐设置需重启页面生效": "提示：音樂設置需重啟頁面生效",
 		"语言设置(Language)": "語言設置(Language)",
+		"提示：语言设置会自动重启页面生效": "提示：語言設定會自動重啟頁面生效",
 		"保存": "保存",
 		"取消": "取消",
 		"设置成功": "設置成功",
@@ -493,7 +503,13 @@ const LANG = {
 		"游戏已结束，无法求和": "遊戲已結束，無法求和",
 		"确定请求求和吗？": "確定請求求和嗎？",
 		"请求求和中……": "請求求和中……",
-		"你发送了求和请求": "你發送了求和請求"
+		"你发送了求和请求": "你發送了求和請求",
+		
+		"联机 - 未解锁 | 五子棋": "聯機 - 未解鎖 | 五子棋",
+		"联机 - 未解锁": "聯機 - 未解鎖",
+		"您当前使用的是4D五子棋单机版（免费），由于服务器维护需要一定费用，请购买后使用联机功能。开发不易，感谢大家的谅解与支持。": "您當前使用的是4D五子棋單機版（免費），由於服務器維護需要一定費用，請購買後使用聯機功能。 開發不易，感謝大家的諒解與支持。",
+		"购买链接：": "購買連結：",
+		"返回": "返回"
 	}
 };
 let LANG_TYPE = "en-US";

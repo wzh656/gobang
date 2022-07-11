@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<!-- Copyright © 2021 by wzh -->
+<!-- Copyright © 2021~2022 by wzh -->
 <html lang="zh">
 	<head>
 		<meta charset="UTF-8" />
@@ -380,6 +380,17 @@
 			s.parentNode.insertBefore(hm, s);
 		})();
 		</script>
+		
+		<!-- Global site tag (gtag.js) - Google Analytics -->
+		<script async src="https://www.googletagmanager.com/gtag/js?id=G-WTWJEHK1C2"></script>
+		<script>
+		window.dataLayer = window.dataLayer || [];
+		function gtag(){dataLayer.push(arguments);}
+		gtag('js', new Date());
+		
+		gtag('config', 'G-WTWJEHK1C2');
+		</script>
+		
 		<!--<script>
 		(function(i,s,o,g,r,a,m){i["DaoVoiceObject"]=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;a.charset="utf-8";m.parentNode.insertBefore(a,m)})(window,document,"script",('https:' == document.location.protocol ? 'https:' : 'http:') + "//widget.daovoice.io/widget/c17090af.js","daovoice")
 		daovoice('init', {
@@ -543,7 +554,8 @@
 							<div class="layui-input-block">
 								<select name="effect" lay-filter="effect">
 									<option value="none">无</option>
-									<option value="stars" checked>小星星钢琴曲</option>
+									<option value="voice" checked>人声配音</option>
+									<option value="stars">小星星钢琴曲</option>
 									<option value="piano">纯音乐钢琴曲(deskgood作曲)</option>
 									<option value="piano2">纯音乐钢琴曲2</option>
 									<option value="LonelyWarrior">孤勇者</option>
@@ -595,10 +607,6 @@
 			</table>
 			<button class="back">确定</button>
 		</section>
-		
-		<footer style="display: none;">
-			<script type="text/javascript">document.write(unescape("%3Cspan id='cnzz_stat_icon_1280239115'%3E%3C/span%3E%3Cscript src='https://s4.cnzz.com/z_stat.php%3Fid%3D1280239115%26online%3D1%26show%3Dline' async type='text/javascript'%3E%3C/script%3E"));</script>
-		</footer>
 		
 <script>
 let device;
@@ -732,7 +740,7 @@ function readSetting(){
 	setting_personal.border = OR(setting_personal.border, true);
 	
 	setting_music.bgm = setting_music.bgm || "piano";
-	setting_music.effect = setting_music.effect || "stars";
+	setting_music.effect = setting_music.effect || "voice";
 	
 	
 	//游戏设置
@@ -778,7 +786,7 @@ function readSetting(){
 		$(form_music.bgm_local).parent().parent().hide();
 		$(form_music.bgm_custom).parent().parent().hide();
 	}
-	if (["none", "stars", "piano", "piano2", "LonelyWarrior"].indexOf(setting_music.effect) == -1){ //自定义
+	if (["none", "voice", "stars", "piano", "piano2", "LonelyWarrior"].indexOf(setting_music.effect) == -1){ //自定义
 		form_music.effect.value = "custom";
 		form_music.effect_custom.value = setting_music.effect;
 		$(form_music.effect_custom).parent().parent().show();
@@ -1198,7 +1206,13 @@ layui.use("form", function(){
 		}else{
 			$(form_music.effect_custom).parent().parent().hide("slow");
 		}
-		if (data.value == "stars"){ //测试播放
+		if (data.value == "voice"){ //测试播放
+			if (effectTest){ //停止音效测试
+				if (effectTest.stop) effectTest.stop();
+				if (effectTest.setStop) effectTest.setStop(true);
+			}
+			effectTest = new Player("./music/effect.m4a", false, 0.8).play();
+		}else if (data.value == "stars"){ //测试播放
 			if (effectTest){ //停止音效测试
 				if (effectTest.stop) effectTest.stop();
 				if (effectTest.setStop) effectTest.setStop(true);
@@ -1308,7 +1322,8 @@ $("#one").click(function(){
 
 //多人联机
 $("#online").click(function(){
-	go("rooms.html");
+	go("unlock.html");
+	//go("rooms.html");
 	/*if (typeof plus != "undefined"){
 		layer.confirm("灰常抱歉，由于<del>可恶的</del>国家政策，木有版号的游戏只能发布测试版，故无法联网进行联机服务，若需要联机请打开网页版游戏：<br>https://wzh656.github.io/gobang/rooms.html<br>提示：免费服务器5分钟无请求自动休眠，加载时等待服务器开启可能较慢，请耐心等待", {
 			btn: ["浏览器打开", "取消"]
@@ -1444,3 +1459,4 @@ $("body > h1").on("dblclick",function(){
 		
 	</body>
 </html>
+>>>>>>> gitee/master

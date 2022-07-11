@@ -1017,8 +1017,13 @@ let bgm,
 		bgm = null;
 	}
 	
-	const effect = new PianoMusic(2, 60);
-	if (setting_music.effect == "stars"){
+	let playEffect = ()=>{}; //播放音效
+	if (setting_music.effect == "voice"){
+		playEffect = function(){
+			new Player("./music/effect.m4a", false, 0.8).play();
+		};
+		
+	}else if (setting_music.effect == "stars"){
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			const music = new Music(MUSICS.stars),

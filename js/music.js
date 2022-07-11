@@ -1,35 +1,40 @@
 //url播放
 class Player{
-	constructor(url, volume=1){
+	constructor(url, loop=true, volume=1){
 		const audio = $("<audio></audio>")[0];
 		audio.src = url;
-		audio.loop = "loop";
+		if (loop)
+			audio.loop = "loop";
 		audio.volume = volume;
 		
 		$("body").append( audio );
 		this.audio = audio;
 	}
 	
-	play(){
+	play(time=0){
 		console.log("play", this.audio.src.substr(0,100), this.audio.volume)
-		this.audio.play().catch((err)=>{
+		this.audio.currentTime = time;
+		let played = false;
+		this.audio.play().then(()=>{
+			played = true;
+		}).catch(err => {
 			console.error(err)
 			const play = ()=>{
 				if (this.audio.paused)
 					this.audio.play();
 			};
 			document.addEventListener("plusready", function plusready(){
-				play();
+				if (!played) play();
 				console.log("plusready -> play")
 				document.removeEventListener("plusready", plusready);
 			});
 			document.addEventListener("click", function click(){
-				play();
+				if (!played) play();
 				console.log("click -> play")
 				document.removeEventListener("click", click);
 			});
 			document.addEventListener("touchstart", function touchstart(){
-				play();
+				if (!played) play();
 				console.log("touchstart -> play")
 				document.removeEventListener("touchstart", touchstart);
 			});
