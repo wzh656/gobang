@@ -515,26 +515,6 @@
 		</section>
 		
 <script>
-//生成任意维数组
-Array.new = function(value, len, ...num){
-	if (num.length == 0){
-		if (value instanceof Function){
-			return Array.from({
-				length: len
-			}, value);
-		}else{
-			return Array.from({
-				length: len
-			}, ()=>value);
-		}
-	}else{
-		return Array.from({
-			length: len
-		}, ()=>Array.new(value, ...num));
-	}
-};
-</script>
-<script>
 function resize(){
 	console.log("resize")
 	
@@ -561,6 +541,9 @@ $(window).resize(function(){
 document.addEventListener("plusready", function(){
 	plus.navigator.setStatusBarBackground("#aef");
 	plus.navigator.setStatusBarStyle("dark");
+	plus.key.addEventListener("backbutton", function(){
+		go("index.html");
+	});
 }, false);
 </script>
 <script>
@@ -2119,21 +2102,22 @@ function request(data){
 
 
 let lastMistake = null; //上次防误触物体
-let validClick = true; //是否有效点击
-setTimeout(()=>{ //等待loadScene
-	board.scene.onPointerObservable.add(function(e){
-		if (e.type == 1){ //mousedown
-			validClick = true; //新一次点击
-			console.log("mousedown", validClick)
-		}else if (e.type == 4){ //mousemove
-			validClick = false; //不允许移动
-			console.log("mousemove", validClick)
-		}
-	});
-}, 600);
+let moveTimes = 0; //移动次数
+if (navigator.device > 0) //电脑
+	setTimeout(()=>{ //等待loadScene
+		board.scene.onPointerObservable.add(function(e){
+			if (e.type == 1){ //mousedown
+				moveTimes = 0; //新一次点击
+				console.log("mousedown", validClick)
+			}else if (e.type == 4){ //mousemove
+				moveTimes++; //不允许移动
+				console.log("mousemove", validClick)
+			}
+		});
+	}, 600);
 $("#board").click(function(e){
-	console.log("click", validClick)
-	if (!validClick) return; //无效点击
+	console.log("click", moveTimes)
+	if (moveTimes > 5) return; //无效点击
 	if (!worker) return; //未初始化线程
 	if (game.winner !== false) return; //已结束
 	if (waiting) return; //上次未响应

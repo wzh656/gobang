@@ -496,6 +496,8 @@ class PiecesSystem{
 			value: -Infinity
 		};
 		
+		let firstPos = null; //自己第一次下棋位置 前提：第二次下棋
+		
 		switch (this.D){
 			case 2:
 				for (const [x, col] of Object.entries(this.pieces))
@@ -587,10 +589,29 @@ class PiecesSystem{
 				break;
 				
 			case 3:
+				//第二次下棋判定
+				for (const [x, face] of Object.entries(this.pieces))
+					for (const [y, col] of Object.entries(face))
+						for (const [z, pic] of Object.entries(col))
+							if (pic == side) //找到自己棋子
+								if (firstPos === null){ //第一次找到 记录
+									firstPos = {x, y, z};
+								}else if (firstPos){ //第二次找到 无效
+									firstPos = false;
+									break;
+								}
+				
 				for (const [x, face] of Object.entries(this.pieces))
 					for (const [y, col] of Object.entries(face))
 						for (const [z, pic] of Object.entries(col)){
 							if (pic !== 0) continue; //有棋子 跳过
+							
+							if (firstPos) //第二次下棋 1*1*2
+								if ( (x - firstPos.x) **2 +
+									(y - firstPos.y) **2 +
+									(z - firstPos.z) **2
+									!= 1**2 + 1**2 + 2**2
+								) continue; //排除不是日对角的
 							
 							let score = 1/(
 								(x - (pieces.columns-1)/2) **2 +
@@ -687,11 +708,32 @@ class PiecesSystem{
 				break;
 				
 			case 4:
+				//第二次下棋判定
+				for (const [x, cube] of Object.entries(this.pieces))
+					for (const [y, face] of Object.entries(cube))
+						for (const [z, col] of Object.entries(face))
+							for (const [w, pic] of Object.entries(col))
+								if (pic == side) //找到自己棋子
+									if (firstPos === null){ //第一次找到 记录
+										firstPos = {x, y, z, w};
+									}else if (firstPos){ //第二次找到 无效
+										firstPos = false;
+										break;
+									}
+				
 				for (const [x, cube] of Object.entries(this.pieces))
 					for (const [y, face] of Object.entries(cube))
 						for (const [z, col] of Object.entries(face))
 							for (const [w, pic] of Object.entries(col)){
 								if (pic !== 0) continue; //有棋子 跳过
+								
+								if (firstPos) //第二次下棋 1*1*1*2
+									if ( (x - firstPos.x) **2 +
+										(y - firstPos.y) **2 +
+										(z - firstPos.z) **2 +
+										(w - firstPos.w) **2
+										!= 1**2 + 1**2 + 1**2 + 2**2
+									) continue; //排除不是日对角的
 								
 								let score = 1/(
 									(x - (pieces.columns-1)/2) **2 +

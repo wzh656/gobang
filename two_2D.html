@@ -356,6 +356,9 @@ resize();
 document.addEventListener("plusready", function(){
 	plus.navigator.setStatusBarBackground("#aef");
 	plus.navigator.setStatusBarStyle("dark");
+	plus.key.addEventListener("backbutton", function(){
+		go("index.html");
+	});
 }, false);
 </script>
 <script>
