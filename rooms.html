@@ -1302,6 +1302,16 @@ $("#room > .start").click(function(){
 });
 
 
+
+/* 电脑版按键 */
+document.onkeydown = function(e){
+	console.log(e.key)
+	if (e.key == "Escape"){
+		go("index.html");
+	}
+	e.preventDefault();
+	return false;
+} 
 </script>
 		
 	</body>

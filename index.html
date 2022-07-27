@@ -352,7 +352,7 @@
 		<link rel="stylesheet" href="./layui/css/layui.css" />
 		
 		<!-- 调试工具 -->
-		<script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+		<!-- <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
 		<script src="https://cdn.bootcss.com/vConsole/3.3.4/vconsole.min.js"></script>
 		<script>
 		if ( /ipad|iphone|midp|rv:1.2.3.4|ucweb|android|windows ce|windows mobile/.test( navigator.userAgent.toLowerCase() ) ){
@@ -360,7 +360,7 @@
 			eruda.init();
 			new VConsole();
 		}
-		</script>
+		</script> -->
 		
 		<!-- PianoMusic Bgm -->
 		<script src="./js/acoustic_grand_piano-ogg.js"></script>
@@ -1324,15 +1324,6 @@ $("#one").click(function(){
 $("#online").click(function(){
 	go("unlock.html");
 	//go("rooms.html");
-	/*if (typeof plus != "undefined"){
-		layer.confirm("灰常抱歉，由于<del>可恶的</del>国家政策，木有版号的游戏只能发布测试版，故无法联网进行联机服务，若需要联机请打开网页版游戏：<br>https://wzh656.github.io/gobang/rooms.html<br>提示：免费服务器5分钟无请求自动休眠，加载时等待服务器开启可能较慢，请耐心等待", {
-			btn: ["浏览器打开", "取消"]
-		}, function(){
-			plus.runtime.openURL("https://wzh656.github.io/gobang/rooms.html");
-		});
-	}else{
-		layer.msg("模块加载中，请稍后再试");
-	}*/
 });
 
 
@@ -1459,4 +1450,3 @@ $("body > h1").on("dblclick",function(){
 		
 	</body>
 </html>
->>>>>>> gitee/master

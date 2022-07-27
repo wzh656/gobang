@@ -1017,13 +1017,15 @@ let bgm,
 		bgm = null;
 	}
 	
-	let playEffect = ()=>{}; //播放音效
+
 	if (setting_music.effect == "voice"){
+		const effect = new Player("./music/effect.m4a", false, 0.8)
 		playEffect = function(){
-			new Player("./music/effect.m4a", false, 0.8).play();
+			effect.play();
 		};
 		
 	}else if (setting_music.effect == "stars"){
+		const effect = new PianoMusic(2, 60);
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			const music = new Music(MUSICS.stars),
@@ -1040,6 +1042,7 @@ let bgm,
 		};
 		
 	}else if (setting_music.effect == "piano"){
+		const effect = new PianoMusic(2, 60);
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			const music = new Music(MUSICS.piano),
@@ -1056,6 +1059,7 @@ let bgm,
 		};
 		
 	}else if (setting_music.effect == "piano2"){
+		const effect = new PianoMusic(2, 60);
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			const music = new Music(MUSICS.piano2),
@@ -1072,6 +1076,7 @@ let bgm,
 		};
 		
 	}else if (setting_music.effect == "LonelyWarrior"){
+		const effect = new PianoMusic(2, 60);
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			const music = new Music(MUSICS.LonelyWarrior),
@@ -1088,6 +1093,7 @@ let bgm,
 		};
 		
 	}else if (setting_music.effect != "none"){ //自定义
+		const effect = new PianoMusic(2, 60);
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			const music = new Music(setting_music.effect),
@@ -1103,5 +1109,4 @@ let bgm,
 			localStorage.setItem("五子棋_音乐设置", JSON.stringify(setting_music));
 		};
 	}
-	return {bgm, playEffect};
 })();

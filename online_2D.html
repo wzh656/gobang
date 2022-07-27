@@ -1653,7 +1653,9 @@ function output(text, center=false){
 /* 电脑版按键 */
 document.onkeydown = function(e){
 	console.log(e.key)
-	if (e.key == "F2"){ //评分
+	if (e.key == "Escape"){
+		go("index.html");
+	}else if (e.key == "F2"){ //评分
 		if (!$("#toolBtn > .scores").attr("disabled"))
 			scores();
 	}else if (e.key == "F3"){ //分析

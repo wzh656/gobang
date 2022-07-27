@@ -2290,21 +2290,24 @@ function request(data){
 }
 
 
-let validClick = true; //是否有效点击
+let mouseTimes = 0; //移动次数
 setTimeout(()=>{ //等待loadScene
 	board.scene.onPointerObservable.add(function(e){
+		console.log(e)
 		if (e.type == 1){ //mousedown
-			validClick = true; //新一次点击
-			console.log("mousedown", validClick)
+			mouseTimes = 0;
+			//validClick = true; //新一次点击
+			console.log("mousedown", mouseTimes)
 		}else if (e.type == 4){ //mousemove
-			validClick = false; //不允许移动
-			console.log("mousemove", validClick)
+			mouseTimes++;
+			//validClick = false; //不允许移动
+			console.log("mousemove", mouseTimes)
 		}
 	});
 }, 600);
 $("#board").click(function(e){
-	console.log("click", validClick)
-	if (!validClick) return; //无效点击
+	console.log("click", mouseTimes)
+	if (mouseTimes > 5) return; //无效点击
 	if (!worker) return; //未初始化线程
 	if (game.first != game.turn) return; //未轮到自己
 	if (game.winner !== false) return; //已结束
@@ -2560,7 +2563,9 @@ function output(text, center=false){
 /* 电脑版按键 */
 document.onkeydown = function(e){
 	console.log(e.key)
-	if (e.key == "F2"){ //评分
+	if (e.key == "Escape"){
+		go("index.html");
+	}else if (e.key == "F2"){ //评分
 		if (!$("#toolBtn > .scores").attr("disabled"))
 			scores();
 	}else if (e.key == "F3"){ //分析
