@@ -295,7 +295,7 @@
 				<div>
 					<p class="name"></p>
 					<p class="time">
-						<span>局时：</span><span class="total">10:00</span> &nbsp;
+						<span>局时：</span><span class="total">05:00</span> &nbsp;
 						<span>步时：</span><span class="step">30s</span>
 					</p>
 				</div>
@@ -305,7 +305,7 @@
 				<div>
 					<p class="name"></p>
 					<p class="time">
-						<span>局时：</span><span class="total">10:00</span> &nbsp;
+						<span>局时：</span><span class="total">05:00</span> &nbsp;
 						<span>步时：</span><span class="step">30s</span>
 					</p>
 				</div>
@@ -507,7 +507,7 @@ class Board{
 	}
 }
 
-const {N=5, cols=19, rows=19, place=0} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
+const {N=5, cols=19, rows=19, place=0, totalTime=300, stepTime=30} = JSON.parse(localStorage.getItem("五子棋_游戏设置") || "{}"),
 	{mistake=true} = JSON.parse(localStorage.getItem("五子棋_个性化设置") || "{}");
 $("#board").css("height", WIDTH *rows/cols + "px")
 	.attr("height", 2*WIDTH *rows/cols);
@@ -529,19 +529,19 @@ let game = {
 		t0: [null, null], //上次时间
 		ids: [null, null], //计时器id
 		time: [
-			{total: 300, step: 30}, //0: 白
-			{total: 300, step: 30} //1: 黑
+			{total: totalTime, step: stepTime}, //0: 白
+			{total: totalTime, step: stepTime} //1: 黑
 		], //剩余时间
 		timeWarning: { //时间警告
 			total: {
-				60: ["#f00", 1.2],
-				180: ["#fa0", 1.1],
-				600: ["#000", 1]
+				60: ["#f00", 1.5],
+				180: ["#fa0", 1.2],
+				Infinity: ["inherit", 1]
 			},
 			step: {
 				10: ["#f00", 1.5],
-				20: ["#fa0", 1.1],
-				45: ["#000", 1]
+				20: ["#fa0", 1.2],
+				Infinity: ["inherit", 1]
 			}
 		},
 		scores: {
@@ -638,7 +638,7 @@ let game = {
 			if (this.time[this.turn].total <= 0){ //超出局时
 				this.time[this.turn].step += 5;
 			}else{
-				this.time[this.turn].step = 30; //重置步时
+				this.time[this.turn].step = stepTime; //重置步时
 				//this.time[this.turn].total += 5; //增加局时
 			}
 			this.updateTime(this.turn);
@@ -853,10 +853,10 @@ function init(){
 	clearInterval( game.ids[0] );
 	clearInterval( game.ids[1] ); //时间暂停
 	game.t0[0] = game.t0[1] = game.ids[0] = game.ids[1] = null;
-	game.time[0].total = 300;
-	game.time[0].step = 30;
-	game.time[1].total = 300;
-	game.time[1].step = 30;
+	game.time[0].total = totalTime;
+	game.time[0].step = stepTime;
+	game.time[1].total = totalTime;
+	game.time[1].step = stepTime;
 	game.scores.now[0] = game.scores.now[1] =
 		game.scores.goal[0] = game.scores.goal[1] = 0;
 	game.scores.t0 = +new Date();

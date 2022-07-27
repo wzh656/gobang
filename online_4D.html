@@ -849,7 +849,7 @@ class Board{
 		
 		//天空盒
 		if (skyboxDisplay){ //允许显示
-			const skybox = BABYLON.Mesh.CreateBox("skyBox", 1000, this.scene);
+			const skybox = BABYLON.Mesh.CreateBox("skyBox", 3000, this.scene);
 			const skyMaterial = new BABYLON.SkyMaterial("skyMaterial", this.scene);
 			skyMaterial.backFaceCulling = false;
 			skybox.material = skyMaterial;
@@ -917,7 +917,7 @@ class Board{
 				setInterval(function(){
 					if ((skyMaterial.inclination+0.5)%2 < 1)
 						return (moon.isVisible = false);
-					const radius = 400, //轨道距离
+					const radius = 500, //轨道距离
 						theta = (skyMaterial.inclination+1.5)%2 /2 *2*Math.PI;
 					moon.isVisible = true;
 					moon.position.set(
@@ -1760,13 +1760,13 @@ let game = {
 		], //剩余时间
 		timeWarning: { //时间警告
 			total: {
-				60: ["#f00", 1.2],
-				300: ["#fa0", 1.1],
+				60: ["#f00", 1.5],
+				300: ["#fa0", 1.2],
 				900: ["inherit", 1]
 			},
 			step: {
 				10: ["#f00", 1.5],
-				30: ["#fa0", 1.1],
+				30: ["#fa0", 1.2],
 				60: ["inherit", 1]
 			}
 		},

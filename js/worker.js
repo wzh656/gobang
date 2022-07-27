@@ -497,6 +497,7 @@ class PiecesSystem{
 		};
 		
 		let firstPos = null; //自己第一次下棋位置 前提：第二次下棋
+		let canFind; //是否可找到日字形
 		
 		switch (this.D){
 			case 2:
@@ -590,6 +591,9 @@ class PiecesSystem{
 				
 			case 3:
 				//第二次下棋判定
+				canFind = (this.columns >= 2 &&
+					this.rows >= 2 &&
+					this.depth >= 2); //是否可找到日字形
 				for (const [x, face] of Object.entries(this.pieces))
 					for (const [y, col] of Object.entries(face))
 						for (const [z, pic] of Object.entries(col))
@@ -606,7 +610,7 @@ class PiecesSystem{
 						for (const [z, pic] of Object.entries(col)){
 							if (pic !== 0) continue; //有棋子 跳过
 							
-							if (firstPos) //第二次下棋 1*1*2
+							if (firstPos && canFind) //第二次下棋 1*1*2 且 可找到
 								if ( (x - firstPos.x) **2 +
 									(y - firstPos.y) **2 +
 									(z - firstPos.z) **2
@@ -709,6 +713,10 @@ class PiecesSystem{
 				
 			case 4:
 				//第二次下棋判定
+				canFind = (this.columns >= 2 &&
+					this.rows >= 2 &&
+					this.depth >= 2 &&
+					this.width >= 2); //是否可找到日字形
 				for (const [x, cube] of Object.entries(this.pieces))
 					for (const [y, face] of Object.entries(cube))
 						for (const [z, col] of Object.entries(face))
@@ -727,7 +735,7 @@ class PiecesSystem{
 							for (const [w, pic] of Object.entries(col)){
 								if (pic !== 0) continue; //有棋子 跳过
 								
-								if (firstPos) //第二次下棋 1*1*1*2
+								if (firstPos && canFind) //第二次下棋 1*1*1*2 且 可找到
 									if ( (x - firstPos.x) **2 +
 										(y - firstPos.y) **2 +
 										(z - firstPos.z) **2 +
