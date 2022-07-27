@@ -8,12 +8,12 @@ MUSICS.piano = `
 	拍速 72
 	MUSICS._piano = MUSICS._piano || {};
 	MUSICS._piano.volume = MUSICS._piano.volume || 0;
-	MUSICS._piano.volumeDir = MUSICS._piano.volumeDir || +0.1;
+	MUSICS._piano.volumeDir = MUSICS._piano.volumeDir || +0.4;
 	MUSICS._piano.volume += MUSICS._piano.volumeDir;
-	if (MUSICS._piano.volume >= 0.5){
-		MUSICS._piano.volumeDir = -0.1;
-	}else if (MUSICS._piano.volume <= 0.1){
-		MUSICS._piano.volumeDir = +0.1;
+	if (MUSICS._piano.volume >= 1){
+		MUSICS._piano.volumeDir = -0.2;
+	}else if (MUSICS._piano.volume <= 0.4){
+		MUSICS._piano.volumeDir = +0.2;
 	}
 	const volume = MUSICS._piano.volume;
 	B6 0.5 volume
@@ -993,33 +993,34 @@ let bgm,
 (function(){
 	let setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}");
 	setting_music.bgm = setting_music.bgm || "piano";
+	setting_music.bgmVolume = setting_music.bgmVolume || 100;
 	setting_music.effect = setting_music.effect || "stars";
 	
 	if (setting_music.bgm == "piano"){ //deskgood作曲钢琴曲
-		bgm = new Music(MUSICS.piano, 72).play();
+		bgm = new Music(MUSICS.piano, 10, 72, setting_music.bgmVolume/100).play();
 	}else if (setting_music.bgm == "piano2"){ //钢琴曲2
-		bgm = new Music(MUSICS.piano2, 72).play();
+		bgm = new Music(MUSICS.piano2, 10, 72, setting_music.bgmVolume/100).play();
 	}else if (setting_music.bgm == "youth"){ //lyz
-		bgm = new Player("./music/piano.mp3").play();
+		bgm = new Player("./music/piano.mp3", true, setting_music.bgmVolume/100).play();
 	}else if (setting_music.bgm == "LonelyWarrior"){ //孤勇者
-		bgm = new Music(MUSICS.LonelyWarrior, 72).play();
+		bgm = new Music(MUSICS.LonelyWarrior, 10, 72, setting_music.bgmVolume/100).play();
 	}else if (setting_music.bgm == "random"){ //网易云随机音乐
-		bgm = new Player("https://api.vvhan.com/api/rand.music?sort=热歌榜").play();
+		bgm = new Player("https://api.vvhan.com/api/rand.music?sort=热歌榜", true, setting_music.bgmVolume/100).play();
 	}else if (setting_music.bgm == "local"){ //本地音频
 		if (typeof plus != "undefined"){
-			bgm = new Player( plus.storage.getItem("本地音频") ).play();
+			bgm = new Player( plus.storage.getItem("本地音频"), true, setting_music.bgmVolume/100 ).play();
 		}else{
 			document.addEventListener("plusready", function(){
-				bgm = new Player( plus.storage.getItem("本地音频") ).play();
+				bgm = new Player( plus.storage.getItem("本地音频"), true, setting_music.bgmVolume/100 ).play();
 			}, false);
 		}
 	}else if (setting_music.bgm != "none"){ //自定义
-		bgm = null;
+		bgm = new Music(setting_music.bgm, 10, 60, setting_music.bgmVolume/100).play();
 	}
 	
-
+	//音效
 	if (setting_music.effect == "voice"){
-		const effect = new Player("./music/effect.m4a", false, 0.8)
+		const effect = new Player("./music/effect.m4a", false, setting_music.effectVolume/100);
 		playEffect = function(){
 			effect.play();
 		};
@@ -1028,13 +1029,15 @@ let bgm,
 		const effect = new PianoMusic(2, 60);
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
+			setting_music.effect = setting_music.effect || "stars";
+			setting_music.effectVolume = setting_music.effectVolume || 100;
 			const music = new Music(MUSICS.stars),
 				sounds = music.getSounds(), //所有音符
 				speed = music.speed, //速度
 				index = Math.modRange(setting_music.effectIndex||0, 0, sounds.length, 1);
 			
 			effect.setSpeed(speed)
-				.play(...sounds[index]);
+				.play(...sounds[index], setting_music.effectVolume/100);
 			
 			//保存
 			setting_music.effectIndex = index+1;
@@ -1045,13 +1048,15 @@ let bgm,
 		const effect = new PianoMusic(2, 60);
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
+			setting_music.effect = setting_music.effect || "stars";
+			setting_music.effectVolume = setting_music.effectVolume || 100;
 			const music = new Music(MUSICS.piano),
 				sounds = music.getSounds(), //所有音符
 				speed = music.speed, //速度
 				index = Math.modRange(setting_music.effectIndex||0, 0, sounds.length, 1);
 			
 			effect.setSpeed(speed)
-				.play(...sounds[index]);
+				.play(...sounds[index], setting_music.effectVolume/100);
 			
 			//保存
 			setting_music.effectIndex = index+1;
@@ -1062,13 +1067,15 @@ let bgm,
 		const effect = new PianoMusic(2, 60);
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
+			setting_music.effect = setting_music.effect || "stars";
+			setting_music.effectVolume = setting_music.effectVolume || 100;
 			const music = new Music(MUSICS.piano2),
 				sounds = music.getSounds(), //所有音符
 				speed = music.speed, //速度
 				index = Math.modRange(setting_music.effectIndex||0, 0, sounds.length, 1);
 			
 			effect.setSpeed(speed)
-				.play(...sounds[index]);
+				.play(...sounds[index], setting_music.effectVolume/100);
 			
 			//保存
 			setting_music.effectIndex = index+1;
@@ -1079,13 +1086,15 @@ let bgm,
 		const effect = new PianoMusic(2, 60);
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
+			setting_music.effect = setting_music.effect || "stars";
+			setting_music.effectVolume = setting_music.effectVolume || 100;
 			const music = new Music(MUSICS.LonelyWarrior),
 				sounds = music.getSounds(), //所有音符
 				speed = music.speed, //速度
 				index = Math.modRange(setting_music.effectIndex||0, 0, sounds.length, 1);
 			
 			effect.setSpeed(speed)
-				.play(...sounds[index]);
+				.play(...sounds[index], setting_music.effectVolume/100);
 			
 			//保存
 			setting_music.effectIndex = index+1;
@@ -1096,13 +1105,15 @@ let bgm,
 		const effect = new PianoMusic(2, 60);
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
+			setting_music.effect = setting_music.effect || "stars";
+			setting_music.effectVolume = setting_music.effectVolume || 100;
 			const music = new Music(setting_music.effect),
 				sounds = music.getSounds(), //所有音符
 				speed = music.speed, //速度
 				index = Math.modRange(setting_music.effectIndex||0, 0, sounds.length, 1);
 			
 			effect.setSpeed(speed)
-				.play(...sounds[index]);
+				.play(...sounds[index], setting_music.effectVolume/100);
 			
 			//保存
 			setting_music.effectIndex = index+1;

@@ -3,12 +3,20 @@ class Player{
 	constructor(url, loop=true, volume=1){
 		const audio = $("<audio></audio>")[0];
 		audio.src = url;
-		if (loop)
-			audio.loop = "loop";
+		if (loop) audio.loop = "loop";
 		audio.volume = volume;
 		
 		$("body").append( audio );
 		this.audio = audio;
+		
+		//切换后台
+		document.addEventListener("pause", function(){
+			audio.pause();
+		});
+		//切换前台
+		document.addEventListener("resume", function(){
+			audio.play();
+		});
 	}
 	
 	play(time=0){
@@ -90,7 +98,7 @@ class PianoMusic{
 
 //钢琴曲播放
 class Music{
-	constructor(score, audioNum=2, speed=60){
+	constructor(score, audioNum=2, speed=60, gVolume=1){
 		this.audioNum = audioNum; //声道数量
 		this.speed = speed; //速度
 		this.sounds = []; //真正的谱子（音符）
@@ -114,10 +122,10 @@ class Music{
 			){
 				this.sounds.push([sound, time, volume]);
 				if (first){
-					this.js += `p.play("${sound}",${time},${volume})`;
+					this.js += `p.play("${sound}",${time},${gVolume}*${volume})`;
 					first = false;
 				}else{
-					this.js += `.then(()=>p.play("${sound}",${time},${volume}))`;
+					this.js += `.then(()=>p.play("${sound}",${time},${gVolume}*${volume}))`;
 				}
 			}else if (sound == "拍速" && !isNaN(+time)){
 				this.speed = time;

@@ -529,7 +529,7 @@
 									<option value="none">无</option>
 									<option value="piano" checked>纯音乐钢琴曲(deskgood作曲)</option>
 									<option value="piano2">纯音乐钢琴曲2</option>
-									<option value="youth">无题（纯音乐未作词）</option>
+									<option value="youth">无题（纯音乐未作词）by Louise</option>
 									<option value="LonelyWarrior">孤勇者</option>
 									<option value="random">网抑云随机热歌</option>
 									<option value="local">本地音频</option>
@@ -547,6 +547,11 @@
 							<label class="layui-form-label">bgm乐谱</label>
 							<div class="layui-input-block">
 								<textarea name="bgm_custom" rows="10" placeholder="请输入乐谱" class="layui-textarea"></textarea>
+							</div>
+						</div>
+						<div class="layui-form-item layui-form-text">
+							<label class="layui-form-label">bgm音量</label>
+							<div class="layui-input-block" id="bgmVolume" style="position: relative; top: 10px;">
 							</div>
 						</div>
 						<div class="layui-form-item">
@@ -569,7 +574,12 @@
 								<textarea name="effect_custom" rows="10" placeholder="请输入乐谱" class="layui-textarea"></textarea>
 							</div>
 						</div>
-						<div class="layui-word-aux">提示：音乐设置需重启页面生效</div>
+						<div class="layui-form-item layui-form-text">
+							<label class="layui-form-label">音效音量</label>
+							<div class="layui-input-block" id="effectVolume" style="position: relative; top: 10px;">
+							</div>
+						</div>
+						<div class="layui-word-aux">提示：音乐设置会自动重启页面生效</div>
 					</form>
 					<form class="language layui-tab-item layui-form" onsubmit="return false;">
 						<div class="layui-form-item">
@@ -595,15 +605,15 @@
 			<h2>战绩</h2>
 			<h3>2D人机对战</h3>
 			<table class="two" border="2">
-				<tr><th>连子数</th><th>先手</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率</th></tr>
+				<tr><th>连子数</th><th>先手</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率<br>(概率)</th></tr>
 			</table>
 			<h3>3D人机对战</h3>
 			<table class="three" border="2">
-				<tr><th>连子数</th><th>先手</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率</th></tr>
+				<tr><th>连子数</th><th>先手</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率<br>(概率)</th></tr>
 			</table>
 			<h3>4D人机对战</h3>
 			<table class="four" border="2">
-				<tr><th>连子数</th><th>先手</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率</th></tr>
+				<tr><th>连子数</th><th>先手</th><th>棋盘大小</th><th style="color:red;">胜</th><th style="color:green;">负</th><th>总</th><th>胜率<br>(概率)</th></tr>
 			</table>
 			<button class="back">确定</button>
 		</section>
@@ -635,14 +645,14 @@ function go(url){
 }
 
 
-$("button, input[type='button'], .layui-tab-title *, #set").click(function(){
+$("button, input[type='button'], .layui-tab-title *, #set, #openRecord").click(function(){
 	playEffect(); //播放音效
 });
 setTimeout(function(){
-	$("input[type='radio'], input[type='checkbox'], div.layer-form-switch").next().click(function(){
+	$("input[type='radio'], input[type='checkbox'], .layer-form-switch").next().click(function(){
 		playEffect(); //播放音效
 	});
-}, 100);
+}, 1000);
 
 
 
@@ -719,10 +729,20 @@ function setD(D){
 function saveSetting(){
 	localStorage.setItem("五子棋_游戏设置", JSON.stringify(setting_game));
 	localStorage.setItem("五子棋_个性化设置", JSON.stringify(setting_personal));
+	let needReload = localStorage.getItem("五子棋_音乐设置") != JSON.stringify(setting_music) ||
+		localStorage.getItem("五子棋_语言") != LANG_TYPE; //改变则需要重启
 	localStorage.setItem("五子棋_音乐设置", JSON.stringify(setting_music));
 	localStorage.setItem("五子棋_语言", LANG_TYPE);
+	if (needReload)
+		if (typeof plus != "undefined"){
+			plus.runtime.restart();
+		}else{
+			location.reload();
+		}
 }
+
 //加载设置
+let bgmVolumeSliderValue, effectVolumeSliderValue; //音量拖动条的值
 function readSetting(){
 	//初始化设置
 	setting_game.D = setting_game.D || 2;
@@ -740,7 +760,9 @@ function readSetting(){
 	setting_personal.border = OR(setting_personal.border, true);
 	
 	setting_music.bgm = setting_music.bgm || "piano";
+	setting_music.bgmVolume = setting_music.bgmVolume || 100;
 	setting_music.effect = setting_music.effect || "voice";
+	setting_music.effectVolume = setting_music.effectVolume || 100;
 	
 	
 	//游戏设置
@@ -795,6 +817,44 @@ function readSetting(){
 		$(form_music.effect_custom).parent().parent().hide();
 	}
 	
+	//滑块
+	layui.use("slider", function(){
+		const slider = layui.slider;
+		
+		//渲染
+		bgmVolumeSliderValue = setting_music.bgmVolume;
+		slider.render({
+			elem: "#bgmVolume",
+			min: 0,
+			max: 100,
+			value: setting_music.bgmVolume,
+			input: true,
+			tips: true,
+			setTips(value){
+				return value + "%";
+			},
+			change(value){
+				bgmVolumeSliderValue = value;
+			}
+		});
+		
+		effectVolumeSliderValue = setting_music.effectVolume;
+		slider.render({
+			elem: "#effectVolume",
+			min: 0,
+			max: 100,
+			value: setting_music.effectVolume,
+			input: true,
+			tips: true,
+			setTips(value){
+				return value + "%";
+			},
+			change(value){
+				effectVolumeSliderValue = value;
+			}
+		});
+	});
+	
 	//语言设置
 	form_language.language.value = LANG_TYPE;
 	
@@ -803,6 +863,7 @@ function readSetting(){
 		const form = layui.form;
 		form.render(); //重绘
 	});
+	
 	saveSetting(); //保存设置
 }
 readSetting();
@@ -925,8 +986,9 @@ function readRecord(){
 			$("<td></td>").html(game_record.two.total)
 				.css("border-top-width", "4px")
 		).append(
-			$("<td></td>").html(Math.round(game_record.two.win / game_record.two.total*100, 2) + "%")
+			$("<td></td>").html(Math.round(game_record.two.win / game_record.two.total*100, 2) + "%<br>(" + Math.round((game_record.two.win+1) / (game_record.two.total+2)*100, 2) + "%)")
 				.css("border-top-width", "4px")
+				.css("font-weight", "bold")
 		)
 	);
 	
@@ -1028,8 +1090,9 @@ function readRecord(){
 			$("<td></td>").html(game_record.three.total)
 				.css("border-top-width", "4px")
 		).append(
-			$("<td></td>").html(Math.round(game_record.three.win / game_record.three.total*100, 2) + "%")
+			$("<td></td>").html(Math.round(game_record.three.win / game_record.three.total*100, 2) + "%<br>(" + Math.round((game_record.three.win+1) / (game_record.three.total+2)*100, 2) + "%)")
 				.css("border-top-width", "4px")
+				.css("font-weight", "bold")
 		)
 	);
 	
@@ -1131,8 +1194,9 @@ function readRecord(){
 			$("<td></td>").html(game_record.four.total)
 				.css("border-top-width", "4px")
 		).append(
-			$("<td></td>").html(Math.round(game_record.four.win / game_record.four.total*100, 2) + "%")
+			$("<td></td>").html(Math.round(game_record.four.win / game_record.four.total*100, 2) + "%<br>(" + Math.round((game_record.four.win+1) / (game_record.four.total+2)*100, 2) + "%)")
 				.css("border-top-width", "4px")
+				.css("font-weight", "bold")
 		)
 	);
 }
@@ -1391,6 +1455,8 @@ $("#settings button.save").click(function(){
 	}else{
 		setting_music.effect = form_music.effect.value;
 	}
+	setting_music.bgmVolume = bgmVolumeSliderValue;
+	setting_music.effectVolume = effectVolumeSliderValue;
 	
 	//删除临时音频
 	if (typeof plus != "undefined"){
@@ -1401,15 +1467,7 @@ $("#settings button.save").click(function(){
 		}, false);
 	}
 	
-	if (form_language.language.value != LANG_TYPE){
-		LANG_TYPE = form_language.language.value;
-		saveSetting();
-		if (typeof plus != "undefined"){
-			plus.runtime.restart();
-		}else{
-			location.reload();
-		}
-	}
+	LANG_TYPE = form_language.language.value;
 	
 	saveSetting();
 	layer.msg("设置成功");
