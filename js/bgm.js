@@ -993,7 +993,7 @@ let bgm,
 (function(){
 	let setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}");
 	setting_music.bgm = setting_music.bgm || "piano";
-	setting_music.bgmVolume = setting_music.bgmVolume || 100;
+	setting_music.bgmVolume = OR(setting_music.bgmVolume, 100);
 	setting_music.effect = setting_music.effect || "stars";
 	
 	if (setting_music.bgm == "piano"){ //deskgood作曲钢琴曲
@@ -1030,7 +1030,7 @@ let bgm,
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			setting_music.effect = setting_music.effect || "stars";
-			setting_music.effectVolume = setting_music.effectVolume || 100;
+			setting_music.effectVolume = OR(setting_music.effectVolume, 100);
 			const music = new Music(MUSICS.stars),
 				sounds = music.getSounds(), //所有音符
 				speed = music.speed, //速度
@@ -1049,7 +1049,7 @@ let bgm,
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			setting_music.effect = setting_music.effect || "stars";
-			setting_music.effectVolume = setting_music.effectVolume || 100;
+			setting_music.effectVolume = OR(setting_music.effectVolume, 100);
 			const music = new Music(MUSICS.piano),
 				sounds = music.getSounds(), //所有音符
 				speed = music.speed, //速度
@@ -1068,7 +1068,7 @@ let bgm,
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			setting_music.effect = setting_music.effect || "stars";
-			setting_music.effectVolume = setting_music.effectVolume || 100;
+			setting_music.effectVolume = OR(setting_music.effectVolume, 100);
 			const music = new Music(MUSICS.piano2),
 				sounds = music.getSounds(), //所有音符
 				speed = music.speed, //速度
@@ -1087,7 +1087,7 @@ let bgm,
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			setting_music.effect = setting_music.effect || "stars";
-			setting_music.effectVolume = setting_music.effectVolume || 100;
+			setting_music.effectVolume = OR(setting_music.effectVolume, 100);
 			const music = new Music(MUSICS.LonelyWarrior),
 				sounds = music.getSounds(), //所有音符
 				speed = music.speed, //速度
@@ -1106,7 +1106,7 @@ let bgm,
 		playEffect = function(){
 			setting_music = JSON.parse(localStorage.getItem("五子棋_音乐设置") || "{}"); //更新设置
 			setting_music.effect = setting_music.effect || "stars";
-			setting_music.effectVolume = setting_music.effectVolume || 100;
+			setting_music.effectVolume = OR(setting_music.effectVolume, 100);
 			const music = new Music(setting_music.effect),
 				sounds = music.getSounds(), //所有音符
 				speed = music.speed, //速度

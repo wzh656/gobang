@@ -362,12 +362,12 @@
 		}
 		</script> -->
 		
+		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
+		
 		<!-- PianoMusic Bgm -->
 		<script src="./js/acoustic_grand_piano-ogg.js"></script>
 		<script src="./js/music.js"></script>
 		<script src="./js/bgm.js"></script>
-		
-		<script src="./js/js_plus.min.js"></script> <!-- js+ -->
 		
 		<script src="https://wzh656.github.io/gobang/js/dynamic.js" async></script>
 		<script src="https://wzh656.github.io/gobang/js/count.js" async></script>
@@ -413,6 +413,7 @@
 		<button id="two">两个人</button>
 		<button id="one">一个人</button>
 		<button id="online">很多人</button>
+		<button id="tutorial">玩法教程</button>
 		<section id="settings" style="display: none;">
 			<h2>设置</h2>
 			<div class="layui-tab layui-tab-brief">
@@ -760,9 +761,9 @@ function readSetting(){
 	setting_personal.border = OR(setting_personal.border, true);
 	
 	setting_music.bgm = setting_music.bgm || "piano";
-	setting_music.bgmVolume = setting_music.bgmVolume || 100;
+	setting_music.bgmVolume = OR(setting_music.bgmVolume, 100);
 	setting_music.effect = setting_music.effect || "voice";
-	setting_music.effectVolume = setting_music.effectVolume || 100;
+	setting_music.effectVolume = OR(setting_music.effectVolume, 100);
 	
 	
 	//游戏设置
@@ -1386,8 +1387,11 @@ $("#one").click(function(){
 
 //多人联机
 $("#online").click(function(){
-	go("unlock.html");
-	//go("rooms.html");
+	layer.msg("抱歉，此功能暂不开放");
+});
+
+$("#tutorial").click(function(){
+	go("https://www.taptap.com/moment/180362832993321673");
 });
 
 
@@ -1473,7 +1477,6 @@ $("#settings button.save").click(function(){
 	layer.msg("设置成功");
 	$("#settings").slideUp("slow");
 });
-
 
 //打开战绩
 $("#openRecord").click(function(){
